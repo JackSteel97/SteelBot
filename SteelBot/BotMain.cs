@@ -93,8 +93,7 @@ namespace SteelBot
             Commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 Services = ServiceProvider,
-                PrefixResolver = ResolvePrefix,
-                UseDefaultCommandHandler = false
+                PrefixResolver = ResolvePrefix
             });
 
             Commands.RegisterCommands<ConfigCommands>();
@@ -149,41 +148,11 @@ namespace SteelBot
 
         private async Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
         {
-#if DEBUG
-            DateTime start = DateTime.UtcNow;
-            DateTime end = default;
-#endif
             try
             {
                 if (args.Guild != null)
                 {
                     await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.Author.Id);
-
-                    int prefixLength = await ResolvePrefix(args.Message);
-                    if (prefixLength > 0)
-                    {
-                        string prefix = args.Message.Content.Substring(0, prefixLength);
-                        string command = args.Message.Content[prefixLength..];
-
-                        var cmd = Commands.FindCommand(command, out string cmdArgs);
-
-                        if (cmd != null)
-                        {
-                            // Start typing, we don't care about waiting for confirmation here because it just slows us down.
-                            _ = args.Channel.TriggerTypingAsync();
-                            var ctx = Commands.CreateContext(args.Message, prefix, cmd, cmdArgs);
-
-                            await Commands.ExecuteCommandAsync(ctx);
-                        }
-                        else
-                        {
-                            _ = args.Channel.SendMessageAsync(embed: EmbedGenerator.Error(AppConfigurationService.Application.UnknownCommandResponse));
-                        }
-#if DEBUG
-                        end = DateTime.UtcNow;
-#endif
-                    }
-
                     await DataHelpers.Stats.HandleNewMessage(args);
                 }
             }
@@ -191,13 +160,6 @@ namespace SteelBot
             {
                 await Log(ex, nameof(HandleMessageCreated));
             }
-#if DEBUG
-            if (end != default)
-            {
-                TimeSpan receiveLatency = (start - args.Message.Timestamp);
-                _ = args.Channel.SendMessageAsync($"Discord Latency: `{receiveLatency.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Millisecond)}`\nProcessing Time: `{(end - start).Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Millisecond)}`");
-            }
-#endif
         }
 
         private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
