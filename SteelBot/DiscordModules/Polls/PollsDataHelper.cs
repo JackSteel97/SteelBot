@@ -39,7 +39,7 @@ namespace SteelBot.DiscordModules.Polls
             }
 
             Poll poll = new Poll(title, user.RowId, messageId, options.ToList(), channelId, lockedPoll);
-            await Cache.Polls.InsertPoll(poll);
+            await Cache.Polls.InsertPoll(poll, user);
             return (true, null);
         }
 

@@ -10,6 +10,7 @@ namespace SteelBot.Database.Models
 
         [MaxLength(255)]
         public string Title { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public ulong MessageId { get; set; }
         public ulong ChannelId { get; set; }
@@ -26,10 +27,10 @@ namespace SteelBot.Database.Models
         /// </summary>
         public Poll() { }
 
-        public Poll(string title, long userRowId, ulong messageId, List<string> options, ulong channelId, bool lockedPoll = false)
+        public Poll(string title, long pollCreatorId, ulong messageId, List<string> options, ulong channelId, bool lockedPoll = false)
         {
             Title = title;
-            UserRowId = userRowId;
+            UserRowId = pollCreatorId;
             MessageId = messageId;
             Options = new List<PollOption>();
             ChannelId = channelId;

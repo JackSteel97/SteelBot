@@ -105,7 +105,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        public async Task InsertPoll(Poll poll)
+        public async Task InsertPoll(Poll poll, User owner)
         {
             Logger.LogInformation($"Writing a new Poll [{poll.Title}] for Message [{poll.MessageId}] to the database.");
 
@@ -118,6 +118,7 @@ namespace SteelBot.DataProviders.SubProviders
 
             if (writtenCount > 0)
             {
+                poll.PollCreator = owner;
                 AddPollToInternalCache(poll);
             }
             else
@@ -156,6 +157,7 @@ namespace SteelBot.DataProviders.SubProviders
                 // To prevent EF tracking issue, grab and alter existing value.
                 Poll original = db.Polls.First(u => u.RowId == newPoll.RowId);
                 db.Entry(original).CurrentValues.SetValues(newPoll);
+                db.Polls.Update(original);
                 writtenCount = await db.SaveChangesAsync();
             }
 

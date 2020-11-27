@@ -296,6 +296,7 @@ namespace SteelBot.DataProviders.SubProviders
                 // To prevent EF tracking issue, grab and alter existing value.
                 User original = db.Users.First(u => u.RowId == newUser.RowId);
                 db.Entry(original).CurrentValues.SetValues(newUser);
+                db.Users.Update(original);
                 writtenCount = await db.SaveChangesAsync();
             }
 

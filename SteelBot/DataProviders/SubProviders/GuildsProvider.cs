@@ -126,6 +126,7 @@ namespace SteelBot.DataProviders.SubProviders
                 // To avoid EF tracking issue, grab and alter existing entity.
                 Guild original = db.Guilds.First(u => u.RowId == guild.RowId);
                 db.Entry(original).CurrentValues.SetValues(guild);
+                db.Guilds.Update(original);
                 writtenCount = await db.SaveChangesAsync();
             }
             if (writtenCount > 0)

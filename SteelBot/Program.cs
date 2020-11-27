@@ -48,7 +48,9 @@ namespace SteelBot
             });
 
             // Database DI.
-            serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseSqlServer(appConfigurationService.Database.ConnectionString));
+            serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseSqlServer(appConfigurationService.Database.ConnectionString)
+            .EnableSensitiveDataLogging(Environment.Equals("Development"))
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
 
             ConfigureCustomServices(serviceProvider);
             ConfigureDataProviders(serviceProvider);
