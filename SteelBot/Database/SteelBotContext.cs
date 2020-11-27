@@ -40,6 +40,10 @@ namespace SteelBot.Database
             {
                 entity.HasKey(u => u.RowId);
                 entity.Ignore(u => u.TotalXp);
+                entity.Ignore(u => u.TimeSpentInVoice);
+                entity.Ignore(u => u.TimeSpentDeafened);
+                entity.Ignore(u => u.TimeSpentMuted);
+                entity.Ignore(u => u.TimeSpentStreaming);
             });
 
             modelBuilder.Entity<SelfRole>(entity =>

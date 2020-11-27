@@ -12,10 +12,10 @@ namespace SteelBot.Database.Models
         public ulong DiscordId { get; set; }
         public long MessageCount { get; set; }
         public ulong TotalMessageLength { get; set; }
-        public TimeSpan TimeSpentInVoice { get; set; }
-        public TimeSpan TimeSpentMuted { get; set; }
-        public TimeSpan TimeSpentDeafened { get; set; }
-        public TimeSpan TimeSpentStreaming { get; set; }
+        public ulong TimeSpentInVoiceSeconds { get; set; }
+        public ulong TimeSpentMutedSeconds { get; set; }
+        public ulong TimeSpentDeafenedSeconds { get; set; }
+        public ulong TimeSpentStreamingSeconds { get; set; }
         public DateTime LastCommandReceived { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
@@ -42,6 +42,58 @@ namespace SteelBot.Database.Models
                 return MessageXpEarned + ActivityXpEarned;
             }
         }
+
+        #region TimeSpan Computers
+
+        public TimeSpan TimeSpentInVoice
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentInVoiceSeconds);
+            }
+            set
+            {
+                TimeSpentInVoiceSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        public TimeSpan TimeSpentMuted
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentMutedSeconds);
+            }
+            set
+            {
+                TimeSpentMutedSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        public TimeSpan TimeSpentDeafened
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentDeafenedSeconds);
+            }
+            set
+            {
+                TimeSpentDeafenedSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        public TimeSpan TimeSpentStreaming
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentStreamingSeconds);
+            }
+            set
+            {
+                TimeSpentStreamingSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        #endregion TimeSpan Computers
 
         /// <summary>
         ///  Empty constructor.
