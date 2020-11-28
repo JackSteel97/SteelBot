@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Humanizer;
 using DSharpPlus.Entities;
+using System.Reflection;
+using SteelBot.Services.Configuration;
+using System.IO;
 
 namespace SteelBot.DiscordModules.Secret
 {
@@ -16,16 +19,18 @@ namespace SteelBot.DiscordModules.Secret
     [GuildCheck(782237087352356876)]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 3;
+        private const int NumberOfQuestions = 7;
         private readonly List<string> NumberWords;
+        private readonly AppConfigurationService AppConfigurationService;
 
-        public PuzzleCommands()
+        public PuzzleCommands(AppConfigurationService appConfigurationService)
         {
             NumberWords = new List<string>();
             for (int i = 1; i <= NumberOfQuestions; i++)
             {
                 NumberWords.Add(i.ToWords());
             }
+            AppConfigurationService = appConfigurationService;
         }
 
         [Command("Puzzle")]
@@ -122,13 +127,21 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("It's not easter yet, is it?"));
                     break;
 
+                case 6:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Do you have dyslexia?"));
+                    break;
+
+                case 7:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("These fatty acids all have single bonds."));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
             }
         }
 
-        private static async Task PostPuzzle(CommandContext context, int puzzleNumber)
+        private async Task PostPuzzle(CommandContext context, int puzzleNumber)
         {
             switch (puzzleNumber)
             {
@@ -150,6 +163,14 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 5:
                     await context.RespondAsync(embed: EmbedGenerator.Primary("Copy your name till you can't get further."));
+                    break;
+
+                case 6:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Jumbled.jpg"));
+                    break;
+
+                case 7:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Hugh.jpg"));
                     break;
 
                 default:
@@ -176,6 +197,12 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 5:
                     return "BEYOND GODLIKE";
+
+                case 6:
+                    return "Want";
+
+                case 7:
+                    return "Armstrong";
 
                 default:
                     return null;

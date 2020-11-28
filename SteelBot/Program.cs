@@ -19,6 +19,7 @@ using SteelBot.DataProviders.SubProviders;
 using SteelBot.DataProviders;
 using System.Reflection;
 using SteelBot.DiscordModules.RankRoles;
+using System.IO;
 
 namespace SteelBot
 {
@@ -37,6 +38,8 @@ namespace SteelBot
             configuration.Bind("AppConfig", appConfigurationService);
             appConfigurationService.Environment = Environment;
             appConfigurationService.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            appConfigurationService.BasePath = Directory.GetCurrentDirectory();
+
             serviceProvider.AddSingleton(appConfigurationService);
 
             // Logging setup.

@@ -10,5 +10,6 @@ namespace SteelBot.Services.Configuration
         public DatabaseConfig Database { get; set; }
         public string Environment { get; set; }
         public string Version { get; set; }
+        public string BasePath { get; set; }
     }
 }
