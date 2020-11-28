@@ -46,7 +46,7 @@ namespace SteelBot.DiscordModules.Polls
                 return;
             }
 
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = DataHelper.Polls.GeneratePollEmbedBuilder(title, options, context.User, out DiscordEmoji[] reactions);
+            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, out DiscordEmoji[] reactions);
 
             var sentMessage = await context.RespondAsync(embed: builder.Build());
 
@@ -115,7 +115,7 @@ namespace SteelBot.DiscordModules.Polls
             }
             if (poll.IsLockedPoll)
             {
-                if (!DataHelper.Polls.UserHasEditPermissionOnPoll(poll, context.Member, context.Channel, context.Client.CurrentUser.Id))
+                if (!PollsDataHelper.UserHasEditPermissionOnPoll(poll, context.Member, context.Channel, context.Client.CurrentUser.Id))
                 {
                     await context.RespondAsync(embed: EmbedGenerator.Warning("This poll is locked, only the creator can add options."));
                     return;
@@ -125,7 +125,7 @@ namespace SteelBot.DiscordModules.Polls
             Poll updatedPoll = await DataHelper.Polls.AddOptionToPoll(poll, newOption);
 
             var pollAuthor = context.User;
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = DataHelper.Polls.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
+            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
                 pollAuthor, out DiscordEmoji[] reactions);
 
             var channel = await context.Client.GetChannelAsync(updatedPoll.ChannelId);
@@ -186,7 +186,7 @@ namespace SteelBot.DiscordModules.Polls
             Poll updatedPoll = await DataHelper.Polls.RemoveOptionFromPoll(poll, optionToRemove);
 
             var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = DataHelper.Polls.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
+            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
                 pollAuthor, out DiscordEmoji[] reactions);
 
             var channel = context.Guild.GetChannel(updatedPoll.ChannelId);

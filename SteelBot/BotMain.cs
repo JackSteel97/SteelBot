@@ -193,17 +193,13 @@ namespace SteelBot
         {
             if (args.Exception is ChecksFailedException ex)
             {
-                if (ex.FailedChecks.Count > 0)
+                foreach (var failedCheck in ex.FailedChecks)
                 {
-                    CheckBaseAttribute failedCheck = ex.FailedChecks[0];
-                    if (failedCheck != null)
+                    if (failedCheck is CooldownAttribute cooldown)
                     {
-                        if (failedCheck is CooldownAttribute cooldown)
-                        {
-                            await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                                .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
-                            return;
-                        }
+                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                            .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
+                        return;
                     }
                 }
             }

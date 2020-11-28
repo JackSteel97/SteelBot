@@ -1,4 +1,5 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Database.Models;
@@ -16,11 +17,11 @@ namespace SteelBot.DiscordModules.Roles
     [RequireGuild]
     public class RolesCommands : BaseCommandModule
     {
-        private readonly DataHelpers DataHelper;
+        private readonly DataHelpers DataHelpers;
 
         public RolesCommands(DataHelpers dataHelper)
         {
-            DataHelper = dataHelper;
+            DataHelpers = dataHelper;
         }
 
         [Command("JoinRole")]
@@ -29,7 +30,7 @@ namespace SteelBot.DiscordModules.Roles
         public async Task JoinRole(CommandContext context, string roleName)
         {
             // Check role is a self role.
-            if (!DataHelper.Roles.IsSelfRole(context.Guild.Id, roleName))
+            if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid self role"));
                 return;
@@ -53,7 +54,7 @@ namespace SteelBot.DiscordModules.Roles
         public async Task LeaveRole(CommandContext context, string roleName)
         {
             // Check role is a self role.
-            if (!DataHelper.Roles.IsSelfRole(context.Guild.Id, roleName))
+            if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid self role"));
                 return;
@@ -76,12 +77,12 @@ namespace SteelBot.DiscordModules.Roles
         [Description("Displays the available self roles on this server.")]
         public Task ViewSelfRoles(CommandContext context)
         {
-            List<SelfRole> allRoles = DataHelper.Roles.GetSelfRoles(context.Guild.Id);
+            List<SelfRole> allRoles = DataHelpers.Roles.GetSelfRoles(context.Guild.Id);
             if (allRoles == null || allRoles.Count == 0)
             {
                 return context.RespondAsync(embed: EmbedGenerator.Warning("There are no self roles available.\nAsk your administrator to create some!"));
             }
-            string prefix = DataHelper.Config.GetPrefix(context.Guild.Id);
+            string prefix = DataHelpers.Config.GetPrefix(context.Guild.Id);
 
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
@@ -90,10 +91,64 @@ namespace SteelBot.DiscordModules.Roles
 
             foreach (SelfRole role in allRoles)
             {
-                builder.AddField($"Name: {role.RoleName}", role.Description);
+                if (!role.Hidden)
+                {
+                    builder.AddField($"Name: {role.RoleName}", role.Description);
+                }
             }
 
             return context.RespondAsync(embed: builder.Build());
+        }
+
+        [Command("SetSelfRole")]
+        [Aliases("CreateSelfRole", "ssr")]
+        [Description("Sets the given role as a self role that users can join themselves.")]
+        [RequireUserPermissions(Permissions.ManageRoles)]
+        public async Task SetSelfRole(CommandContext context, string roleName, string description, bool hidden = false)
+        {
+            if (roleName.Length > 255)
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("The role name must be 255 characters or less."));
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("No valid role name provided."));
+                return;
+            }
+            if (description.Length > 255)
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("The role description must be 255 characters or less."));
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("No valid description provided."));
+                return;
+            }
+            if (!context.Guild.Roles.Values.Any(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("You must create the role in the server first."));
+                return;
+            }
+            if (DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"The self role **{roleName}** already exists. Delete it first if you want to change it."));
+                return;
+            }
+
+            await DataHelpers.Roles.CreateSelfRole(context.Guild.Id, roleName, description, hidden);
+            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** created!"));
+        }
+
+        [Command("RemoveSelfRole")]
+        [Aliases("DeleteSelfRole", "rsr")]
+        [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
+        [RequireUserPermissions(Permissions.ManageRoles)]
+        public async Task RemoveSelfRole(CommandContext context, string roleName)
+        {
+            await DataHelpers.Roles.DeleteSelfRole(context.Guild.Id, roleName);
+            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** deleted!"));
         }
     }
 }

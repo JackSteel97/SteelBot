@@ -48,25 +48,5 @@ namespace SteelBot.DiscordModules.Config
         {
             return AppConfigurationService.Version;
         }
-
-        public async Task CreateSelfRole(ulong guildId, string roleName, string description)
-        {
-            Logger.LogInformation($"Request to create self role [{roleName}] in Guild [{guildId}] received.");
-            if (Cache.Guilds.TryGetGuild(guildId, out Guild guild))
-            {
-                SelfRole role = new SelfRole(roleName, guild.RowId, description);
-                await Cache.SelfRoles.AddRole(guildId, role);
-            }
-            else
-            {
-                Logger.LogWarning($"Could not create self role because Guild [{guild}] does not exist");
-            }
-        }
-
-        public async Task DeleteSelfRole(ulong guildId, string roleName)
-        {
-            Logger.LogInformation($"Request to delete self role [{roleName}] in Guild [{guildId}] received.");
-            await Cache.SelfRoles.RemoveRole(guildId, roleName);
-        }
     }
 }

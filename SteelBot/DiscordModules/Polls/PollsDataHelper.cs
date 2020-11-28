@@ -73,7 +73,7 @@ namespace SteelBot.DiscordModules.Polls
             return updatedPoll;
         }
 
-        public (DiscordEmbedBuilder builder, StringBuilder optionBuilder) GeneratePollEmbedBuilder(string title, string[] options, DiscordUser creator, out DiscordEmoji[] reactions)
+        public static (DiscordEmbedBuilder builder, StringBuilder optionBuilder) GeneratePollEmbedBuilder(string title, string[] options, DiscordUser creator, out DiscordEmoji[] reactions)
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.PrimaryColour)
                .WithAuthor(creator.Username, null, creator.AvatarUrl)
@@ -93,7 +93,7 @@ namespace SteelBot.DiscordModules.Polls
             return (builder, optionString);
         }
 
-        public bool UserHasEditPermissionOnPoll(Poll poll, DiscordMember user, DiscordChannel channel, ulong botUserId)
+        public static bool UserHasEditPermissionOnPoll(Poll poll, DiscordMember user, DiscordChannel channel, ulong botUserId)
         {
             if (poll == null || user == null)
             {

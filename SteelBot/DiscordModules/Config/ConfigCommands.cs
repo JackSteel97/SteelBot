@@ -59,43 +59,6 @@ namespace SteelBot.DiscordModules.Config
             await context.RespondAsync(embed: EmbedGenerator.Success($"Prefix changed to **{newPrefix}**"));
         }
 
-        [Command("SetSelfRole")]
-        [Aliases("CreateSelfRole", "ssr")]
-        [Description("Sets the given role as a self role that users can join themselves.")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
-        public async Task SetSelfRole(CommandContext context, string roleName, string description = "")
-        {
-            if (roleName.Length > 255)
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("The role name must be 255 characters or less."));
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(roleName))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("No valid role name provided."));
-                return;
-            }
-
-            if (!context.Guild.Roles.Values.Any(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("You must create the role in the server first."));
-                return;
-            }
-
-            await DataHelpers.Config.CreateSelfRole(context.Guild.Id, roleName, description);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** created!"));
-        }
-
-        [Command("RemoveSelfRole")]
-        [Aliases("DeleteSelfRole", "rsr")]
-        [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
-        public async Task RemoveSelfRole(CommandContext context, string roleName)
-        {
-            await DataHelpers.Config.DeleteSelfRole(context.Guild.Id, roleName);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** deleted!"));
-        }
-
         [Command("SetLevelChannel")]
         [Description("Set the channel to use to notify users of level-ups")]
         [RequireUserPermissions(Permissions.Administrator)]

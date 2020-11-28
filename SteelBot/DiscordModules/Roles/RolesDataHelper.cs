@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles
 {
@@ -13,13 +14,11 @@ namespace SteelBot.DiscordModules.Roles
     {
         private readonly ILogger<RolesDataHelper> Logger;
         private readonly DataCache Cache;
-        private readonly AppConfigurationService AppConfigurationService;
 
-        public RolesDataHelper(ILogger<RolesDataHelper> logger, DataCache cache, AppConfigurationService appConfigurationService)
+        public RolesDataHelper(ILogger<RolesDataHelper> logger, DataCache cache)
         {
             Logger = logger;
             Cache = cache;
-            AppConfigurationService = appConfigurationService;
         }
 
         public bool IsSelfRole(ulong guildId, string roleName)
@@ -32,9 +31,29 @@ namespace SteelBot.DiscordModules.Roles
             List<SelfRole> result = null;
             if (Cache.SelfRoles.TryGetGuildRoles(guildId, out Dictionary<string, SelfRole> roles))
             {
-                result = roles.Values.OrderBy(r=>r.RoleName).ToList();
+                result = roles.Values.OrderBy(r => r.RoleName).ToList();
             }
             return result;
+        }
+
+        public async Task CreateSelfRole(ulong guildId, string roleName, string description, bool hidden)
+        {
+            Logger.LogInformation($"Request to create self role [{roleName}] in Guild [{guildId}] received.");
+            if (Cache.Guilds.TryGetGuild(guildId, out Guild guild))
+            {
+                SelfRole role = new SelfRole(roleName, guild.RowId, description, hidden);
+                await Cache.SelfRoles.AddRole(guildId, role);
+            }
+            else
+            {
+                Logger.LogWarning($"Could not create self role because Guild [{guild}] does not exist");
+            }
+        }
+
+        public async Task DeleteSelfRole(ulong guildId, string roleName)
+        {
+            Logger.LogInformation($"Request to delete self role [{roleName}] in Guild [{guildId}] received.");
+            await Cache.SelfRoles.RemoveRole(guildId, roleName);
         }
     }
 }
