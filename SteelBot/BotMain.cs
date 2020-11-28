@@ -16,6 +16,7 @@ using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.Roles;
+using SteelBot.DiscordModules.Secret;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.Helpers;
@@ -101,6 +102,7 @@ namespace SteelBot
             Commands.RegisterCommands<RolesCommands>();
             Commands.RegisterCommands<StatsCommands>();
             Commands.RegisterCommands<UtilityCommands>();
+            Commands.RegisterCommands<PuzzleCommands>();
         }
 
         private void InitInteractivity()
