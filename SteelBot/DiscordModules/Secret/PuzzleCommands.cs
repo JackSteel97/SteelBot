@@ -118,6 +118,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("Yeah, took about 8 hours from heathrow though."));
                     break;
 
+                case 5:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("It's not easter yet, is it?"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
@@ -144,6 +148,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists??"));
                     break;
 
+                case 5:
+                    await context.RespondAsync(embed: EmbedGenerator.Primary("Copy your name till you can't get further."));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -165,6 +173,9 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 4:
                     return "Timbuktu";
+
+                case 5:
+                    return "BEYOND GODLIKE";
 
                 default:
                     return null;
