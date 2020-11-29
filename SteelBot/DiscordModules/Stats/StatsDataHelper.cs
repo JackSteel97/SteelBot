@@ -24,7 +24,7 @@ namespace SteelBot.DiscordModules.Stats
             Cache = cache;
         }
 
-        public async Task HandleNewMessage(MessageCreateEventArgs args)
+        public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
         {
             // Update per-user message counters.
             bool levelIncreased = await Cache.Users.UpdateMessageCounters(args.Guild.Id, args.Author.Id, args.Message.Content.Length);
@@ -32,6 +32,7 @@ namespace SteelBot.DiscordModules.Stats
             {
                 await SendLevelUpMessage(args.Guild, args.Author);
             }
+            return levelIncreased;
         }
 
         public DiscordEmbedBuilder GetStatsEmbed(User user, string username)

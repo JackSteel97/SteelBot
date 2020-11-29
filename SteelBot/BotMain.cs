@@ -15,6 +15,7 @@ using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Polls;
+using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Secret;
 using SteelBot.DiscordModules.Stats;
@@ -103,6 +104,7 @@ namespace SteelBot
             Commands.RegisterCommands<StatsCommands>();
             Commands.RegisterCommands<UtilityCommands>();
             Commands.RegisterCommands<PuzzleCommands>();
+            Commands.RegisterCommands<RankRoleCommands>();
         }
 
         private void InitInteractivity()
@@ -152,10 +154,19 @@ namespace SteelBot
         {
             try
             {
+                // Only pay attention to guild messages.
                 if (args.Guild != null)
                 {
-                    await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.Author.Id);
-                    await DataHelpers.Stats.HandleNewMessage(args);
+                    // Ignore bots and the current user.
+                    if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
+                    {
+                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.Author.Id);
+                        bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
+                        if (levelUp)
+                        {
+                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -168,9 +179,12 @@ namespace SteelBot
         {
             try
             {
-                await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
+                if (args.Guild != null)
+                {
+                    await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
 
-                await DataHelpers.Stats.HandleVoiceStateChange(args);
+                    await DataHelpers.Stats.HandleVoiceStateChange(args);
+                }
             }
             catch (Exception ex)
             {
@@ -203,7 +217,18 @@ namespace SteelBot
                             .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
                         return;
                     }
+                    if (failedCheck is RequireUserPermissionsAttribute userPerms)
+                    {
+                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                            .Warning($"The `{args.Command.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
+                        return;
+                    }
                 }
+            }
+            else
+            {
+                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Primary(AppConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
+                return;
             }
         }
 

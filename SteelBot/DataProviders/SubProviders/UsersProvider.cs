@@ -107,7 +107,8 @@ namespace SteelBot.DataProviders.SubProviders
                 copyOfUser.MessageCount++;
                 copyOfUser.TotalMessageLength += Convert.ToUInt64(messageLength);
 
-                bool lastMessageWasMoreThanAMinuteAgo = copyOfUser.LastMessageSent.HasValue && (messageReceivedAt - copyOfUser.LastMessageSent.GetValueOrDefault()).TotalSeconds >= 60;
+                // Check the last message that earned xp was more than a minute ago.
+                bool lastMessageWasMoreThanAMinuteAgo = (messageReceivedAt - copyOfUser.LastXpEarningMessage.GetValueOrDefault()).TotalSeconds >= 60;
                 levelIncreased = copyOfUser.UpdateLevel(lastMessageWasMoreThanAMinuteAgo);
 
                 copyOfUser.LastActivity = messageReceivedAt;

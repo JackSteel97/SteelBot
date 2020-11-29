@@ -34,6 +34,7 @@ namespace SteelBot.Database.Models
         public int CurrentLevel { get; set; }
 
         public DateTime? LastMessageSent { get; set; }
+        public DateTime? LastXpEarningMessage { get; set; }
 
         public ulong TotalXp
         {
@@ -124,6 +125,7 @@ namespace SteelBot.Database.Models
             ActivityXpEarned = CalculateCurrentActivityXp();
             if (addMessageXp)
             {
+                LastXpEarningMessage = DateTime.UtcNow;
                 MessageXpEarned += 15;
             }
 

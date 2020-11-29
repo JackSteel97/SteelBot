@@ -124,7 +124,7 @@ namespace SteelBot.DiscordModules.Polls
 
             Poll updatedPoll = await DataHelper.Polls.AddOptionToPoll(poll, newOption);
 
-            var pollAuthor = context.User;
+            var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
             (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
                 pollAuthor, out DiscordEmoji[] reactions);
 

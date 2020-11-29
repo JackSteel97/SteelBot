@@ -82,6 +82,11 @@ namespace SteelBot.DataProviders.SubProviders
             return false;
         }
 
+        public bool TryGetGuildRankRoles(ulong guildId, out Dictionary<string, RankRole> roles)
+        {
+            return RankRolesByGuildAndRole.TryGetValue(guildId, out roles);
+        }
+
         public async Task AddRole(ulong guildId, RankRole role)
         {
             if (!BotKnowsRole(guildId, role.RoleName))
