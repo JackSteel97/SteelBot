@@ -5,11 +5,9 @@ using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Humanizer;
 using DSharpPlus.Entities;
-using System.Reflection;
 using SteelBot.Services.Configuration;
 using System.IO;
 
