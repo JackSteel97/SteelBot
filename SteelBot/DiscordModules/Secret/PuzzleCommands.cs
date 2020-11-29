@@ -34,6 +34,7 @@ namespace SteelBot.DiscordModules.Secret
         [Command("Puzzle")]
         [Aliases("Question")]
         [Description("Get the current puzzle.")]
+        [Cooldown(1, 60, CooldownBucketType.Channel)]
         public async Task Puzzle(CommandContext context)
         {
             int puzzleIndex = NumberWords.FindIndex(word => word.Equals(context.Channel.Name, StringComparison.OrdinalIgnoreCase));
@@ -46,6 +47,7 @@ namespace SteelBot.DiscordModules.Secret
         [Command("Clue")]
         [Aliases("Hint")]
         [Description("Get a clue for the current puzzle.")]
+        [Cooldown(1, 60, CooldownBucketType.Channel)]
         public async Task Clue(CommandContext context)
         {
             int puzzleIndex = NumberWords.FindIndex(word => word.Equals(context.Channel.Name, StringComparison.OrdinalIgnoreCase));
@@ -57,6 +59,7 @@ namespace SteelBot.DiscordModules.Secret
 
         [Command("Answer")]
         [Description("Attempt to answer the current puzzle.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task Answer(CommandContext context, [RemainingText] string answer)
         {
             int puzzleIndex = NumberWords.FindIndex(word => word.Equals(context.Channel.Name, StringComparison.OrdinalIgnoreCase));

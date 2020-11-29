@@ -97,7 +97,7 @@ namespace SteelBot.DiscordModules.Stats
             }
 
             var interactivity = context.Client.GetInteractivity();
-            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Character, embedBuilder);
+            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
@@ -151,7 +151,7 @@ namespace SteelBot.DiscordModules.Stats
             }
 
             var interactivity = context.Client.GetInteractivity();
-            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Character, embedBuilder);
+            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
