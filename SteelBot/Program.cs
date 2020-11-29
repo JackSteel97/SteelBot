@@ -31,7 +31,7 @@ namespace SteelBot
         {
             // Config setup.
             IConfiguration configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.{Environment}.json", false, true)
+                .AddJsonFile($"appsettings.{Environment.ToLower()}.json", false, true)
                 .Build();
 
             AppConfigurationService appConfigurationService = new AppConfigurationService();
