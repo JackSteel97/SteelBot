@@ -16,10 +16,10 @@ using System.IO;
 namespace SteelBot.DiscordModules.Secret
 {
     [RequireGuild]
-    [GuildCheck(782237087352356876)]
+    [GuildCheck(287309906137055247, 782237087352356876)]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 9;
+        private const int NumberOfQuestions = 10;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -143,6 +143,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("The perfect assassin.", "Clue"));
                     break;
 
+                case 10:
+                    await context.RespondAsync(embed: EmbedGenerator.Info($"I promise I'm not trying to scam you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
@@ -189,6 +193,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Double.mp3"));
                     break;
 
+                case 10:
+                    await context.RespondAsync(embed: EmbedGenerator.Primary("control I"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -225,6 +233,9 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 9:
                     return "Bond";
+
+                case 10:
+                    return "Hold Up!";
 
                 default:
                     return null;
