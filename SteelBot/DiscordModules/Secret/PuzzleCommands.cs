@@ -19,7 +19,7 @@ namespace SteelBot.DiscordModules.Secret
     [GuildCheck(782237087352356876)]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 7;
+        private const int NumberOfQuestions = 9;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -59,7 +59,7 @@ namespace SteelBot.DiscordModules.Secret
 
         [Command("Answer")]
         [Description("Attempt to answer the current puzzle.")]
-        public async Task Answer(CommandContext context, string answer)
+        public async Task Answer(CommandContext context, [RemainingText] string answer)
         {
             int puzzleIndex = NumberWords.FindIndex(word => word.Equals(context.Channel.Name, StringComparison.OrdinalIgnoreCase));
             if (puzzleIndex >= 0)
@@ -120,19 +120,27 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Yeah, took about 8 hours from heathrow though."));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Yeah, took about 8 hours from heathrow though.", "Clue"));
                     break;
 
                 case 5:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("It's not easter yet, is it?"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("It's not easter yet, is it?", "Clue"));
                     break;
 
                 case 6:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Do you have dyslexia?"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Do you have dyslexia?", "Clue"));
                     break;
 
                 case 7:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("These fatty acids all have single bonds."));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("These fatty acids all have single bonds.", "Clue"));
+                    break;
+
+                case 8:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Into the waves.", "Clue"));
+                    break;
+
+                case 9:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("The perfect assassin.", "Clue"));
                     break;
 
                 default:
@@ -173,6 +181,14 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Hugh.jpg"));
                     break;
 
+                case 8:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Outside.wav"));
+                    break;
+
+                case 9:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Double.mp3"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -203,6 +219,12 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 7:
                     return "Armstrong";
+
+                case 8:
+                    return "Eggs";
+
+                case 9:
+                    return "Bond";
 
                 default:
                     return null;
