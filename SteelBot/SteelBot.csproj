@@ -8,8 +8,8 @@
     <Company />
     <Copyright>Copyright</Copyright>
     <NeutralLanguage>English</NeutralLanguage>
-    <AssemblyVersion>0.1.38.7642</AssemblyVersion>
-    <FileVersion>0.1.38.7642</FileVersion>
+    <AssemblyVersion>0.1.46.7642</AssemblyVersion>
+    <FileVersion>0.1.46.7642</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

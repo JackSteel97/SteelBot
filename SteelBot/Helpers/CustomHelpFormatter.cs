@@ -7,6 +7,7 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using SteelBot.Attributes;
 using SteelBot.DiscordModules;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,25 @@ namespace SteelBot.Helpers
         private readonly ILogger<CustomHelpFormatter> Logger;
         private readonly DataHelpers DataHelpers;
         private readonly string BotPrefix;
+        private bool HasSubCommands;
 
-        public CustomHelpFormatter(CommandContext ctx, ILogger<CustomHelpFormatter> logger, DataHelpers dataHelpers) : base(ctx)
+        public CustomHelpFormatter(CommandContext ctx, ILogger<CustomHelpFormatter> logger, DataHelpers dataHelpers, AppConfigurationService appConfigurationService) : base(ctx)
         {
             Logger = logger;
             Embed = new DiscordEmbedBuilder();
             Content = new StringBuilder();
             DataHelpers = dataHelpers;
-            BotPrefix = DataHelpers.Config.GetPrefix(ctx.Guild.Id);
+            if (ctx.Guild != null)
+            {
+                BotPrefix = DataHelpers.Config.GetPrefix(ctx.Guild.Id);
+            }
+            else
+            {
+                BotPrefix = appConfigurationService.Application.DefaultCommandPrefix;
+            }
+            HasSubCommands = false;
+
+            Logger.LogInformation($"Executing Help command [{ctx.Message.Content}]");
         }
 
         public override BaseHelpFormatter WithCommand(Command command)
@@ -56,6 +68,7 @@ namespace SteelBot.Helpers
             if (command is CommandGroup)
             {
                 usageBuilder.AppendLine($"`{BotPrefix}{command.Name} <Sub-Command>`");
+                HasSubCommands = true;
             }
 
             foreach (var overload in command.Overloads)
@@ -99,6 +112,7 @@ namespace SteelBot.Helpers
                 if (cmd is CommandGroup cmdGroup)
                 {
                     Embed.AddField(Formatter.InlineCode(cmdGroup.Name.Transform(To.TitleCase)), cmdGroup.Description);
+                    HasSubCommands = true;
                 }
                 else if (cmd is Command)
                 {
@@ -120,6 +134,11 @@ namespace SteelBot.Helpers
                 .WithAuthor(name: Context.Client.CurrentUser.Username, iconUrl: Context.Client.CurrentUser.AvatarUrl)
                 .WithTitle("Help")
                 .WithDescription(Content.ToString());
+
+            if (HasSubCommands)
+            {
+                Embed.WithFooter("Specify a command for more information.");
+            }
 
             return new CommandHelpMessage(embed: Embed.Build());
         }

@@ -119,8 +119,18 @@ namespace SteelBot.DiscordModules.Stats
                 await context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet."));
                 return;
             }
+            if (top > guildUsers.Count)
+            {
+                top = guildUsers.Count;
+            }
 
-            User[] orderedByXp = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
+            // Sort by xp.
+            guildUsers.Sort((u1, u2) =>
+            {
+                return u2.TotalXp.CompareTo(u1.TotalXp);
+            });
+            // Get top x.
+            List<User> orderedByXp = guildUsers.GetRange(0, top);
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                .WithColor(EmbedGenerator.InfoColour)
@@ -128,7 +138,7 @@ namespace SteelBot.DiscordModules.Stats
                .WithTimestamp(DateTime.UtcNow);
 
             StringBuilder leaderboard = new StringBuilder();
-            for (int i = 0; i < orderedByXp.Length; i++)
+            for (int i = 0; i < orderedByXp.Count; i++)
             {
                 User user = orderedByXp[i];
 
@@ -144,7 +154,7 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"Deafened Time `{user.TimeSpentDeafened.Humanize(3)}`")
                     .AppendLine($"Deafened Time `{user.TimeSpentDeafened.Humanize(3)}`");
 
-                if (i != orderedByXp.Length - 1)
+                if (i != orderedByXp.Count - 1)
                 {
                     leaderboard.AppendLine();
                 }
