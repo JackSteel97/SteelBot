@@ -49,7 +49,7 @@ namespace SteelBot.Helpers
             return builder.Build();
         }
 
-        public static DiscordEmbed Info(string message, string title = "")
+        public static DiscordEmbed Info(string message, string title = "", string footerContent = "")
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(InfoColour)
@@ -57,6 +57,10 @@ namespace SteelBot.Helpers
             if (!string.IsNullOrWhiteSpace(title))
             {
                 builder = builder.WithTitle(title);
+            }
+            if (!string.IsNullOrWhiteSpace(footerContent))
+            {
+                builder = builder.WithFooter(footerContent);
             }
             return builder.Build();
         }

@@ -95,7 +95,7 @@ namespace SteelBot
             Commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 Services = ServiceProvider,
-                PrefixResolver = ResolvePrefix
+                PrefixResolver = ResolvePrefix,
             });
 
             Commands.RegisterCommands<ConfigCommands>();
@@ -105,6 +105,8 @@ namespace SteelBot
             Commands.RegisterCommands<UtilityCommands>();
             Commands.RegisterCommands<PuzzleCommands>();
             Commands.RegisterCommands<RankRoleCommands>();
+
+            Commands.SetHelpFormatter<CustomHelpFormatter>();
         }
 
         private void InitInteractivity()

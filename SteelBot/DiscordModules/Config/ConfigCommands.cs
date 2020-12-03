@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Config
 {
+    [Group("Configuration")]
     [Description("Bot configuration commands.")]
+    [Aliases("config", "c")]
     [RequireGuild]
     public class ConfigCommands : BaseCommandModule
     {

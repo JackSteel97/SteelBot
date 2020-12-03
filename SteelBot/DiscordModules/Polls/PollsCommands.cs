@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Polls
 {
+    [Group("Polls")]
+    [Aliases("poll", "p")]
     [Description("Commands for starting and editing polls.")]
     [RequireGuild]
     public class PollsCommands : BaseCommandModule

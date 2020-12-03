@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles
 {
+    [Group("RankRoles")]
+    [Aliases("rr")]
     [Description("Rank role management commands")]
     [RequireGuild]
     public class RankRoleCommands : BaseCommandModule

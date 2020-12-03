@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles
 {
+    [Group("SelfRoles")]
+    [Aliases("sr")]
     [Description("Self Role commands.")]
     [RequireGuild]
     public class RolesCommands : BaseCommandModule
@@ -24,8 +26,35 @@ namespace SteelBot.DiscordModules.Roles
             DataHelpers = dataHelper;
         }
 
-        [Command("JoinRole")]
-        [Aliases("jr")]
+        [GroupCommand]
+        [Description("Displays the available self roles on this server.")]
+        public Task ViewSelfRoles(CommandContext context)
+        {
+            List<SelfRole> allRoles = DataHelpers.Roles.GetSelfRoles(context.Guild.Id);
+            if (allRoles == null || allRoles.Count == 0)
+            {
+                return context.RespondAsync(embed: EmbedGenerator.Warning("There are no self roles available.\nAsk your administrator to create some!"));
+            }
+            string prefix = DataHelpers.Config.GetPrefix(context.Guild.Id);
+
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                .WithColor(EmbedGenerator.InfoColour)
+                .WithTitle("Available Self Roles")
+                .WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.");
+
+            foreach (SelfRole role in allRoles)
+            {
+                if (!role.Hidden)
+                {
+                    builder.AddField($"Name: {role.RoleName}", role.Description);
+                }
+            }
+
+            return context.RespondAsync(embed: builder.Build());
+        }
+
+        [Command("Join")]
+        [Aliases("j")]
         [Description("Joins the self role specified.")]
         public async Task JoinRole(CommandContext context, string roleName)
         {
@@ -48,8 +77,8 @@ namespace SteelBot.DiscordModules.Roles
             await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined **{roleName}**"));
         }
 
-        [Command("LeaveRole")]
-        [Aliases("lr")]
+        [Command("Leave")]
+        [Aliases("l")]
         [Description("Leaves the self role specified.")]
         public async Task LeaveRole(CommandContext context, string roleName)
         {
@@ -72,36 +101,8 @@ namespace SteelBot.DiscordModules.Roles
             await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left **{roleName}**"));
         }
 
-        [Command("SelfRoles")]
-        [Aliases("ViewSelfRoles")]
-        [Description("Displays the available self roles on this server.")]
-        public Task ViewSelfRoles(CommandContext context)
-        {
-            List<SelfRole> allRoles = DataHelpers.Roles.GetSelfRoles(context.Guild.Id);
-            if (allRoles == null || allRoles.Count == 0)
-            {
-                return context.RespondAsync(embed: EmbedGenerator.Warning("There are no self roles available.\nAsk your administrator to create some!"));
-            }
-            string prefix = DataHelpers.Config.GetPrefix(context.Guild.Id);
-
-            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Available Self Roles")
-                .WithDescription($"Use {prefix}JoinRole \"RoleName\" to join one of these roles.");
-
-            foreach (SelfRole role in allRoles)
-            {
-                if (!role.Hidden)
-                {
-                    builder.AddField($"Name: {role.RoleName}", role.Description);
-                }
-            }
-
-            return context.RespondAsync(embed: builder.Build());
-        }
-
-        [Command("SetSelfRole")]
-        [Aliases("CreateSelfRole", "ssr")]
+        [Command("Set")]
+        [Aliases("Create")]
         [Description("Sets the given role as a self role that users can join themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task SetSelfRole(CommandContext context, string roleName, string description, bool hidden = false)
@@ -141,8 +142,8 @@ namespace SteelBot.DiscordModules.Roles
             await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** created!"));
         }
 
-        [Command("RemoveSelfRole")]
-        [Aliases("DeleteSelfRole", "rsr")]
+        [Command("Remove")]
+        [Aliases("Delete")]
         [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task RemoveSelfRole(CommandContext context, string roleName)

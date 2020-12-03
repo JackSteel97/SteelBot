@@ -2,6 +2,8 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Newtonsoft.Json;
+using SteelBot.Attributes;
 using SteelBot.Helpers;
 using SteelBot.Services;
 using System;
@@ -13,7 +15,9 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Utility
 {
-    [Description("Helpful easy-access functions")]
+    [Group("Utility")]
+    [Description("Helpful functions.")]
+    [Aliases("util", "u")]
     public class UtilityCommands : BaseCommandModule
     {
         private readonly Random Rand;
@@ -24,10 +28,10 @@ namespace SteelBot.DiscordModules.Utility
         }
 
         [Command("Ping")]
+        [Description("Pings the bot.")]
         public Task Ping(CommandContext context)
         {
             string ret = DateTime.UtcNow.Millisecond % 5 == 0 ? "POG!" : "PONG!";
-
             return context.RespondAsync(embed: EmbedGenerator.Primary("", ret));
         }
 
@@ -88,7 +92,7 @@ namespace SteelBot.DiscordModules.Utility
         [Command("Speak")]
         [Description("Get the bot to post the given message in a channel.")]
         [RequireUserPermissions(Permissions.Administrator)]
-        public Task Speak(CommandContext context, DiscordChannel channel, string title, string content)
+        public Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "")
         {
             if (!context.Guild.Channels.ContainsKey(channel.Id))
             {
@@ -107,7 +111,7 @@ namespace SteelBot.DiscordModules.Utility
                 return context.RespondAsync(embed: EmbedGenerator.Error("No valid message content was provided."));
             }
 
-            return channel.SendMessageAsync(embed: EmbedGenerator.Info(content, title));
+            return channel.SendMessageAsync(embed: EmbedGenerator.Info(content, title, footerContent));
         }
     }
 }
