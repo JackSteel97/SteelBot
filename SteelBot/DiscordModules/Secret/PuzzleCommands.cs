@@ -17,7 +17,6 @@ namespace SteelBot.DiscordModules.Secret
     [Aliases("Question")]
     [RequireGuild]
     [GuildCheck(287309906137055247, 782237087352356876)]
-    [RequireRoles(RoleCheckMode.Any, "RabbitHole")]
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
