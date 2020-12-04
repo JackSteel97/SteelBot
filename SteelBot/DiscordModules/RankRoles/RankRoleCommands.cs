@@ -15,6 +15,7 @@ namespace SteelBot.DiscordModules.RankRoles
     [Aliases("rr")]
     [Description("Rank role management commands")]
     [RequireGuild]
+    [RequireUserPermissions(Permissions.ManageRoles)]
     public class RankRoleCommands : BaseCommandModule
     {
         private readonly DataHelpers DataHelpers;
@@ -27,7 +28,6 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("SetRankRole")]
         [Aliases("CreateRankRole", "srr")]
         [Description("Sets the given role as a rank role at the given level.")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task SetRankRole(CommandContext context, string roleName, int requiredRank)
         {
             if (roleName.Length > 255)
@@ -85,7 +85,6 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("RemoveRankRole")]
         [Aliases("DeleteRankRole", "rrr")]
         [Description("Removes the given role from the list of rank roles, users will no longer be granted the role when they reach the required level.")]
-        [RequireUserPermissions(Permissions.ManageRoles)]
         public async Task RemoveSelfRole(CommandContext context, string roleName)
         {
             await DataHelpers.RankRoles.DeleteRankRole(context.Guild.Id, roleName);

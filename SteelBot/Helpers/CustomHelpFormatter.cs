@@ -85,6 +85,12 @@ namespace SteelBot.Helpers
                             argumentStarter = "[";
                             argumentEnder = "]";
                         }
+                        if (argument.Type == typeof(string))
+                        {
+                            // Wrap with quotes.
+                            argumentEnder += '"';
+                            argumentStarter = $"\"{argumentStarter}";
+                        }
                         usageBuilder.Append($"{argumentStarter}{argument.Name.Humanize().Transform(To.TitleCase)}{argumentEnder} ");
                     }
                     usageBuilder.Append("`\n");

@@ -96,6 +96,7 @@ namespace SteelBot
             {
                 Services = ServiceProvider,
                 PrefixResolver = ResolvePrefix,
+                EnableDms = false
             });
 
             Commands.RegisterCommands<ConfigCommands>();
@@ -226,6 +227,12 @@ namespace SteelBot
                         return;
                     }
                 }
+            }
+            else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase))
+            {
+                Command helpCmd = Commands.FindCommand("help", out string arguments);
+                CommandContext helpCtx = Commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);
+                _ = Commands.ExecuteCommandAsync(helpCtx);
             }
             else
             {
