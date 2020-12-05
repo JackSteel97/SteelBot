@@ -210,8 +210,8 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 12:
-                    var imageStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Cow.jpg"));
-                    var zipStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inside.zip"));
+                    FileStream imageStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Cow.jpg"));
+                    FileStream zipStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inside.zip"));
                     Dictionary<string, Stream> streams = new Dictionary<string, Stream>();
                     streams.Add("Cow.jpg", imageStream);
                     streams.Add("Inside.zip", zipStream);
@@ -260,6 +260,9 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 11:
                     return "uWu";
+
+                case 12:
+                    return "Yummy";
 
                 default:
                     return null;
