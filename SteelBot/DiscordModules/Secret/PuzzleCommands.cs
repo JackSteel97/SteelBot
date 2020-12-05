@@ -246,7 +246,7 @@ namespace SteelBot.DiscordModules.Secret
                     return "Hold Up!";
 
                 case 11:
-                    return "UwU";
+                    return "uWu";
 
                 default:
                     return null;
