@@ -355,3 +355,4 @@ MigrationBackup/
 .ionide/
 *.wav
 *.mp3
+*.zip

@@ -230,14 +230,19 @@ namespace SteelBot
             }
             else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase))
             {
-                Command helpCmd = Commands.FindCommand("help", out string arguments);
+                Command helpCmd = Commands.FindCommand("help", out string _);
                 CommandContext helpCtx = Commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);
                 _ = Commands.ExecuteCommandAsync(helpCtx);
             }
-            else
+            else if (args.Exception.Message.Equals("Specified command was not found.", StringComparison.OrdinalIgnoreCase))
             {
                 await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Primary(AppConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
                 return;
+            }
+            else
+            {
+                await Log(args.Exception, args.Context.Message.Content);
+                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
             }
         }
 
@@ -245,6 +250,18 @@ namespace SteelBot
         {
             Logger.LogError(e, $"Source Method: [{source}]");
             await Cache.Exceptions.InsertException(new ExceptionLog(e, source));
+            await SendMessageToJack(e, source);
+        }
+
+        private async Task SendMessageToJack(Exception e, string source)
+        {
+            ulong civlationId = AppConfigurationService.Application.CommonServerId;
+            ulong jackId = AppConfigurationService.Application.CreatorUserId;
+
+            DiscordGuild commonServer = await Client.GetGuildAsync(civlationId);
+            DiscordMember jack = await commonServer.GetMemberAsync(jackId);
+
+            await jack.SendMessageAsync(embed: EmbedGenerator.Info($"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}", "An Error Occured", $"Source: {source}"));
         }
     }
 }

@@ -20,7 +20,7 @@ namespace SteelBot.DiscordModules.Secret
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 11;
+        private const int NumberOfQuestions = 12;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -144,11 +144,15 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 9:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("The perfect assassin.", "Clue"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("The perfect spy.", "Clue"));
                     break;
 
                 case 10:
                     await context.RespondAsync(embed: EmbedGenerator.Info($"I promise I'm not trying to scam you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
+                    break;
+
+                case 12:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("mmmmmmmmmmm.", "Clue"));
                     break;
 
                 default:
@@ -174,7 +178,7 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists, I thought it was made up??"));
+                    await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists, I thought it was made up to mean far-away??"));
                     break;
 
                 case 5:
@@ -203,6 +207,15 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 11:
                     await context.RespondAsync(embed: EmbedGenerator.Primary("Notice me Senpai"));
+                    break;
+
+                case 12:
+                    var imageStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Cow.jpg"));
+                    var zipStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inside.zip"));
+                    Dictionary<string, Stream> streams = new Dictionary<string, Stream>();
+                    streams.Add("Cow.jpg", imageStream);
+                    streams.Add("Inside.zip", zipStream);
+                    await context.RespondWithFilesAsync(streams, embed: EmbedGenerator.Primary("It's what's on the inside that counts."));
                     break;
 
                 default:
