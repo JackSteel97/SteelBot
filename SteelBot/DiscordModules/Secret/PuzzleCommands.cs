@@ -68,16 +68,17 @@ namespace SteelBot.DiscordModules.Secret
             if (puzzleIndex >= 0)
             {
                 string expectedAnswer = GetAnswer(puzzleIndex + 1);
+                await context.Message.DeleteAsync();
+
                 if (answer.Equals(expectedAnswer, StringComparison.OrdinalIgnoreCase))
                 {
                     // Correct.
-                    await context.Message.DeleteAsync();
                     await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} got the correct answer."));
                     await AdvanceUserToNextLevel(context, puzzleIndex + 1);
                 }
                 else
                 {
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("Wrong"));
+                    await context.RespondAsync(embed: EmbedGenerator.Primary($"{context.User.Mention} Incorrect"));
                 }
             }
         }
@@ -123,7 +124,7 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Yeah, took about 8 hours from heathrow though.", "Clue"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Oui, took about 8 hours from Heathrow. There's actually a whole region of the same name, they're even on GMT down there too.", "Clue"));
                     break;
 
                 case 5:
@@ -173,7 +174,7 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists??"));
+                    await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists, I thought it was made up??"));
                     break;
 
                 case 5:

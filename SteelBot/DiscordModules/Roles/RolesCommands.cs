@@ -42,13 +42,22 @@ namespace SteelBot.DiscordModules.Roles
                 .WithTitle("Available Self Roles")
                 .WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.");
 
+            StringBuilder rolesBuilder = new StringBuilder();
             foreach (SelfRole role in allRoles)
             {
                 if (!role.Hidden)
                 {
-                    builder.AddField($"Name: {role.RoleName}", role.Description);
+                    var discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
+                    string roleMention = role.RoleName;
+                    if (discordRole != default && discordRole.IsMentionable)
+                    {
+                        roleMention = discordRole.Mention;
+                    }
+                    rolesBuilder.AppendLine(Formatter.Bold(roleMention));
+                    rolesBuilder.AppendLine($" - {role.Description}");
                 }
             }
+            builder.WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.\n\n{rolesBuilder.ToString()}");
 
             return context.RespondAsync(embed: builder.Build());
         }
