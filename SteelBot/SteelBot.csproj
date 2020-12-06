@@ -8,8 +8,8 @@
     <Company />
     <Copyright>Copyright</Copyright>
     <NeutralLanguage>English</NeutralLanguage>
-    <AssemblyVersion>0.1.73.7644</AssemblyVersion>
-    <FileVersion>0.1.73.7644</FileVersion>
+    <AssemblyVersion>0.1.80.7645</AssemblyVersion>
+    <FileVersion>0.1.80.7645</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,6 +49,9 @@
     <None Update="Resources\Puzzle\Hugh.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Puzzle\Inception.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Puzzle\Inside.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -56,6 +59,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Puzzle\Outside.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Puzzle\Seven.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -20,7 +20,7 @@ namespace SteelBot.DiscordModules.Secret
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 12;
+        private const int NumberOfQuestions = 15;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -155,6 +155,18 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("mmmmmmmmmmm.", "Clue"));
                     break;
 
+                case 13:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("That's so meta.", "Clue"));
+                    break;
+
+                case 14:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("These 3 words", "Clue"));
+                    break;
+
+                case 15:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("All zipped up for the waves", "Clue"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
@@ -218,6 +230,18 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFilesAsync(streams, embed: EmbedGenerator.Primary("It's what's on the inside that counts."));
                     break;
 
+                case 13:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inception.jpg"));
+                    break;
+
+                case 14:
+                    await context.RespondAsync(embed: EmbedGenerator.Primary("perfumed deferring hotspots"));
+                    break;
+
+                case 15:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Seven.jpg"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -263,6 +287,15 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 12:
                     return "Yummy";
+
+                case 13:
+                    return "Deep";
+
+                case 14:
+                    return "Angkor Wat";
+
+                case 15:
+                    return "Apples";
 
                 default:
                     return null;
