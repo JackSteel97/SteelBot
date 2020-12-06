@@ -117,7 +117,11 @@ namespace SteelBot.Database.Models
 
         public long GetAverageMessageLength()
         {
-            return Convert.ToInt64(TotalMessageLength) / MessageCount;
+            if (MessageCount > 0)
+            {
+                return Convert.ToInt64(TotalMessageLength) / MessageCount;
+            }
+            return 0;
         }
 
         public bool UpdateLevel(bool addMessageXp = false)

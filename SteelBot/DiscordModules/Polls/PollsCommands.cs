@@ -77,14 +77,14 @@ namespace SteelBot.DiscordModules.Polls
             }
         }
 
-        [Command("StartLockedPoll")]
+        [Command("StartLocked")]
         [Description("Starts a poll that only the creator can add options to.")]
         public async Task StartLockedPoll(CommandContext context, string title, params string[] options)
         {
             await StartGenericPoll(context, title, options, true);
         }
 
-        [Command("StartPoll")]
+        [Command("Start")]
         [Description("Starts a poll with up to 10 options")]
         public async Task StartPoll(CommandContext context, string title, params string[] options)
         {

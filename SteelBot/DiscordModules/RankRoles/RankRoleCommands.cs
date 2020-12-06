@@ -25,8 +25,8 @@ namespace SteelBot.DiscordModules.RankRoles
             DataHelpers = dataHelpers;
         }
 
-        [Command("SetRankRole")]
-        [Aliases("CreateRankRole", "srr")]
+        [Command("Set")]
+        [Aliases("Create", "srr")]
         [Description("Sets the given role as a rank role at the given level.")]
         public async Task SetRankRole(CommandContext context, string roleName, int requiredRank)
         {
@@ -82,8 +82,8 @@ namespace SteelBot.DiscordModules.RankRoles
             await context.RespondAsync(embed: EmbedGenerator.Info($"**{role.Name}** Set as a Rank Role for Rank **{requiredRank}**\n\n{alreadyAchievedUsersSection}", "Rank Role Created!"));
         }
 
-        [Command("RemoveRankRole")]
-        [Aliases("DeleteRankRole", "rrr")]
+        [Command("Remove")]
+        [Aliases("Delete", "rrr")]
         [Description("Removes the given role from the list of rank roles, users will no longer be granted the role when they reach the required level.")]
         public async Task RemoveSelfRole(CommandContext context, string roleName)
         {

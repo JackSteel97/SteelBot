@@ -39,8 +39,7 @@ namespace SteelBot.DiscordModules.Roles
 
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Available Self Roles")
-                .WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.");
+                .WithTitle("Available Self Roles");
 
             StringBuilder rolesBuilder = new StringBuilder();
             foreach (SelfRole role in allRoles)
@@ -57,7 +56,7 @@ namespace SteelBot.DiscordModules.Roles
                     rolesBuilder.AppendLine($" - {role.Description}");
                 }
             }
-            builder.WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.\n\n{rolesBuilder}");
+            builder.WithDescription($"Use `{prefix}SelfRoles Join \"RoleName\"` to join one of these roles.\n\n{rolesBuilder}");
 
             return context.RespondAsync(embed: builder.Build());
         }
