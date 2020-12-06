@@ -20,7 +20,7 @@ namespace SteelBot.DiscordModules.Secret
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 15;
+        private const int NumberOfQuestions = 20;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -167,6 +167,26 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("All zipped up for the waves", "Clue"));
                     break;
 
+                case 16:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Hash brown", "Clue"));
+                    break;
+
+                case 17:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Library nerd", "Clue"));
+                    break;
+
+                case 18:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Where did we first meet?", "Clue"));
+                    break;
+
+                case 19:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Name it.", "Clue"));
+                    break;
+
+                case 20:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Got a waterproof map?", "Clue"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
@@ -224,9 +244,11 @@ namespace SteelBot.DiscordModules.Secret
                 case 12:
                     FileStream imageStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Cow.jpg"));
                     FileStream zipStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inside.zip"));
-                    Dictionary<string, Stream> streams = new Dictionary<string, Stream>();
-                    streams.Add("Cow.jpg", imageStream);
-                    streams.Add("Inside.zip", zipStream);
+                    Dictionary<string, Stream> streams = new Dictionary<string, Stream>
+                    {
+                        { "Cow.jpg", imageStream },
+                        { "Inside.zip", zipStream }
+                    };
                     await context.RespondWithFilesAsync(streams, embed: EmbedGenerator.Primary("It's what's on the inside that counts."));
                     break;
 
@@ -242,13 +264,33 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Seven.jpg"));
                     break;
 
+                case 16:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ATastyTreat.txt"));
+                    break;
+
+                case 17:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ThatDoesNotGoThere.png"));
+                    break;
+
+                case 18:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Goodbye.png"));
+                    break;
+
+                case 19:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "PrintMe.png"));
+                    break;
+
+                case 20:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "West.jpg"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
             }
         }
 
-        private string GetAnswer(int puzzleNumber)
+        private static string GetAnswer(int puzzleNumber)
         {
             switch (puzzleNumber)
             {
@@ -296,6 +338,21 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 15:
                     return "Apples";
+
+                case 16:
+                    return "unsecure";
+
+                case 17:
+                    return "Ender's Game";
+
+                case 18:
+                    return "Newcastle";
+
+                case 19:
+                    return "Drab";
+
+                case 20:
+                    return "Sea Caves";
 
                 default:
                     return null;

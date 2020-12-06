@@ -57,7 +57,7 @@ namespace SteelBot.DiscordModules.Roles
                     rolesBuilder.AppendLine($" - {role.Description}");
                 }
             }
-            builder.WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.\n\n{rolesBuilder.ToString()}");
+            builder.WithDescription($"Use {prefix} SelfRoles Join \"RoleName\" to join one of these roles.\n\n{rolesBuilder}");
 
             return context.RespondAsync(embed: builder.Build());
         }
