@@ -172,7 +172,7 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 17:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Library nerd", "Clue"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("We start from zero in this house, Library nerd", "Clue"));
                     break;
 
                 case 18:
@@ -185,6 +185,10 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 20:
                     await context.RespondAsync(embed: EmbedGenerator.Info("Got a waterproof map?", "Clue"));
+                    break;
+
+                case 21:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Purple night message received, sir!", "Clue"));
                     break;
 
                 default:
@@ -284,6 +288,14 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "West.jpg"));
                     break;
 
+                case 21:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Vietnam.png"));
+                    break;
+
+                case 22:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Trippy.jpg"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -353,6 +365,9 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 20:
                     return "Sea Caves";
+
+                case 21:
+                    return "Kerplunk";
 
                 default:
                     return null;
