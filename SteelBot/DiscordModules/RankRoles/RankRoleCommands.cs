@@ -85,7 +85,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("Remove")]
         [Aliases("Delete", "rrr")]
         [Description("Removes the given role from the list of rank roles, users will no longer be granted the role when they reach the required level.")]
-        public async Task RemoveSelfRole(CommandContext context, string roleName)
+        public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
             await DataHelpers.RankRoles.DeleteRankRole(context.Guild.Id, roleName);
             await context.RespondAsync(embed: EmbedGenerator.Success($"Rank Role **{roleName}** deleted!"));

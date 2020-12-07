@@ -64,7 +64,7 @@ namespace SteelBot.DiscordModules.Roles
         [Command("Join")]
         [Aliases("j")]
         [Description("Joins the self role specified.")]
-        public async Task JoinRole(CommandContext context, string roleName)
+        public async Task JoinRole(CommandContext context, [RemainingText] string roleName)
         {
             // Check role is a self role.
             if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
@@ -88,7 +88,7 @@ namespace SteelBot.DiscordModules.Roles
         [Command("Leave")]
         [Aliases("l")]
         [Description("Leaves the self role specified.")]
-        public async Task LeaveRole(CommandContext context, string roleName)
+        public async Task LeaveRole(CommandContext context, [RemainingText] string roleName)
         {
             // Check role is a self role.
             if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
@@ -154,7 +154,7 @@ namespace SteelBot.DiscordModules.Roles
         [Aliases("Delete")]
         [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
-        public async Task RemoveSelfRole(CommandContext context, string roleName)
+        public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
             await DataHelpers.Roles.DeleteSelfRole(context.Guild.Id, roleName);
             await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** deleted!"));

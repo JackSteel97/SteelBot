@@ -93,7 +93,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("AddOption")]
         [Description("Adds an option to the specified poll.")]
-        public async Task AddOption(CommandContext context, long pollId, string newOption)
+        public async Task AddOption(CommandContext context, long pollId, [RemainingText] string newOption)
         {
             if (string.IsNullOrWhiteSpace(newOption))
             {
@@ -153,7 +153,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("RemoveOption")]
         [Description("Removes an option from the specified poll.")]
-        public async Task RemoveOption(CommandContext context, long pollId, string optionToRemove)
+        public async Task RemoveOption(CommandContext context, long pollId, [RemainingText] string optionToRemove)
         {
             if (string.IsNullOrWhiteSpace(optionToRemove))
             {

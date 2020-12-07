@@ -45,7 +45,7 @@ namespace SteelBot.DiscordModules.Config
         [Command("SetPrefix")]
         [Description("Sets the bot command prefix for this server.")]
         [RequireUserPermissions(Permissions.Administrator)]
-        public async Task SetPrefix(CommandContext context, string newPrefix)
+        public async Task SetPrefix(CommandContext context, [RemainingText] string newPrefix)
         {
             if (newPrefix.Length > 20)
             {
