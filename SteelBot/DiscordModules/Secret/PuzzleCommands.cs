@@ -20,7 +20,7 @@ namespace SteelBot.DiscordModules.Secret
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 20;
+        private const int NumberOfQuestions = 23;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -191,6 +191,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("Purple night message received, sir!", "Clue"));
                     break;
 
+                case 22:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("We need more dimensions!", "Clue"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
                     break;
@@ -296,6 +300,17 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Trippy.jpg"));
                     break;
 
+                case 23:
+                    FileStream imageStream23 = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "LookUp.jpg"));
+                    FileStream excelStream23 = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "OhNo.xlsx"));
+                    Dictionary<string, Stream> streams23 = new Dictionary<string, Stream>
+                    {
+                        { "LookUp.jpg", imageStream23 },
+                        { "OhNo.xlsx", excelStream23 }
+                    };
+                    await context.RespondWithFilesAsync(streams23);
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -368,6 +383,12 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 21:
                     return "Kerplunk";
+
+                case 22:
+                    return "SELF DESTRUCT";
+
+                case 23:
+                    return "Absent Mind";
 
                 default:
                     return null;
