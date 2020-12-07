@@ -151,7 +151,6 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"Voice Time `{user.TimeSpentInVoice.Humanize(3)}`")
                     //.AppendLine($"Streaming Time `{user.TimeSpentStreaming.Humanize(3)}`")
                     .AppendLine($"Muted Time `{user.TimeSpentMuted.Humanize(3)}`")
-                    .AppendLine($"Deafened Time `{user.TimeSpentDeafened.Humanize(3)}`")
                     .AppendLine($"Deafened Time `{user.TimeSpentDeafened.Humanize(3)}`");
 
                 if (i != orderedByXp.Count - 1)
