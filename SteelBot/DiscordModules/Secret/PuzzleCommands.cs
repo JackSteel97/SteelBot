@@ -17,7 +17,7 @@ namespace SteelBot.DiscordModules.Secret
     [Aliases("Question")]
     [RequireGuild]
     [GuildCheck(287309906137055247, 782237087352356876)]
-    [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
+    [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.")]
     public class PuzzleCommands : BaseCommandModule
     {
         private const int NumberOfQuestions = 23;
@@ -79,6 +79,15 @@ namespace SteelBot.DiscordModules.Secret
                 else
                 {
                     await context.RespondAsync(embed: EmbedGenerator.Primary($"{context.User.Mention} Incorrect"));
+
+                    // Send audit message to me.
+                    ulong civlationId = AppConfigurationService.Application.CommonServerId;
+                    ulong jackId = AppConfigurationService.Application.CreatorUserId;
+
+                    DiscordGuild commonServer = await context.Client.GetGuildAsync(civlationId);
+                    DiscordMember jack = await commonServer.GetMemberAsync(jackId);
+
+                    await jack.SendMessageAsync(embed: EmbedGenerator.Info($"**{context.Member.Nickname ?? context.Member.Username}** submitted an incorrect answer [**{answer}**] to puzzle [**{(puzzleIndex + 1).ToWords()}**]", "Puzzle Incorrect Submission"));
                 }
             }
         }

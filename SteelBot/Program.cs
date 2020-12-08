@@ -1,6 +1,5 @@
 ﻿using DSharpPlus;
 using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using SteelBot.Services.Configuration;
@@ -9,7 +8,6 @@ using SteelBot.Services;
 using SteelBot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using DSharpPlus.CommandsNext;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Roles;

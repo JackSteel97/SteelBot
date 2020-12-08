@@ -137,7 +137,7 @@ namespace SteelBot.DiscordModules.Polls
             {
                 // Update message with id if someone could add options.
                 optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}AddOption {pollId} \"OptionText\"` to add another option to this poll.");
+                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Polls AddOption {pollId} \"OptionText\"` to add another option to this poll.");
                 builder.WithDescription(optionBuilder.ToString());
             }
 
