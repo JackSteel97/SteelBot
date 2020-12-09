@@ -17,10 +17,11 @@ namespace SteelBot.DiscordModules.Secret
     [Aliases("Question")]
     [RequireGuild]
     [GuildCheck(287309906137055247, 782237087352356876)]
-    [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.")]
+    [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
     public class PuzzleCommands : BaseCommandModule
     {
-        private const int NumberOfQuestions = 23;
+        private const string PuzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.";
+        private const int NumberOfQuestions = 28;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -35,7 +36,7 @@ namespace SteelBot.DiscordModules.Secret
         }
 
         [GroupCommand]
-        [Description("Get the current puzzle.")]
+        [Description("Get the current puzzle." + PuzzleRequirements)]
         [Cooldown(5, 60, CooldownBucketType.Channel)]
         public async Task Puzzle(CommandContext context)
         {
@@ -48,7 +49,7 @@ namespace SteelBot.DiscordModules.Secret
 
         [Command("Clue")]
         [Aliases("Hint")]
-        [Description("Get a clue for the current puzzle.")]
+        [Description("Get a clue for the current puzzle." + PuzzleRequirements)]
         [Cooldown(5, 60, CooldownBucketType.Channel)]
         public async Task Clue(CommandContext context)
         {
@@ -60,7 +61,7 @@ namespace SteelBot.DiscordModules.Secret
         }
 
         [Command("Answer")]
-        [Description("Attempt to answer the current puzzle.")]
+        [Description("Attempt to answer the current puzzle." + PuzzleRequirements)]
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task Answer(CommandContext context, [RemainingText] string answer)
         {
@@ -157,7 +158,11 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 10:
-                    await context.RespondAsync(embed: EmbedGenerator.Info($"I promise I'm not trying to scam you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info($"I promise I'm not trying to Console.Scam() you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
+                    break;
+
+                case 11:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("OwO.", "Clue"));
                     break;
 
                 case 12:
@@ -204,8 +209,20 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("We need more dimensions!", "Clue"));
                     break;
 
+                case 24:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Answer the question.", "Clue"));
+                    break;
+
+                case 25:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("You already have everything you need.", "Clue"));
+                    break;
+
+                case 28:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("Give your answer as words.", "Clue", "Use dashes to separate words (same way as the level names)."));
+                    break;
+
                 default:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("There is no clue available for this one.", "Good Luck"));
+                    await context.RespondAsync(embed: EmbedGenerator.Info("There is no extra clue available for this one.", "Good Luck"));
                     break;
             }
         }
@@ -320,6 +337,32 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFilesAsync(streams23);
                     break;
 
+                case 24:
+                    DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+                        .AddField("First", "Bell Number Four")
+                        .AddField("Second", "Lucas Number Six")
+                        .AddField("Third", "Motzkin Number Five")
+                        .AddField("Fourth", "Catalan Number Two")
+                        .AddField("Fifth", "Fibonacci Number Six");
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "DidYouTakeNotes.zip"), embed: embedBuilder.Build());
+                    break;
+
+                case 25:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ItsAllThere.mp3"));
+                    break;
+
+                case 26:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Spook.wav"));
+                    break;
+
+                case 27:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ISO8601.mp3"));
+                    break;
+
+                case 28:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "25.jpg"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -398,6 +441,21 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 23:
                     return "Absent Mind";
+
+                case 24:
+                    return "Ankle Biters";
+
+                case 25:
+                    return "Electric Eel Embrace";
+
+                case 26:
+                    return "Boop";
+
+                case 27:
+                    return DateTime.UtcNow.ToString("HH:mm");
+
+                case 28:
+                    return "Eight";
 
                 default:
                     return null;

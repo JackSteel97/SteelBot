@@ -64,8 +64,11 @@ namespace SteelBot.DiscordModules.RankRoles
                     {
                         var member = await guild.GetMemberAsync(userId);
                         var role = guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(rankRole.RoleName));
-                        await member.GrantRoleAsync(role, $"User achieved level {rankRole.LevelRequired}");
-                        await SendRankGrantedMessage(guild, member, rankRole);
+                        if (!member.Roles.Any(r => r.Id == role.Id))
+                        {
+                            await member.GrantRoleAsync(role, $"User achieved level {rankRole.LevelRequired}");
+                            await SendRankGrantedMessage(guild, member, rankRole);
+                        }
                     }
                 }
             }
