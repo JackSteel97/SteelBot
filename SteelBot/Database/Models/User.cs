@@ -16,7 +16,6 @@ namespace SteelBot.Database.Models
         public ulong TimeSpentMutedSeconds { get; set; }
         public ulong TimeSpentDeafenedSeconds { get; set; }
         public ulong TimeSpentStreamingSeconds { get; set; }
-        public DateTime LastCommandReceived { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
         public DateTime? DeafenedStartTime { get; set; }

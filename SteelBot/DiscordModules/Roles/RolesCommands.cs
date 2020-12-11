@@ -82,7 +82,8 @@ namespace SteelBot.DiscordModules.Roles
 
             // Add to user.
             await context.Member.GrantRoleAsync(role, "Requested to join Self Role.");
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined **{roleName}**"));
+            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined **{roleMention}**"));
         }
 
         [Command("Leave")]
@@ -106,7 +107,8 @@ namespace SteelBot.DiscordModules.Roles
 
             // Remove from user.
             await context.Member.RevokeRoleAsync(role, "Requested to leave Self Role.");
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left **{roleName}**"));
+            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left **{roleMention}**"));
         }
 
         [Command("Set")]

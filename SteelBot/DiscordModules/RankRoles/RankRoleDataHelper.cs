@@ -67,21 +67,22 @@ namespace SteelBot.DiscordModules.RankRoles
                         if (!member.Roles.Any(r => r.Id == role.Id))
                         {
                             await member.GrantRoleAsync(role, $"User achieved level {rankRole.LevelRequired}");
-                            await SendRankGrantedMessage(guild, member, rankRole);
+                            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+                            await SendRankGrantedMessage(guild, member, rankRole, roleMention);
                         }
                     }
                 }
             }
         }
 
-        private async Task SendRankGrantedMessage(DiscordGuild discordGuild, DiscordMember discordUser, RankRole achievedRole)
+        private async Task SendRankGrantedMessage(DiscordGuild discordGuild, DiscordMember discordUser, RankRole achievedRole, string roleMention)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild))
             {
                 if (guild.LevelAnnouncementChannelId.HasValue)
                 {
                     DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
-                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} has been granted the **{achievedRole.RoleName}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Granted!"));
+                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} has been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Granted!"));
                 }
             }
         }

@@ -120,24 +120,6 @@ namespace SteelBot.DataProviders.SubProviders
         }
 
         /// <summary>
-        /// Update the last command received date time to the current UTC time.
-        /// </summary>
-        /// <param name="guildId">Guild discord id.</param>
-        /// <param name="userId">User discord id.</param>
-        public async Task UpdateLastCommandTime(ulong guildId, ulong userId)
-        {
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogInformation($"Updating last command time for User [{userId}] in Guild [{guildId}]");
-                // Clone user to avoid making change to cache till db change confirmed.
-                User copyOfUser = user.Clone();
-                copyOfUser.LastCommandReceived = DateTime.UtcNow;
-
-                await UpdateUser(guildId, copyOfUser);
-            }
-        }
-
-        /// <summary>
         /// Set the muted state of a user to total muted time.
         /// </summary>
         /// <param name="guildId">User's Guild</param>
