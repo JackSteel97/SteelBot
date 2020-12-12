@@ -106,6 +106,7 @@ namespace SteelBot
             Commands.RegisterCommands<UtilityCommands>();
             Commands.RegisterCommands<PuzzleCommands>();
             Commands.RegisterCommands<RankRoleCommands>();
+            Commands.RegisterCommands<TriggerCommands>();
 
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }
@@ -164,11 +165,16 @@ namespace SteelBot
                     if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
                     {
                         await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.Author.Id);
-                        bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
-                        if (levelUp)
+
+                        _ = Task.Run(async () =>
                         {
-                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
-                        }
+                            bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
+                            if (levelUp)
+                            {
+                                await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
+                            }
+                            await DataHelpers.Triggers.HandleNewMessage(args.Guild.Id, args.Channel, args.Message.Content);
+                        });
                     }
                 }
             }

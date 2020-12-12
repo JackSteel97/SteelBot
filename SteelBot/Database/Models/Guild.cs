@@ -17,6 +17,8 @@ namespace SteelBot.Database.Models
         public List<SelfRole> SelfRoles { get; set; }
         public List<RankRole> RankRoles { get; set; }
 
+        public List<Trigger> Triggers { get; set; }
+
         [MaxLength(20)]
         public string CommandPrefix { get; set; }
 

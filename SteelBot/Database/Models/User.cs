@@ -35,6 +35,8 @@ namespace SteelBot.Database.Models
         public DateTime? LastMessageSent { get; set; }
         public DateTime? LastXpEarningMessage { get; set; }
 
+        public List<Trigger> CreatedTriggers { get; set; }
+
         public ulong TotalXp
         {
             get

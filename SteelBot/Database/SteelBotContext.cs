@@ -15,6 +15,7 @@ namespace SteelBot.Database
         public DbSet<Poll> Polls { get; set; }
 
         public DbSet<PollOption> PollOptions { get; set; }
+        public DbSet<Trigger> Triggers { get; set; }
 
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
 
@@ -34,6 +35,7 @@ namespace SteelBot.Database
                 entity.HasMany(g => g.UsersInGuild).WithOne(u => u.Guild).HasForeignKey(u => u.GuildRowId);
                 entity.HasMany(g => g.SelfRoles).WithOne(sr => sr.Guild).HasForeignKey(sr => sr.GuildRowId);
                 entity.HasMany(g => g.RankRoles).WithOne(rr => rr.Guild).HasForeignKey(rr => rr.GuildRowId);
+                entity.HasMany(g => g.Triggers).WithOne(t => t.Guild).HasForeignKey(t => t.GuildRowId);
             });
 
             modelBuilder.Entity<User>(entity =>
@@ -44,6 +46,8 @@ namespace SteelBot.Database
                 entity.Ignore(u => u.TimeSpentDeafened);
                 entity.Ignore(u => u.TimeSpentMuted);
                 entity.Ignore(u => u.TimeSpentStreaming);
+
+                entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<SelfRole>(entity =>
@@ -68,6 +72,11 @@ namespace SteelBot.Database
             });
 
             modelBuilder.Entity<RankRole>(entity =>
+            {
+                entity.HasKey(rr => rr.RowId);
+            });
+
+            modelBuilder.Entity<Trigger>(entity =>
             {
                 entity.HasKey(rr => rr.RowId);
             });

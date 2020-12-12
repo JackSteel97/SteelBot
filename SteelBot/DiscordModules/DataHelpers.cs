@@ -4,9 +4,6 @@ using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SteelBot.DiscordModules
 {
@@ -24,12 +21,15 @@ namespace SteelBot.DiscordModules
 
         public RankRoleDataHelper RankRoles { get; }
 
+        public TriggerDataHelper Triggers { get; }
+
         public DataHelpers(UserTrackingService userTracking,
             StatsDataHelper statsHelper,
             ConfigDataHelper configHelper,
             RolesDataHelper rolesHelper,
             PollsDataHelper pollsHelper,
-            RankRoleDataHelper rankRolesHelper)
+            RankRoleDataHelper rankRolesHelper,
+            TriggerDataHelper triggersDataHelper)
         {
             UserTracking = userTracking;
             Stats = statsHelper;
@@ -37,6 +37,7 @@ namespace SteelBot.DiscordModules
             Roles = rolesHelper;
             Polls = pollsHelper;
             RankRoles = rankRolesHelper;
+            Triggers = triggersDataHelper;
         }
     }
 }

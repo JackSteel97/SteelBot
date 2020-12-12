@@ -91,7 +91,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             if (!BotKnowsRole(guildId, role.RoleName))
             {
-                await InsertSelfRole(guildId, role);
+                await InsertRankRole(guildId, role);
             }
         }
 
@@ -99,11 +99,11 @@ namespace SteelBot.DataProviders.SubProviders
         {
             if (TryGetRole(guildId, roleName, out RankRole role))
             {
-                await DeleteSelfRole(guildId, role);
+                await DeleteRankRole(guildId, role);
             }
         }
 
-        private async Task InsertSelfRole(ulong guildId, RankRole role)
+        private async Task InsertRankRole(ulong guildId, RankRole role)
         {
             Logger.LogInformation($"Writing a new Rank Role [{role.RoleName}] for Guild [{guildId}] to the database.");
             int writtenCount;
@@ -123,7 +123,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private async Task DeleteSelfRole(ulong guildId, RankRole role)
+        private async Task DeleteRankRole(ulong guildId, RankRole role)
         {
             Logger.LogInformation($"Deleting Rank Role [{role.RoleName}] for Guild [{guildId}] from the database.");
 

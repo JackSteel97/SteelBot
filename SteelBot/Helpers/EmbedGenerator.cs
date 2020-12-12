@@ -28,11 +28,11 @@ namespace SteelBot.Helpers
             return builder.Build();
         }
 
-        public static DiscordEmbed Success(string successMessage)
+        public static DiscordEmbed Success(string successMessage, string title = "Success")
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(SuccessColour)
-                .WithTitle("Success")
+                .WithTitle(title)
                 .WithDescription(successMessage);
             return builder.Build();
         }
