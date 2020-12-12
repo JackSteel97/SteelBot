@@ -25,7 +25,7 @@ namespace SteelBot.DiscordModules.RankRoles
 
         public async Task CreateRankRole(ulong guildId, string roleName, int requiredRank)
         {
-            Logger.LogInformation($"Request to create rank role [{roleName}] in Guild [{guildId}] received");
+            Logger.LogInformation($"Request to create Rank Role [{roleName}] in Guild [{guildId}] received");
             if (Cache.Guilds.TryGetGuild(guildId, out Guild guild))
             {
                 RankRole role = new RankRole(roleName, guild.RowId, requiredRank);
@@ -33,13 +33,13 @@ namespace SteelBot.DiscordModules.RankRoles
             }
             else
             {
-                Logger.LogWarning($"Could not create rank role because Guild [{guildId}] does not exist.");
+                Logger.LogWarning($"Could not create Rank Role because Guild [{guildId}] does not exist.");
             }
         }
 
         public async Task DeleteRankRole(ulong guildId, string roleName)
         {
-            Logger.LogInformation($"Request to delete self role [{roleName}] in Guild [{guildId}] received.");
+            Logger.LogInformation($"Request to delete Rank Role [{roleName}] in Guild [{guildId}] received.");
             await Cache.RankRoles.RemoveRole(guildId, roleName);
         }
 

@@ -79,7 +79,7 @@ namespace SteelBot.DiscordModules.RankRoles
                 alreadyAchievedUsersSection += usersGainedRole.ToString();
             }
 
-            await context.RespondAsync(embed: EmbedGenerator.Info($"**{role.Name}** Set as a Rank Role for Rank **{requiredRank}**\n\n{alreadyAchievedUsersSection}", "Rank Role Created!"));
+            await context.RespondAsync(embed: EmbedGenerator.Success($"**{role.Name}** Set as a Rank Role for Rank **{requiredRank}**\n\n{alreadyAchievedUsersSection}", "Rank Role Created!"));
         }
 
         [Command("Remove")]
