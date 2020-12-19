@@ -29,7 +29,7 @@ namespace SteelBot.DiscordModules.Stats
 
         [GroupCommand]
         [Description("Displays the given user's statistics for this server.")]
-        public async Task TheirStats(CommandContext context, DiscordUser discordUser)
+        public async Task TheirStats(CommandContext context, DiscordMember discordUser)
         {
             if (!DataHelper.Stats.TryGetUser(context.Guild.Id, discordUser.Id, out User user))
             {
@@ -38,8 +38,11 @@ namespace SteelBot.DiscordModules.Stats
             }
 
             DiscordEmbedBuilder embedBuilder = DataHelper.Stats.GetStatsEmbed(user, discordUser.Username);
-
-            await context.RespondAsync(embed: embedBuilder.Build());
+            using (var imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
+            {
+                string fileName = $"{context.Member.Username}_stats.png";
+                await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+            }
         }
 
         [Command("me")]
@@ -54,7 +57,11 @@ namespace SteelBot.DiscordModules.Stats
 
             DiscordEmbedBuilder embedBuilder = DataHelper.Stats.GetStatsEmbed(user, context.Member.Username);
 
-            await context.RespondAsync(embed: embedBuilder.Build());
+            using (var imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
+            {
+                string fileName = $"{context.Member.Username}_stats.png";
+                await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+            }
         }
 
         [Command("Leaderboard")]

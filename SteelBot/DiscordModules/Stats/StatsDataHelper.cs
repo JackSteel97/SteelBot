@@ -45,9 +45,7 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(3)}`", false)
                 //.AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", false)
                 .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(3)}`", false)
-                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", false)
-                .AddField("Level", $"`{user.CurrentLevel}`", true)
-                .AddField("XP", string.Format("`{0:n0}`", user.TotalXp), true);
+                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", false);
             return embedBuilder;
         }
 

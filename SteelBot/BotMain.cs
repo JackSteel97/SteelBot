@@ -234,7 +234,8 @@ namespace SteelBot
                     }
                 }
             }
-            else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase))
+            else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase)
+                || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))
             {
                 Command helpCmd = Commands.FindCommand("help", out string _);
                 CommandContext helpCtx = Commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);

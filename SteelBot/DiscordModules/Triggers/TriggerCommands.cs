@@ -39,7 +39,7 @@ namespace SteelBot.DiscordModules.RankRoles
                 {
                     if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == context.Channel.Id)
                     {
-                        embedBuilder.AddField(trigger.TriggerText, trigger.Response);
+                        embedBuilder.AddField(trigger.TriggerText, $"{trigger.Response}\nBy: <@{trigger.Creator.DiscordId}>");
                         triggersExistHere = true;
                     }
                 }
@@ -94,8 +94,17 @@ namespace SteelBot.DiscordModules.RankRoles
         [Description("Removes the given trigger.")]
         public async Task RemoveTrigger(CommandContext context, [RemainingText] string triggerText)
         {
-            await DataHelpers.Triggers.DeleteTrigger(context.Guild.Id, triggerText);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Trigger **{triggerText}** deleted!"));
+            bool couldDelete = await DataHelpers.Triggers.DeleteTrigger(context.Guild.Id, triggerText, context.Member, context.Channel);
+            if (couldDelete)
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Success($"Trigger **{triggerText}** deleted!"));
+            }
+            else
+            {
+                DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.WarningColour).WithTitle("Could Not Delete Trigger.")
+                    .WithDescription("Check the trigger exists in this channel and you have permission to delete it.");
+                await context.RespondAsync(embed: embedBuilder.Build());
+            }
         }
 
         private async Task<bool> ValidateTriggerCreation(CommandContext context, string triggerText, string response)

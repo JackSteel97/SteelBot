@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
@@ -42,10 +43,34 @@ namespace SteelBot.DiscordModules.RankRoles
             await Cache.Triggers.AddTrigger(guildId, trigger);
         }
 
-        public async Task DeleteTrigger(ulong guildId, string triggerText)
+        public async Task<bool> DeleteTrigger(ulong guildId, string triggerText, DiscordMember deleter, DiscordChannel currentChannel)
         {
             Logger.LogInformation($"Request to delete Trigger [{triggerText}] in Guild [{guildId}] received.");
-            await Cache.Triggers.RemoveTrigger(guildId, triggerText);
+
+            if (Cache.Triggers.TryGetTrigger(guildId, triggerText, out Trigger trigger))
+            {
+                bool isGlobalTrigger = !trigger.ChannelDiscordId.HasValue;
+                bool canDelete;
+                if (isGlobalTrigger)
+                {
+                    // Get permissions in current channel.
+                    Permissions deleterPerms = deleter.PermissionsIn(currentChannel);
+                    canDelete = trigger.Creator.DiscordId == deleter.Id || deleterPerms.HasPermission(Permissions.ManageChannels);
+                }
+                else
+                {
+                    // Get permissions is the trigger's channel.
+                    Permissions deleterPerms = deleter.PermissionsIn(currentChannel.Guild.GetChannel(trigger.ChannelDiscordId.Value));
+                    canDelete = trigger.Creator.DiscordId == deleter.Id || deleterPerms.HasPermission(Permissions.ManageMessages);
+                }
+
+                if (canDelete)
+                {
+                    await Cache.Triggers.RemoveTrigger(guildId, triggerText);
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool TriggerExists(ulong guildId, string triggerText)
