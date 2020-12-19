@@ -142,10 +142,14 @@ namespace SteelBot
             {
                 if (args.Guild != null)
                 {
-                    await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
+                    // Ignore bots and the current user.
+                    if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
+                    {
+                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
 
-                    // Polls are not supported outside of guilds.
-                    await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
+                        // Polls are not supported outside of guilds.
+                        await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
+                    }
                 }
             }
             catch (Exception ex)
@@ -190,9 +194,13 @@ namespace SteelBot
             {
                 if (args.Guild != null)
                 {
-                    await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
+                    // Ignore bots and the current user.
+                    if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
+                    {
+                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
 
-                    await DataHelpers.Stats.HandleVoiceStateChange(args);
+                        await DataHelpers.Stats.HandleVoiceStateChange(args);
+                    }
                 }
             }
             catch (Exception ex)
