@@ -83,7 +83,7 @@ namespace SteelBot.DiscordModules.Roles
             // Add to user.
             await context.Member.GrantRoleAsync(role, "Requested to join Self Role.");
             string roleMention = role.IsMentionable ? role.Mention : role.Name;
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined **{roleMention}**"));
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined {roleMention}"));
         }
 
         [Command("Leave")]
@@ -108,7 +108,7 @@ namespace SteelBot.DiscordModules.Roles
             // Remove from user.
             await context.Member.RevokeRoleAsync(role, "Requested to leave Self Role.");
             string roleMention = role.IsMentionable ? role.Mention : role.Name;
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left **{roleMention}**"));
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left {roleMention}"));
         }
 
         [Command("Set")]
@@ -137,7 +137,8 @@ namespace SteelBot.DiscordModules.Roles
                 await context.RespondAsync(embed: EmbedGenerator.Error("No valid description provided."));
                 return;
             }
-            if (!context.Guild.Roles.Values.Any(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
+            var discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            if (discordRole == default)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("You must create the role in the server first."));
                 return;
@@ -148,8 +149,9 @@ namespace SteelBot.DiscordModules.Roles
                 return;
             }
 
+            string roleMention = discordRole.IsMentionable ? discordRole.Mention : discordRole.Name;
             await DataHelpers.Roles.CreateSelfRole(context.Guild.Id, roleName, description, hidden);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** created!"));
+            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role {roleMention} created!"));
         }
 
         [Command("Remove")]
