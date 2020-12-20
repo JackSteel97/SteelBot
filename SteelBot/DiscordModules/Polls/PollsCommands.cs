@@ -25,27 +25,27 @@ namespace SteelBot.DiscordModules.Polls
             DataHelper = dataHelper;
         }
 
-        private async Task StartGenericPoll(CommandContext context, string title, string[] options, bool lockedPoll)
+        private async Task<long> StartGenericPoll(CommandContext context, string title, string[] options, bool lockedPoll)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("No poll title provided."));
-                return;
+                return -1;
             }
             if (options.Length == 0)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("No poll options provided."));
-                return;
+                return -1;
             }
             if (options.Length > 10)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("A poll cannot have more than 10 options."));
-                return;
+                return -1;
             }
             if (Array.Find(options, opt => opt.Length > 255) != null)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("An option cannot be more than 255 characters long."));
-                return;
+                return -1;
             }
 
             (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, out DiscordEmoji[] reactions);
@@ -69,11 +69,41 @@ namespace SteelBot.DiscordModules.Polls
                 {
                     // Update message with id if someone could add options.
                     optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                    optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}AddOption {pollId} \"OptionText\"` to add another option to this poll.");
+                    optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
                     builder.WithDescription(optionBuilder.ToString());
 
                     await sentMessage.ModifyAsync(embed: builder.Build());
                 }
+            }
+
+            return pollId;
+        }
+
+        [Command("StartTimed")]
+        [Description("Starts a poll that closes after a set time.\nDuration format: `XhYmZs`")]
+        [Cooldown(2, 120, CooldownBucketType.Channel)]
+        public async Task StartTimedPoll(CommandContext context, TimeSpan duration, string title, params string[] options)
+        {
+            if (duration > TimeSpan.FromHours(24))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error($"The maximum duration of a timed poll is 24 hours."));
+                return;
+            }
+
+            long pollId = await StartGenericPoll(context, title, options, true);
+
+            if (pollId >= 0)
+            {
+                // Poll created successfully.
+                _ = Task.Run(async () =>
+                {
+                    // Wait for duration.
+                    await Task.Delay(duration);
+                    if (DataHelper.Polls.TryGetPoll(pollId, out Poll poll))
+                    {
+                        await DataHelper.Polls.ClosePoll(poll, context.Channel, context.Client.CurrentUser);
+                    }
+                });
             }
         }
 
@@ -140,7 +170,7 @@ namespace SteelBot.DiscordModules.Polls
             {
                 // Update message with id if someone could add options.
                 optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Polls AddOption {pollId} \"OptionText\"` to add another option to this poll.");
+                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
                 builder.WithDescription(optionBuilder.ToString());
             }
 
@@ -202,7 +232,7 @@ namespace SteelBot.DiscordModules.Polls
             {
                 // Update message with id if someone could add options.
                 optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}AddOption {pollId} \"OptionText\"` to add another option to this poll.");
+                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
                 builder.WithDescription(optionBuilder.ToString());
             }
 

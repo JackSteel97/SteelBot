@@ -128,7 +128,7 @@ namespace SteelBot.DiscordModules.Polls
             }
         }
 
-        public async Task ClosePoll(Poll poll, DiscordChannel channel, DiscordMember closer)
+        public async Task ClosePoll(Poll poll, DiscordChannel channel, DiscordUser closer)
         {
             var pollMessage = await channel.GetMessageAsync(poll.MessageId);
 
