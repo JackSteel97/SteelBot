@@ -28,6 +28,7 @@ namespace SteelBot.DiscordModules.Roles
 
         [GroupCommand]
         [Description("Displays the available self roles on this server.")]
+        [Cooldown(1, 60, CooldownBucketType.Channel)]
         public Task ViewSelfRoles(CommandContext context)
         {
             List<SelfRole> allRoles = DataHelpers.Roles.GetSelfRoles(context.Guild.Id);
@@ -64,6 +65,7 @@ namespace SteelBot.DiscordModules.Roles
         [Command("Join")]
         [Aliases("j")]
         [Description("Joins the self role specified.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task JoinRole(CommandContext context, [RemainingText] string roleName)
         {
             // Check role is a self role.
@@ -89,6 +91,7 @@ namespace SteelBot.DiscordModules.Roles
         [Command("Leave")]
         [Aliases("l")]
         [Description("Leaves the self role specified.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task LeaveRole(CommandContext context, [RemainingText] string roleName)
         {
             // Check role is a self role.
@@ -115,6 +118,7 @@ namespace SteelBot.DiscordModules.Roles
         [Aliases("Create")]
         [Description("Sets the given role as a self role that users can join themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
+        [Cooldown(10, 60, CooldownBucketType.Guild)]
         public async Task SetSelfRole(CommandContext context, string roleName, string description, bool hidden = false)
         {
             if (roleName.Length > 255)
@@ -158,6 +162,7 @@ namespace SteelBot.DiscordModules.Roles
         [Aliases("Delete")]
         [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
+        [Cooldown(10, 60, CooldownBucketType.Guild)]
         public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
             await DataHelpers.Roles.DeleteSelfRole(context.Guild.Id, roleName);

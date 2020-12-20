@@ -30,6 +30,7 @@ namespace SteelBot.DiscordModules.Stats
 
         [GroupCommand]
         [Description("Displays the given user's statistics for this server.")]
+        [Cooldown(1, 30, CooldownBucketType.User)]
         public async Task TheirStats(CommandContext context, DiscordMember discordUser)
         {
             if (!DataHelper.Stats.TryGetUser(context.Guild.Id, discordUser.Id, out User user))
@@ -48,6 +49,7 @@ namespace SteelBot.DiscordModules.Stats
 
         [Command("me")]
         [Description("Displays your user statistics for this server.")]
+        [Cooldown(3, 30, CooldownBucketType.User)]
         public async Task MyStats(CommandContext context)
         {
             if (!DataHelper.Stats.TryGetUser(context.Guild.Id, context.Member.Id, out User user))
@@ -67,6 +69,7 @@ namespace SteelBot.DiscordModules.Stats
 
         [Command("Leaderboard")]
         [Description("Displays a leaderboard of levels for this server.")]
+        [Cooldown(2, 60, CooldownBucketType.Channel)]
         public async Task LevelsLeaderboard(CommandContext context, int top = 100)
         {
             if (top <= 0)

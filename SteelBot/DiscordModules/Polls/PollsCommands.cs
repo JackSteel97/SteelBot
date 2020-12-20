@@ -79,6 +79,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("StartLocked")]
         [Description("Starts a poll that only the creator can add options to.")]
+        [Cooldown(2, 120, CooldownBucketType.Channel)]
         public async Task StartLockedPoll(CommandContext context, string title, params string[] options)
         {
             await StartGenericPoll(context, title, options, true);
@@ -86,6 +87,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("Start")]
         [Description("Starts a poll with up to 10 options")]
+        [Cooldown(2, 120, CooldownBucketType.Channel)]
         public async Task StartPoll(CommandContext context, string title, params string[] options)
         {
             await StartGenericPoll(context, title, options, false);
@@ -93,6 +95,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("AddOption")]
         [Description("Adds an option to the specified poll.")]
+        [Cooldown(10, 120, CooldownBucketType.User)]
         public async Task AddOption(CommandContext context, long pollId, [RemainingText] string newOption)
         {
             if (string.IsNullOrWhiteSpace(newOption))
@@ -153,6 +156,7 @@ namespace SteelBot.DiscordModules.Polls
 
         [Command("RemoveOption")]
         [Description("Removes an option from the specified poll.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task RemoveOption(CommandContext context, long pollId, [RemainingText] string optionToRemove)
         {
             if (string.IsNullOrWhiteSpace(optionToRemove))

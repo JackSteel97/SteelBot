@@ -29,6 +29,7 @@ namespace SteelBot.DiscordModules.Config
         [Aliases("env")]
         [Description("Gets the environment the bot is currently running in.")]
         [RequireOwner]
+        [Cooldown(1, 300, CooldownBucketType.Channel)]
         public async Task Environment(CommandContext context)
         {
             await context.RespondAsync(embed: EmbedGenerator.Primary($"I'm currently running in my **{DataHelpers.Config.GetEnvironment()}** environment!"));
@@ -37,6 +38,7 @@ namespace SteelBot.DiscordModules.Config
         [Command("Version")]
         [Aliases("v")]
         [Description("Displays the current version of the bot.")]
+        [Cooldown(10, 120, CooldownBucketType.Channel)]
         public async Task Version(CommandContext context)
         {
             await context.RespondAsync(embed: EmbedGenerator.Primary(DataHelpers.Config.GetVersion(), "Version"));
@@ -45,6 +47,7 @@ namespace SteelBot.DiscordModules.Config
         [Command("SetPrefix")]
         [Description("Sets the bot command prefix for this server.")]
         [RequireUserPermissions(Permissions.Administrator)]
+        [Cooldown(1, 300, CooldownBucketType.Guild)]
         public async Task SetPrefix(CommandContext context, [RemainingText] string newPrefix)
         {
             if (newPrefix.Length > 20)
@@ -64,6 +67,7 @@ namespace SteelBot.DiscordModules.Config
         [Command("SetLevelChannel")]
         [Description("Set the channel to use to notify users of level-ups")]
         [RequireUserPermissions(Permissions.Administrator)]
+        [Cooldown(1, 300, CooldownBucketType.Guild)]
         public async Task SetLevelChannel(CommandContext context, DiscordChannel channel)
         {
             if (channel == null || !context.Guild.Channels.ContainsKey(channel.Id))

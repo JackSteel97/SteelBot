@@ -53,6 +53,7 @@ namespace SteelBot.DiscordModules.Utility
 
         [Command("Ping")]
         [Description("Pings the bot.")]
+        [Cooldown(10, 60, CooldownBucketType.Channel)]
         public Task Ping(CommandContext context)
         {
             string ret = DateTime.UtcNow.Millisecond % 5 == 0 ? "POG!" : "PONG!";
@@ -62,6 +63,7 @@ namespace SteelBot.DiscordModules.Utility
         [Command("Choose")]
         [Aliases("PickFrom", "Pick", "Select", "pf")]
         [Description("Select x options randomly from a given list.")]
+        [Cooldown(5, 60, CooldownBucketType.Channel)]
         public Task Choose(CommandContext context, int numberToSelect, params string[] options)
         {
             // Validation.
@@ -93,6 +95,7 @@ namespace SteelBot.DiscordModules.Utility
         [Command("FlipCoin")]
         [Aliases("TossCoin", "fc")]
         [Description("Flips a coin.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public Task FlipCoin(CommandContext context)
         {
             int side = Rand.Next(100);
@@ -107,6 +110,7 @@ namespace SteelBot.DiscordModules.Utility
         [Command("RollDie")]
         [Aliases("Roll", "rd")]
         [Description("Rolls a die.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public Task RollDie(CommandContext context, int sides = 6)
         {
             int rolledNumber = Rand.Next(1, sides + 1);
@@ -116,6 +120,7 @@ namespace SteelBot.DiscordModules.Utility
         [Command("Speak")]
         [Description("Get the bot to post the given message in a channel.")]
         [RequireUserPermissions(Permissions.Administrator)]
+        [Cooldown(1, 60, CooldownBucketType.Guild)]
         public Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "")
         {
             if (!context.Guild.Channels.ContainsKey(channel.Id))

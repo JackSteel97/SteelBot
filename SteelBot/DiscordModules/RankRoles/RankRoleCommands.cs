@@ -28,6 +28,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("Set")]
         [Aliases("Create", "srr")]
         [Description("Sets the given role as a rank role at the given level.")]
+        [Cooldown(5, 60, CooldownBucketType.Guild)]
         public async Task SetRankRole(CommandContext context, string roleName, int requiredRank)
         {
             if (roleName.Length > 255)
@@ -85,6 +86,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("Remove")]
         [Aliases("Delete", "rrr")]
         [Description("Removes the given role from the list of rank roles, users will no longer be granted the role when they reach the required level.")]
+        [Cooldown(5, 60, CooldownBucketType.Guild)]
         public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
             await DataHelpers.RankRoles.DeleteRankRole(context.Guild.Id, roleName);

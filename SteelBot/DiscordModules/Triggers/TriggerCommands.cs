@@ -27,6 +27,7 @@ namespace SteelBot.DiscordModules.RankRoles
 
         [GroupCommand]
         [Description("List the available triggers in this channel.")]
+        [Cooldown(2, 60, CooldownBucketType.Channel)]
         public async Task GetTriggers(CommandContext context)
         {
             if (DataHelpers.Triggers.GetGuildTriggers(context.Guild.Id, out Dictionary<string, Trigger> triggers))
@@ -57,6 +58,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Aliases("CreateGlobal", "sg")]
         [Description("Creates a global trigger that can be triggered from any channel in this server.")]
         [RequireUserPermissions(Permissions.ManageChannels)]
+        [Cooldown(5, 60, CooldownBucketType.Guild)]
         public async Task SetGlobalTrigger(CommandContext context, string triggerText, string response, bool mustMatchEntireMessage = false)
         {
             if (!await ValidateTriggerCreation(context, triggerText, response))
@@ -75,6 +77,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Aliases("Create", "s")]
         [Description("Creates a trigger that can be triggered from the channel it was created in.")]
         [RequireUserPermissions(Permissions.ManageMessages)]
+        [Cooldown(5, 60, CooldownBucketType.Channel)]
         public async Task SetTrigger(CommandContext context, string triggerText, string response, bool mustMatchEntireMessage = false)
         {
             if (!await ValidateTriggerCreation(context, triggerText, response))
@@ -92,6 +95,7 @@ namespace SteelBot.DiscordModules.RankRoles
         [Command("Remove")]
         [Aliases("Delete", "rm")]
         [Description("Removes the given trigger.")]
+        [Cooldown(10, 60, CooldownBucketType.Channel)]
         public async Task RemoveTrigger(CommandContext context, [RemainingText] string triggerText)
         {
             bool couldDelete = await DataHelpers.Triggers.DeleteTrigger(context.Guild.Id, triggerText, context.Member, context.Channel);
