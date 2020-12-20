@@ -37,6 +37,7 @@ namespace SteelBot
             appConfigurationService.Environment = Environment;
             appConfigurationService.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             appConfigurationService.BasePath = Directory.GetCurrentDirectory();
+            appConfigurationService.StartUpTime = DateTime.UtcNow;
 
             serviceProvider.AddSingleton(appConfigurationService);
 

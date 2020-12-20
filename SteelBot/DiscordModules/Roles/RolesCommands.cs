@@ -137,7 +137,7 @@ namespace SteelBot.DiscordModules.Roles
                 await context.RespondAsync(embed: EmbedGenerator.Error("No valid description provided."));
                 return;
             }
-            var discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            DiscordRole discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (discordRole == default)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("You must create the role in the server first."));

@@ -88,6 +88,7 @@ namespace SteelBot
             Client.GuildCreated += HandleJoiningGuild;
 
             Commands.CommandErrored += HandleCommandErrored;
+            Commands.CommandExecuted += HandleCommandExecuted;
         }
 
         private void InitCommands()
@@ -259,6 +260,12 @@ namespace SteelBot
                 await Log(args.Exception, args.Context.Message.Content);
                 await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
             }
+        }
+
+        private Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
+        {
+            Interlocked.Increment(ref AppConfigurationService.HandledCommands);
+            return Task.CompletedTask;
         }
 
         private async Task Log(Exception e, string source)

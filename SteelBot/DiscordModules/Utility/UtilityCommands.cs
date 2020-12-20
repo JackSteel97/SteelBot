@@ -2,10 +2,12 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 using Newtonsoft.Json;
 using SteelBot.Attributes;
 using SteelBot.Helpers;
 using SteelBot.Services;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -21,10 +23,32 @@ namespace SteelBot.DiscordModules.Utility
     public class UtilityCommands : BaseCommandModule
     {
         private readonly Random Rand;
+        private readonly AppConfigurationService AppConfigurationService;
 
-        public UtilityCommands()
+        public UtilityCommands(AppConfigurationService appConfigurationService)
         {
             Rand = new Random();
+            AppConfigurationService = appConfigurationService;
+        }
+
+        [Command("Status")]
+        [Aliases("s", "uptime")]
+        [Description("Displays various information about the current status of the bot.")]
+        [Cooldown(2, 300, CooldownBucketType.Channel)]
+        public Task BotStatus(CommandContext context)
+        {
+            DateTime now = DateTime.UtcNow;
+            TimeSpan uptime = (now - AppConfigurationService.StartUpTime);
+            TimeSpan ping = (now - context.Message.CreationTimestamp);
+
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+                .WithTitle("Bot Status")
+                .AddField("Uptime", Formatter.InlineCode(uptime.Humanize(3)))
+                .AddField("Processed Commands", Formatter.InlineCode(AppConfigurationService.HandledCommands.ToString()))
+                .AddField("Ping", Formatter.InlineCode(ping.Humanize()))
+                .AddField("Version", Formatter.InlineCode(AppConfigurationService.Version));
+
+            return context.RespondAsync(embed: builder.Build());
         }
 
         [Command("Ping")]
