@@ -21,7 +21,7 @@ namespace SteelBot.DiscordModules.Secret
     public class PuzzleCommands : BaseCommandModule
     {
         private const string PuzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.";
-        private const int NumberOfQuestions = 28;
+        private const int NumberOfQuestions = 29;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -221,6 +221,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondAsync(embed: EmbedGenerator.Info("Give your answer as words.", "Clue", "Use dashes to separate words (same way as the level names)."));
                     break;
 
+                case 29:
+                    await context.RespondAsync(embed: EmbedGenerator.Info("`2020-11-22` - `2020-12-12`", "Clue", "Give your answer in words."));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no extra clue available for this one.", "Good Luck"));
                     break;
@@ -363,6 +367,10 @@ namespace SteelBot.DiscordModules.Secret
                     await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "25.jpg"));
                     break;
 
+                case 29:
+                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Ooer.png"));
+                    break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -456,6 +464,9 @@ namespace SteelBot.DiscordModules.Secret
 
                 case 28:
                     return "Eight";
+
+                case 29:
+                    return "Two";
 
                 default:
                     return null;
