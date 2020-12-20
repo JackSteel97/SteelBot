@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SteelBot.Database.Models;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,9 +41,15 @@ namespace SteelBot.Helpers
         private static readonly ColorStop[] XpGradient = new ColorStop[] { new ColorStop(0, Color.FromRgb(57, 161, 255)), new ColorStop(1, Color.FromRgb(0, 71, 191)) };
         private static readonly LinearGradientBrush GradientBrush = new LinearGradientBrush(new PointF(0, 0), new PointF(0, XpBarHeight), GradientRepetitionMode.Repeat, XpGradient);
 
-        private static readonly FontFamily TextFont = SystemFonts.Find("Arial");
+        private static readonly FontCollection Fonts = new FontCollection();
+        private const string FontName = "Roboto";
 
-        public static async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
+        public LevelCardGenerator(AppConfigurationService appConfigurationService)
+        {
+            Fonts.Install(Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf"));
+        }
+
+        public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
         {
             ulong xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
             double progressToNextLevel = (((double)user.TotalXp / (double)xpForNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
@@ -77,8 +84,7 @@ namespace SteelBot.Helpers
                     // Current XP text.
                     imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Right, VerticalAlignment.Center),
                         user.TotalXp.KiloFormat(),
-                        TextFont,
-                        XpBarHeight - 12,
+                        Fonts.CreateFont(FontName, XpBarHeight - 12),
                         Color.WhiteSmoke,
                         xpBarMidpointX,
                         xpBarMidpointY);
@@ -86,8 +92,7 @@ namespace SteelBot.Helpers
                     // Remaining Xp text.
                     imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Left, VerticalAlignment.Center),
                         $" / {xpForNextLevel.KiloFormat()}",
-                        TextFont,
-                        XpBarHeight - 12,
+                        Fonts.CreateFont(FontName, XpBarHeight - 12),
                         Color.LightGray,
                         xpBarMidpointX,
                         xpBarMidpointY);
@@ -95,14 +100,14 @@ namespace SteelBot.Helpers
                     // Current Level text.
                     var levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
                     string levelText = $"Level {user.CurrentLevel}";
-                    var levelFont = new Font(TextFont, 48);
+                    var levelFont = Fonts.CreateFont(FontName, 48);
                     var levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
                     imageContext.DrawText(levelTextOpts, levelText, levelFont, Color.WhiteSmoke, new PointF(Width - XPadding, YPadding));
 
                     // Username Text.
                     var usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
-                    var usernameFont = new Font(TextFont, 44);
-                    var tagFont = new Font(TextFont, 28);
+                    var usernameFont = Fonts.CreateFont(FontName, 44);
+                    var tagFont = Fonts.CreateFont(FontName, 28);
                     var usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
                     imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(AvatarHeight + (XPadding * 2), Y1 - (XPadding * 2)));
                     imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray, new PointF(AvatarHeight + (XPadding * 2) + usernameMeasurements.Width, Y1 - (XPadding * 2)));
@@ -113,8 +118,7 @@ namespace SteelBot.Helpers
                         var serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
                         imageContext.DrawSimpleText(serverRoleOptions,
                             topRole.Name,
-                            TextFont,
-                            28,
+                            Fonts.CreateFont(FontName, 28),
                             Color.FromRgb(topRole.Color.R, topRole.Color.G, topRole.Color.B),
                             AvatarHeight + (XPadding * 2),
                             Y1 - (YPadding * 2) - usernameMeasurements.Height);

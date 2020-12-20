@@ -22,10 +22,12 @@ namespace SteelBot.DiscordModules.Stats
     public class StatsCommands : BaseCommandModule
     {
         private readonly DataHelpers DataHelper;
+        private readonly LevelCardGenerator LevelCardGenerator;
 
-        public StatsCommands(DataHelpers dataHelpers)
+        public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator)
         {
             DataHelper = dataHelpers;
+            LevelCardGenerator = levelCardGenerator;
         }
 
         [GroupCommand]

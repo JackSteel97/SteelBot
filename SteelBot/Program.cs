@@ -18,12 +18,13 @@ using SteelBot.DataProviders;
 using System.Reflection;
 using SteelBot.DiscordModules.RankRoles;
 using System.IO;
+using SteelBot.Helpers;
 
 namespace SteelBot
 {
     public class Program
     {
-        private const string Environment = "Development";
+        private const string Environment = "Test";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
@@ -109,6 +110,7 @@ namespace SteelBot
         {
             // Add custom services.
             serviceProvider.AddSingleton<UserTrackingService>();
+            serviceProvider.AddSingleton<LevelCardGenerator>();
         }
 
         public static void Main(string[] args)
