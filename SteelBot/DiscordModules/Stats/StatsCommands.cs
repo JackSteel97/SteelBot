@@ -1,4 +1,5 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Enums;
@@ -154,6 +155,7 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"Level `{user.CurrentLevel}`")
                     .AppendLine($"XP `{$"{user.TotalXp:n0}"}`")
                     .AppendLine($"Message Count `{user.MessageCount}`")
+                    .AppendLine($"Message Efficiency {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
                     .AppendLine($"Average Message Length `{user.GetAverageMessageLength()}`")
                     .AppendLine($"Voice Time `{user.TimeSpentInVoice.Humanize(3)}`")
                     //.AppendLine($"Streaming Time `{user.TimeSpentStreaming.Humanize(3)}`")

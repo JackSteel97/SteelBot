@@ -125,6 +125,14 @@ namespace SteelBot.Database.Models
             return 0;
         }
 
+        public float GetMessageEfficiency()
+        {
+            float minimumMessageCount = (MessageXpEarned / 15f);
+            float efficiency = minimumMessageCount / MessageCount;
+
+            return efficiency;
+        }
+
         public bool UpdateLevel(bool addMessageXp = false)
         {
             ActivityXpEarned = CalculateCurrentActivityXp();
