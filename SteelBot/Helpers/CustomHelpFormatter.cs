@@ -85,7 +85,7 @@ namespace SteelBot.Helpers
                             argumentStarter = "[";
                             argumentEnder = "]";
                         }
-                        if (argument.Type == typeof(string))
+                        if (argument.Type == typeof(string) && !argument.IsCatchAll)
                         {
                             // Wrap with quotes.
                             argumentEnder += '"';
