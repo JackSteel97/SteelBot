@@ -52,7 +52,12 @@ namespace SteelBot.Helpers
         public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
         {
             ulong xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
-            double progressToNextLevel = (((double)user.TotalXp / (double)xpForNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
+            ulong xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
+
+            ulong xpIntoThisLevel = (user.TotalXp - xpForThisLevel);
+            ulong xpToAchieveNextLevel = (xpForNextLevel - xpForThisLevel);
+
+            double progressToNextLevel = (((double)xpIntoThisLevel / (double)xpToAchieveNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
 
             using (var avatar = await GetAvatar(member.AvatarUrl))
             using (var image = new Image<Rgba32>(Width, Height))
