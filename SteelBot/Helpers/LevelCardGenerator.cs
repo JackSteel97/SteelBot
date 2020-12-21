@@ -59,7 +59,7 @@ namespace SteelBot.Helpers
 
             double progressToNextLevel = (((double)xpIntoThisLevel / (double)xpToAchieveNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
 
-            using (var avatar = await GetAvatar(member.AvatarUrl))
+            using (var avatar = await GetAvatar(member.GetAvatarUrl(DSharpPlus.ImageFormat.Auto, 256)))
             using (var image = new Image<Rgba32>(Width, Height))
             {
                 image.Mutate(imageContext =>
