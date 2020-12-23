@@ -102,6 +102,8 @@ namespace SteelBot
             serviceProvider.AddSingleton<ExceptionProvider>();
             serviceProvider.AddSingleton<RankRolesProvider>();
             serviceProvider.AddSingleton<TriggersProvider>();
+            serviceProvider.AddSingleton<CommandStatisticProvider>();
+
             // Add base provider.
             serviceProvider.AddSingleton<DataCache>();
         }

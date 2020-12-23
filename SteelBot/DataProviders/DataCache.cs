@@ -11,14 +11,15 @@ namespace SteelBot.DataProviders
         public ExceptionProvider Exceptions { get; }
         public RankRolesProvider RankRoles { get; }
         public TriggersProvider Triggers { get; }
-
+        public CommandStatisticProvider CommandStatistics { get; set; }
         public DataCache(GuildsProvider guildsProvider,
             UsersProvider usersProvider,
             SelfRolesProvider selfRolesProvider,
             PollsProvider pollsProvider,
             ExceptionProvider exceptionProvider,
             RankRolesProvider rankRolesProvider,
-            TriggersProvider triggersProvider)
+            TriggersProvider triggersProvider,
+            CommandStatisticProvider commandStatisticsProvider)
         {
             Guilds = guildsProvider;
             Users = usersProvider;
@@ -27,6 +28,7 @@ namespace SteelBot.DataProviders
             Exceptions = exceptionProvider;
             RankRoles = rankRolesProvider;
             Triggers = triggersProvider;
+            CommandStatistics = commandStatisticsProvider;
         }
     }
 }

@@ -18,6 +18,7 @@ namespace SteelBot.Database
         public DbSet<Trigger> Triggers { get; set; }
 
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
+        public DbSet<CommandStatistic> CommandStatistics { get; set; }
 
         public SteelBotContext(DbContextOptions<SteelBotContext> options) : base(options)
         {
@@ -79,6 +80,12 @@ namespace SteelBot.Database
             modelBuilder.Entity<Trigger>(entity =>
             {
                 entity.HasKey(rr => rr.RowId);
+            });
+
+            modelBuilder.Entity<CommandStatistic>(entity =>
+            {
+                entity.HasKey(cs => cs.RowId);
+                entity.HasIndex(cs => cs.CommandName).IsUnique();
             });
         }
     }

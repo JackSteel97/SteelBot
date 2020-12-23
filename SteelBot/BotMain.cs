@@ -262,10 +262,10 @@ namespace SteelBot
             }
         }
 
-        private Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
+        private async Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
         {
             Interlocked.Increment(ref AppConfigurationService.HandledCommands);
-            return Task.CompletedTask;
+            await Cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
         }
 
         private async Task Log(Exception e, string source)
