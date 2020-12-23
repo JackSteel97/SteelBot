@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
@@ -120,150 +121,61 @@ namespace SteelBot.DataProviders.SubProviders
             return levelIncreased;
         }
 
-        /// <summary>
-        /// Set the muted state of a user to total muted time.
-        /// </summary>
-        /// <param name="guildId">User's Guild</param>
-        /// <param name="userId">User's discord Id</param>
-        /// <param name="newStateMuted">Current muted state</param>
-        public async Task<bool> UpdateMutedState(ulong guildId, ulong userId, bool newStateMuted)
+        public async Task<bool> UpdateVoiceStateCounters(ulong guildId, ulong userId, DiscordVoiceState newState)
         {
+            DateTime updateTimestamp = DateTime.UtcNow;
             bool levelIncreased = false;
             if (TryGetUser(guildId, userId, out User user))
             {
-                Logger.LogInformation($"Updating muted state for User [{userId}] in Guild [{guildId}]");
-                // Clone user to avoid making change to cache till db change confirmed.
+                Logger.LogDebug($"Updating voice state for User [{userId}] in Guild [{guildId}]");
+                // Clone user to avoid making changes to cache till db change completed.
                 User copyOfUser = user.Clone();
-                copyOfUser.LastActivity = DateTime.UtcNow;
-                if (newStateMuted)
+                copyOfUser.LastActivity = updateTimestamp;
+
+                // Can we add to voice time counters?
+                if (copyOfUser.VoiceStartTime.HasValue)
                 {
-                    // User is now muted.
-                    copyOfUser.MutedStartTime = DateTime.UtcNow;
+                    copyOfUser.TimeSpentInVoice += updateTimestamp - copyOfUser.VoiceStartTime.Value;
+                }
+                if (copyOfUser.MutedStartTime.HasValue)
+                {
+                    copyOfUser.TimeSpentMuted += updateTimestamp - copyOfUser.MutedStartTime.Value;
+                }
+                if (copyOfUser.DeafenedStartTime.HasValue)
+                {
+                    copyOfUser.TimeSpentDeafened += updateTimestamp - copyOfUser.DeafenedStartTime.Value;
+                }
+                levelIncreased = copyOfUser.UpdateLevel();
+
+                // Update times.
+                if (newState == null || newState.Channel == null)
+                {
+                    // User has left voice channel - reset all states.
+                    copyOfUser.VoiceStartTime = null;
+                    copyOfUser.MutedStartTime = null;
+                    copyOfUser.DeafenedStartTime = null;
+                    // TODO: Add streaming state support.
                 }
                 else
                 {
-                    // User is now unmuted.
-                    if (copyOfUser.MutedStartTime.HasValue)
+                    // In voice channel.
+                    copyOfUser.VoiceStartTime = updateTimestamp;
+
+                    if (newState.IsSelfMuted)
                     {
-                        copyOfUser.TimeSpentMuted += DateTime.UtcNow - copyOfUser.MutedStartTime.Value;
-                        // Reset start time.
-                        copyOfUser.MutedStartTime = null;
-                        levelIncreased = copyOfUser.UpdateLevel();
-                    }
-                }
-
-                await UpdateUser(guildId, copyOfUser);
-            }
-            return levelIncreased;
-        }
-
-        /// <summary>
-        /// Set the deafened state of a user to total deafened time.
-        /// </summary>
-        /// <param name="guildId">User's guild.</param>
-        /// <param name="userId">User's discord id.</param>
-        /// <param name="newStateDeafened">Current deafened state.</param>
-        public async Task<bool> UpdateDeafendedState(ulong guildId, ulong userId, bool newStateDeafened)
-        {
-            bool levelIncreased = false;
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogInformation($"Updating deafened state for User [{userId}] in Guild [{guildId}]");
-                // Clone user to avoid making change to cache till db change confirmed.
-                User copyOfUser = user.Clone();
-                copyOfUser.LastActivity = DateTime.UtcNow;
-                if (newStateDeafened)
-                {
-                    // User is now deafened.
-                    copyOfUser.DeafenedStartTime = DateTime.UtcNow;
-                }
-                else
-                {
-                    // User is now un-deafened.
-                    if (copyOfUser.DeafenedStartTime.HasValue)
-                    {
-                        copyOfUser.TimeSpentDeafened += DateTime.UtcNow - copyOfUser.DeafenedStartTime.Value;
-                        // Reset start time.
-                        copyOfUser.DeafenedStartTime = null;
-                        levelIncreased = copyOfUser.UpdateLevel();
-                    }
-                }
-
-                await UpdateUser(guildId, copyOfUser);
-            }
-            return levelIncreased;
-        }
-
-        /// <summary>
-        /// Set the streaming state of a user to total streaming time.
-        /// </summary>
-        /// <param name="guildId">User's guild.</param>
-        /// <param name="userId">User's discord id.</param>
-        /// <param name="newStateStreaming">Current streaming state.</param>
-        public async Task<bool> UpdateStreamingState(ulong guildId, ulong userId, bool newStateStreaming)
-        {
-            bool levelIncreased = false;
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                // Only update if it's different from the cached state.
-                if ((user.StreamingStartTime.HasValue && !newStateStreaming) || (!user.StreamingStartTime.HasValue && newStateStreaming))
-                {
-                    Logger.LogInformation($"Updating streaming state for User [{userId}] in Guild [{guildId}]");
-                    // Clone user to avoid making change to cache till db change confirmed.
-                    User copyOfUser = user.Clone();
-                    copyOfUser.LastActivity = DateTime.UtcNow;
-                    if (newStateStreaming)
-                    {
-                        // User is now streaming.
-                        copyOfUser.StreamingStartTime = DateTime.UtcNow;
+                        copyOfUser.MutedStartTime = updateTimestamp;
                     }
                     else
                     {
-                        // User is now not streaming.
-                        if (copyOfUser.StreamingStartTime.HasValue)
-                        {
-                            copyOfUser.TimeSpentStreaming += DateTime.UtcNow - copyOfUser.StreamingStartTime.Value;
-                            // Reset start time.
-                            copyOfUser.StreamingStartTime = null;
-                            levelIncreased = copyOfUser.UpdateLevel();
-                        }
+                        copyOfUser.MutedStartTime = null;
                     }
-
-                    await UpdateUser(guildId, copyOfUser);
-                }
-            }
-            return levelIncreased;
-        }
-
-        /// <summary>
-        /// Set the voice state of a user to total voice time.
-        /// </summary>
-        /// <param name="guildId">User's guild.</param>
-        /// <param name="userId">User's discord id.</param>
-        /// <param name="inVoiceChannel">If the user is in a voice channel.</param>
-        public async Task<bool> UpdateVoiceState(ulong guildId, ulong userId, bool inVoiceChannel)
-        {
-            bool levelIncreased = false;
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogInformation($"Updating voice state for User [{userId}] in Guild [{guildId}]");
-                // Clone user to avoid making change to cache till db change confirmed.
-                User copyOfUser = user.Clone();
-                copyOfUser.LastActivity = DateTime.UtcNow;
-                if (inVoiceChannel)
-                {
-                    // User is now in a voice channel.
-                    copyOfUser.VoiceStartTime = DateTime.UtcNow;
-                }
-                else
-                {
-                    // User is now not in a voice channel.
-                    if (copyOfUser.VoiceStartTime.HasValue)
+                    if (newState.IsSelfDeafened)
                     {
-                        copyOfUser.TimeSpentInVoice += DateTime.UtcNow - copyOfUser.VoiceStartTime.Value;
-                        // Reset start time.
-                        copyOfUser.VoiceStartTime = null;
-                        levelIncreased = copyOfUser.UpdateLevel();
+                        copyOfUser.DeafenedStartTime = updateTimestamp;
+                    }
+                    else
+                    {
+                        copyOfUser.DeafenedStartTime = null;
                     }
                 }
 

@@ -56,45 +56,7 @@ namespace SteelBot.DiscordModules.Stats
             ulong guildId = args.Guild.Id;
             ulong userId = args.User.Id;
 
-            var beforeChannel = args.Before?.Channel;
-            var afterChannel = args.After?.Channel;
-
-            bool levelIncreased = false;
-
-            // Voice channel state.
-            if (beforeChannel == null && afterChannel != null)
-            {
-                Logger.LogInformation($"User [{userId}] joined voice channel [{afterChannel.Name}]");
-                levelIncreased = await Cache.Users.UpdateVoiceState(guildId, userId, true);
-            }
-            else if (beforeChannel != null && afterChannel == null)
-            {
-                Logger.LogInformation($"User [{userId}] left voice channel [{beforeChannel.Name}]");
-                levelIncreased = await Cache.Users.UpdateVoiceState(guildId, userId, false);
-                // Set streaming to false - streaming is still true when leaving a voice channel while streaming.
-                levelIncreased = await Cache.Users.UpdateStreamingState(guildId, userId, false) || levelIncreased;
-            }
-            else if (beforeChannel != null && afterChannel != null && beforeChannel.Id != afterChannel.Id)
-            {
-                // Direct channel-channel change - we don't care about this state change.
-                Logger.LogDebug($"User [{args.User.Id}] changed voice channel from [{beforeChannel.Name}] to [{afterChannel.Name}]");
-            }
-
-            // Mute state.
-            if (args.Before?.IsSelfMuted != args.After?.IsSelfMuted)
-            {
-                Logger.LogInformation($"User [{userId}] muted state changed to [{args.After?.IsSelfMuted}]");
-                levelIncreased = await Cache.Users.UpdateMutedState(guildId, userId, (args.After?.IsSelfMuted).GetValueOrDefault()) || levelIncreased;
-            }
-
-            // Deafened state.
-            if (args.Before?.IsSelfDeafened != args.After?.IsSelfDeafened)
-            {
-                Logger.LogInformation($"User [{userId}] deafened state changed to [{args.After?.IsSelfDeafened}]");
-                levelIncreased = await Cache.Users.UpdateDeafendedState(guildId, userId, (args.After?.IsSelfDeafened).GetValueOrDefault()) || levelIncreased;
-            }
-
-            // TODO: Add streaming state support.
+            bool levelIncreased = await Cache.Users.UpdateVoiceStateCounters(guildId, userId, args.After);
 
             if (levelIncreased)
             {
