@@ -21,6 +21,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : BaseCommandModule
     {
+        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
 
@@ -67,6 +68,89 @@ namespace SteelBot.DiscordModules.Stats
                 string fileName = $"{context.Member.Username}_stats.png";
                 await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
             }
+        }
+
+        [GroupCommand]
+        [Description("Displays the leaderboard sorted by the given metric.")]
+        [Cooldown(2, 60, CooldownBucketType.Channel)]
+        public async Task MetricLeaderboard(CommandContext context, [RemainingText] string metric)
+        {
+            const int top = 10;
+            if (!AllowedMetrics.Contains(metric))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"Invalid metric: {Formatter.Bold(metric)}\nAvailable Metrics are: {string.Join(", ", AllowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"));
+                return;
+            }
+            List<User> guildUsers = DataHelper.Stats.GetUsersInGuild(context.Guild.Id);
+            if(guildUsers.Count == 0)
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet."));
+            }
+
+            string[] metricValues;
+            User[] orderedUsers;
+            switch (metric.ToLower())
+            {
+                case "xp":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp}`");
+                    break;
+                case "level":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.CurrentLevel).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Level: `{u.CurrentLevel}`");
+                    break;
+                case "message count":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.MessageCount).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount}`");
+                    break;
+                case "message length":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
+                    break;
+                case "efficiency":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency()).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency().ToString("P2")}`");
+                    break;
+                case "voice":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Voice Time: `{u.TimeSpentInVoice.Humanize(3)}`");
+                    break;
+                case "muted":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentMuted).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Muted Time: `{u.TimeSpentMuted.Humanize(3)}`");
+                    break;
+                case "deafened":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Deafened Time: `{u.TimeSpentDeafened.Humanize(3)}`");
+                    break;
+                default:
+                    await context.RespondAsync(embed: EmbedGenerator.Error("Invalid Metric selected."));
+                    return;
+            }
+
+            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
+                .WithColor(EmbedGenerator.InfoColour)
+                .WithTitle($"{context.Guild.Name} {metric.Transform(To.TitleCase)} Leaderboard")
+                .WithTimestamp(DateTime.UtcNow);
+
+            StringBuilder leaderboard = new StringBuilder();
+            for (int i = 0; i < orderedUsers.Length; i++)
+            {
+                User user = orderedUsers[i];
+                leaderboard
+                    .AppendLine($"**{(i + 1).Ordinalize()}** - <@{user.DiscordId}>")
+                    .AppendLine(metricValues[i]);
+
+                if (i != orderedUsers.Length - 1)
+                {
+                    leaderboard.AppendLine();
+                }
+            }
+
+            var interactivity = context.Client.GetInteractivity();
+            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
+
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
 
         [Command("Leaderboard")]
