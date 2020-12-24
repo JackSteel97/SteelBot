@@ -117,7 +117,7 @@ namespace SteelBot.Helpers
                     imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(AvatarHeight + (XPadding * 2), Y1 - (XPadding * 2)));
                     imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray, new PointF(AvatarHeight + (XPadding * 2) + usernameMeasurements.Width, Y1 - (XPadding * 2)));
 
-                    var topRole = member.Roles.FirstOrDefault();
+                    var topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
                     if (topRole != default)
                     {
                         var serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
