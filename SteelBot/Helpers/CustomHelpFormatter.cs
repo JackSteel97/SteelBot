@@ -120,7 +120,7 @@ namespace SteelBot.Helpers
                     Embed.AddField(Formatter.InlineCode(cmdGroup.Name.Transform(To.TitleCase)), cmdGroup.Description);
                     HasSubCommands = true;
                 }
-                else if (cmd is Command)
+                else if (cmd is Command && cmd.Parent != null)
                 {
                     childCommands.AppendLine(Formatter.InlineCode(cmd.Name.Transform(To.TitleCase)));
                 }

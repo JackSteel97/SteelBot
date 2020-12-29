@@ -24,6 +24,9 @@ namespace SteelBot.Database.Models
 
         public ulong? LevelAnnouncementChannelId { get; set; }
 
+        public int GoodBotVotes { get; set; }
+        public int BadBotVotes { get; set; }
+
         /// <summary>
         /// Empty constructor.
         /// Do not remove - used by EF.

@@ -77,9 +77,33 @@ namespace SteelBot.DataProviders.SubProviders
             if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Updating Levelling Channel for Guild [{guildId}]");
-                // Clone user to avoid making change to cache till db change confirmed.
+                // Clone guild to avoid making change to cache till db change confirmed.
                 Guild copyOfGuild = guild.Clone();
                 copyOfGuild.LevelAnnouncementChannelId = channelId;
+
+                await UpdateGuild(copyOfGuild);
+            }
+        }
+
+        public async Task IncrementGoodVote(ulong guildId)
+        {
+            if(TryGetGuild(guildId, out Guild guild))
+            {
+                Logger.LogInformation($"Incrementing good bot vote for Guild [{guildId}]");
+                Guild copyOfGuild = guild.Clone();
+                copyOfGuild.GoodBotVotes++;
+
+                await UpdateGuild(copyOfGuild);
+            }
+        }
+
+        public async Task IncrementBadVote(ulong guildId)
+        {
+            if (TryGetGuild(guildId, out Guild guild))
+            {
+                Logger.LogInformation($"Incrementing bad bot vote for Guild [{guildId}]");
+                Guild copyOfGuild = guild.Clone();
+                copyOfGuild.BadBotVotes++;
 
                 await UpdateGuild(copyOfGuild);
             }
