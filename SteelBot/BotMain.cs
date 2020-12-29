@@ -14,6 +14,7 @@ using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
+using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.NonGroupedCommands;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
@@ -110,6 +111,8 @@ namespace SteelBot
             Commands.RegisterCommands<RankRoleCommands>();
             Commands.RegisterCommands<TriggerCommands>();
             Commands.RegisterCommands<FeedbackCommands>();
+            Commands.RegisterCommands<FunCommands>();
+
 
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }
