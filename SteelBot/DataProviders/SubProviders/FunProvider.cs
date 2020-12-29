@@ -12,15 +12,9 @@ namespace SteelBot.DataProviders.SubProviders
 {
     public class FunProvider
     {
-        private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly AppConfigurationService AppConfigurationService;
         private JokeWrapper CachedJoke;
 
-        public FunProvider()
-        {
-            DbContextFactory = contextFactory;
-            AppConfigurationService = appConfig;
-        }
+        public FunProvider() {}
 
         private async Task UpdateJoke()
         {
