@@ -67,7 +67,7 @@ namespace SteelBot.Helpers
             StringBuilder usageBuilder = new StringBuilder();
             if (command is CommandGroup)
             {
-                usageBuilder.AppendLine($"`{BotPrefix}{command.Name} <Sub-Command>`");
+                usageBuilder.AppendLine($"`{BotPrefix}{command.Name.Humanize().Transform(To.TitleCase)} <Sub-Command>`");
                 HasSubCommands = true;
             }
 
