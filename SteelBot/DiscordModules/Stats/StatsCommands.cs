@@ -82,7 +82,7 @@ namespace SteelBot.DiscordModules.Stats
                 return;
             }
             List<User> guildUsers = DataHelper.Stats.GetUsersInGuild(context.Guild.Id);
-            if(guildUsers.Count == 0)
+            if (guildUsers.Count == 0)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet."));
             }
@@ -95,34 +95,42 @@ namespace SteelBot.DiscordModules.Stats
                     orderedUsers = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp}`");
                     break;
+
                 case "level":
                     orderedUsers = guildUsers.OrderByDescending(u => u.CurrentLevel).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Level: `{u.CurrentLevel}`");
                     break;
+
                 case "message count":
                     orderedUsers = guildUsers.OrderByDescending(u => u.MessageCount).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount}`");
                     break;
+
                 case "message length":
                     orderedUsers = guildUsers.OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
                     break;
+
                 case "efficiency":
                     orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency()).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency().ToString("P2")}`");
                     break;
+
                 case "voice":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Voice Time: `{u.TimeSpentInVoice.Humanize(3)}`");
                     break;
+
                 case "muted":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentMuted).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Muted Time: `{u.TimeSpentMuted.Humanize(3)}`");
                     break;
+
                 case "deafened":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Deafened Time: `{u.TimeSpentDeafened.Humanize(3)}`");
                     break;
+
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Error("Invalid Metric selected."));
                     return;
@@ -240,16 +248,15 @@ namespace SteelBot.DiscordModules.Stats
                 User user = orderedByXp[i];
 
                 leaderboard
-                    .AppendLine($"{(i + 1).Ordinalize()} - <@{user.DiscordId}>")
-                    .AppendLine($"Level `{user.CurrentLevel}`")
-                    .AppendLine($"XP `{$"{user.TotalXp:n0}"}`")
-                    .AppendLine($"Message Count `{user.MessageCount}`")
-                    .AppendLine($"Message Efficiency {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
-                    .AppendLine($"Average Message Length `{user.GetAverageMessageLength()}`")
-                    .AppendLine($"Voice Time `{user.TimeSpentInVoice.Humanize(3)}`")
-                    //.AppendLine($"Streaming Time `{user.TimeSpentStreaming.Humanize(3)}`")
-                    .AppendLine($"Muted Time `{user.TimeSpentMuted.Humanize(3)}`")
-                    .AppendLine($"Deafened Time `{user.TimeSpentDeafened.Humanize(3)}`");
+                    .AppendLine($"**__{(i + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
+                    .AppendLine($"**__Messages__**")
+                    .AppendLine($" - **Count** `{user.MessageCount}`")
+                    .AppendLine($" - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
+                    .AppendLine($" - **Average Length** `{user.GetAverageMessageLength()}`")
+                    .AppendLine("**__Durations__**")
+                    .AppendLine($"- **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")
+                    .AppendLine($"- **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
+                    .AppendLine($"- **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`");
 
                 if (i != orderedByXp.Count - 1)
                 {
