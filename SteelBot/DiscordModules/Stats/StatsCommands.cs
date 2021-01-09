@@ -76,6 +76,11 @@ namespace SteelBot.DiscordModules.Stats
         public async Task MetricLeaderboard(CommandContext context, [RemainingText] string metric)
         {
             const int top = 10;
+            if (string.IsNullOrWhiteSpace(metric))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"Missing metric parameter.\nAvailable Metrics are: {string.Join(", ", AllowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"));
+                return;
+            }
             if (!AllowedMetrics.Contains(metric))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Warning($"Invalid metric: {Formatter.Bold(metric)}\nAvailable Metrics are: {string.Join(", ", AllowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"));

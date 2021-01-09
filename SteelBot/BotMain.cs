@@ -113,7 +113,6 @@ namespace SteelBot
             Commands.RegisterCommands<FeedbackCommands>();
             Commands.RegisterCommands<FunCommands>();
 
-
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }
 
