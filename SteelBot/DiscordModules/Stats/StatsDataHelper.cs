@@ -48,7 +48,7 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(3)}`", true)
                 //.AddField("\u200B", "\u200B") TODO: Uncomment when adding streaming time for 2x2 grid of times.
                 .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", false);
-                //.AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", false)
+            //.AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", false)
             return embedBuilder;
         }
 

@@ -39,7 +39,11 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation("Loading data from database: Users");
             using (var db = DbContextFactory.CreateDbContext())
             {
-                UsersByDiscordIdAndServer = db.Users.AsNoTracking().Include(u => u.Guild).ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
+                UsersByDiscordIdAndServer = db.Users
+                    .Include(u => u.Guild)
+                    .Include(u => u.CurrentRankRole)
+                    .AsNoTracking()
+                    .ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
             }
         }
 
@@ -87,6 +91,29 @@ namespace SteelBot.DataProviders.SubProviders
                 {
                     Logger.LogError($"Writing User [{user.DiscordId}] in Guild [{guildId}] to the datbase inserted no entities. The internal cache was not changed.");
                 }
+            }
+        }
+
+        public async Task UpdateRankRole(ulong guildId, ulong userId, RankRole newRole)
+        {
+            if (TryGetUser(guildId, userId, out User user))
+            {
+                Logger.LogInformation($"Updating RankRole for User [{userId}] in Guild [{guildId}] to [{newRole?.RoleName}]");
+
+                // Clone user to avoid making change to cache till db change confirmed.
+                User copyOfUser = user.Clone();
+
+                copyOfUser.CurrentRankRole = newRole;
+                if (newRole != default)
+                {
+                    copyOfUser.CurrentRankRoleRowId = newRole.RowId;
+                }
+                else
+                {
+                    copyOfUser.CurrentRankRoleRowId = null;
+                }
+
+                await UpdateUser(guildId, copyOfUser);
             }
         }
 

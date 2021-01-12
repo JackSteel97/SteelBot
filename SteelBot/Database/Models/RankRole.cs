@@ -16,6 +16,7 @@ namespace SteelBot.Database.Models
         public long GuildRowId { get; set; }
         public Guild Guild { get; set; }
         public int LevelRequired { get; set; }
+        public List<User> UsersWithRole { get; set; }
 
         /// <summary>
         /// Empty constructor.

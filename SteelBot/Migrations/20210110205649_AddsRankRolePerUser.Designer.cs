@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SteelBot.Database;
 
 namespace SteelBot.Migrations
 {
     [DbContext(typeof(SteelBotContext))]
-    partial class SteelBotContextModelSnapshot : ModelSnapshot
+    [Migration("20210110205649_AddsRankRolePerUser")]
+    partial class AddsRankRolePerUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -364,7 +366,7 @@ namespace SteelBot.Migrations
                     b.HasOne("SteelBot.Database.Models.Guild", "Guild")
                         .WithMany("RankRoles")
                         .HasForeignKey("GuildRowId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Guild");
@@ -375,7 +377,7 @@ namespace SteelBot.Migrations
                     b.HasOne("SteelBot.Database.Models.Guild", "Guild")
                         .WithMany("SelfRoles")
                         .HasForeignKey("GuildRowId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Guild");
@@ -392,7 +394,7 @@ namespace SteelBot.Migrations
                     b.HasOne("SteelBot.Database.Models.Guild", "Guild")
                         .WithMany("Triggers")
                         .HasForeignKey("GuildRowId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Creator");
@@ -404,13 +406,12 @@ namespace SteelBot.Migrations
                 {
                     b.HasOne("SteelBot.Database.Models.RankRole", "CurrentRankRole")
                         .WithMany("UsersWithRole")
-                        .HasForeignKey("CurrentRankRoleRowId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CurrentRankRoleRowId");
 
                     b.HasOne("SteelBot.Database.Models.Guild", "Guild")
                         .WithMany("UsersInGuild")
                         .HasForeignKey("GuildRowId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CurrentRankRole");

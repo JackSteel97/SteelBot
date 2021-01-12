@@ -33,10 +33,10 @@ namespace SteelBot.Database
                 entity.HasKey(g => g.RowId);
                 entity.HasIndex(g => g.DiscordId).IsUnique();
                 entity.Property(g => g.CommandPrefix).HasDefaultValue("+");
-                entity.HasMany(g => g.UsersInGuild).WithOne(u => u.Guild).HasForeignKey(u => u.GuildRowId);
-                entity.HasMany(g => g.SelfRoles).WithOne(sr => sr.Guild).HasForeignKey(sr => sr.GuildRowId);
-                entity.HasMany(g => g.RankRoles).WithOne(rr => rr.Guild).HasForeignKey(rr => rr.GuildRowId);
-                entity.HasMany(g => g.Triggers).WithOne(t => t.Guild).HasForeignKey(t => t.GuildRowId);
+                entity.HasMany(g => g.UsersInGuild).WithOne(u => u.Guild).HasForeignKey(u => u.GuildRowId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasMany(g => g.SelfRoles).WithOne(sr => sr.Guild).HasForeignKey(sr => sr.GuildRowId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasMany(g => g.RankRoles).WithOne(rr => rr.Guild).HasForeignKey(rr => rr.GuildRowId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasMany(g => g.Triggers).WithOne(t => t.Guild).HasForeignKey(t => t.GuildRowId).OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<User>(entity =>
@@ -49,6 +49,7 @@ namespace SteelBot.Database
                 entity.Ignore(u => u.TimeSpentStreaming);
 
                 entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(u => u.CurrentRankRole).WithMany(rr => rr.UsersWithRole).HasForeignKey(u => u.CurrentRankRoleRowId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<SelfRole>(entity =>

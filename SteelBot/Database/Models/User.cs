@@ -35,6 +35,9 @@ namespace SteelBot.Database.Models
         public DateTime? LastMessageSent { get; set; }
         public DateTime? LastXpEarningMessage { get; set; }
 
+        public long? CurrentRankRoleRowId { get; set; }
+
+        public RankRole CurrentRankRole { get; set; }
         public List<Trigger> CreatedTriggers { get; set; }
 
         public ulong TotalXp
@@ -139,7 +142,7 @@ namespace SteelBot.Database.Models
             if (addMessageXp)
             {
                 LastXpEarningMessage = DateTime.UtcNow;
-                MessageXpEarned += 15;
+                MessageXpEarned += 500;
             }
 
             int newLevel = CurrentLevel;
