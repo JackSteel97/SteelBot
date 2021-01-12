@@ -142,7 +142,7 @@ namespace SteelBot.Database.Models
             if (addMessageXp)
             {
                 LastXpEarningMessage = DateTime.UtcNow;
-                MessageXpEarned += 500;
+                MessageXpEarned += 15;
             }
 
             int newLevel = CurrentLevel;
