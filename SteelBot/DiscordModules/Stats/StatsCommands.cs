@@ -46,7 +46,7 @@ namespace SteelBot.DiscordModules.Stats
             DiscordEmbedBuilder embedBuilder = DataHelper.Stats.GetStatsEmbed(user, discordUser.Username);
             using (var imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
             {
-                string fileName = $"{context.Member.Username}_stats.png";
+                string fileName = $"{user.DiscordId}_stats.png";
                 await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
             }
         }
@@ -66,7 +66,7 @@ namespace SteelBot.DiscordModules.Stats
 
             using (var imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
             {
-                string fileName = $"{context.Member.Username}_stats.png";
+                string fileName = $"{user.DiscordId}_stats.png";
                 await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
             }
         }
