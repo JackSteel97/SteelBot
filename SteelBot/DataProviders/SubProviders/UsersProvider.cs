@@ -148,6 +148,53 @@ namespace SteelBot.DataProviders.SubProviders
             return levelIncreased;
         }
 
+        /// <summary>
+        /// Called during app shutdown to make sure no timings get carried too long during downtime.
+        /// </summary>
+        /// <returns></returns>
+        public async Task DisconnectAllUsers()
+        {
+            Logger.LogInformation("Disconnecting all users from voice stats.");
+            DateTime updateTimestamp = DateTime.UtcNow;
+            var allUsers = UsersByDiscordIdAndServer.Values.ToList();
+
+            using (var db = DbContextFactory.CreateDbContext())
+            {
+                foreach (var user in allUsers)
+                {
+                    bool changed = false;
+                    if (user.VoiceStartTime.HasValue)
+                    {
+                        user.TimeSpentInVoice += updateTimestamp - user.VoiceStartTime.Value;
+                        user.VoiceStartTime = null;
+                        changed = true;
+                    }
+                    if (user.MutedStartTime.HasValue)
+                    {
+                        user.TimeSpentMuted += updateTimestamp - user.MutedStartTime.Value;
+                        user.MutedStartTime = null;
+                        changed = true;
+                    }
+                    if (user.DeafenedStartTime.HasValue)
+                    {
+                        user.TimeSpentDeafened += updateTimestamp - user.DeafenedStartTime.Value;
+                        user.MutedStartTime = null;
+                        changed = true;
+                    }
+                    bool levelledUp = user.UpdateLevel();
+
+                    if (changed || levelledUp)
+                    {
+                        // To prevent EF tracking issue, grab and alter existing value.
+                        User original = db.Users.First(u => u.RowId == user.RowId);
+                        db.Entry(original).CurrentValues.SetValues(user);
+                        db.Users.Update(original);
+                    }
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
         public async Task<bool> UpdateVoiceStateCounters(ulong guildId, ulong userId, DiscordVoiceState newState)
         {
             DateTime updateTimestamp = DateTime.UtcNow;

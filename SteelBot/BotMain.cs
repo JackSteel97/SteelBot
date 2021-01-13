@@ -71,9 +71,10 @@ namespace SteelBot
             return Client.ConnectAsync(new DiscordActivity("+Help", ActivityType.ListeningTo));
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            return ShutdownDiscordClient();
+            await ShutdownDiscordClient();
+            await Cache.Users.DisconnectAllUsers();
         }
 
         private async Task ShutdownDiscordClient()
