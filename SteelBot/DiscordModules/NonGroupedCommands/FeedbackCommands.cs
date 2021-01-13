@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext.Attributes;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace SteelBot.DiscordModules.NonGroupedCommands
 {
     [Description("Commands for providing feedback about the bot.")]
     [RequireGuild]
-    public class FeedbackCommands : BaseCommandModule
+    public class FeedbackCommands : TypingCommandModule
     {
         private readonly DataCache Cache;
 
@@ -26,7 +27,7 @@ namespace SteelBot.DiscordModules.NonGroupedCommands
         [Cooldown(1, 60, CooldownBucketType.User)]
         public async Task GoodBot(CommandContext context, [RemainingText] string remainder)
         {
-            if(remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
+            if (remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
             {
                 await Cache.Guilds.IncrementGoodVote(context.Guild.Id);
                 await context.RespondAsync(embed: EmbedGenerator.Info("Thank you!"));
@@ -38,7 +39,7 @@ namespace SteelBot.DiscordModules.NonGroupedCommands
         [Cooldown(1, 60, CooldownBucketType.User)]
         public async Task BadBot(CommandContext context, [RemainingText] string remainder)
         {
-            if(remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
+            if (remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
             {
                 await Cache.Guilds.IncrementBadVote(context.Guild.Id);
                 await context.RespondAsync(embed: EmbedGenerator.Info("I'm sorry!"));

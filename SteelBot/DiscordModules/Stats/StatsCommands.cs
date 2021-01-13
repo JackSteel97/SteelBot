@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace SteelBot.DiscordModules.Stats
     [Group("Stats")]
     [Description("Commands for viewing user stats and levels")]
     [RequireGuild]
-    public class StatsCommands : BaseCommandModule
+    public class StatsCommands : TypingCommandModule
     {
         private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened" };
         private readonly DataHelpers DataHelper;

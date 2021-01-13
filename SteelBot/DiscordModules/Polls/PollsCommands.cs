@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.Polls
     [Aliases("poll", "p")]
     [Description("Commands for starting and editing polls.")]
     [RequireGuild]
-    public class PollsCommands : BaseCommandModule
+    public class PollsCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelper;
 

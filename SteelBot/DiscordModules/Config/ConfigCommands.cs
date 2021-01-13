@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.Config
     [Description("Bot configuration commands.")]
     [Aliases("config", "c")]
     [RequireGuild]
-    public class ConfigCommands : BaseCommandModule
+    public class ConfigCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelpers;
 

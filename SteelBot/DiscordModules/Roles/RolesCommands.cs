@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace SteelBot.DiscordModules.Roles
     [Aliases("sr")]
     [Description("Self Role commands.")]
     [RequireGuild]
-    public class RolesCommands : BaseCommandModule
+    public class RolesCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelpers;
 

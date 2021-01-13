@@ -7,6 +7,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace SteelBot.DiscordModules.RankRoles
     [Description("Rank role management commands")]
     [RequireGuild]
     [RequireUserPermissions(Permissions.ManageRoles)]
-    public class RankRoleCommands : BaseCommandModule
+    public class RankRoleCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelpers;
 

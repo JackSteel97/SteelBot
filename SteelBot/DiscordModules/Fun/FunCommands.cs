@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace SteelBot.DiscordModules.Fun
     [Aliases("f")]
     [Description("Commands for fun.")]
     [RequireGuild]
-    public class FunCommands : BaseCommandModule
+    public class FunCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelpers;
         private readonly DataCache Cache;

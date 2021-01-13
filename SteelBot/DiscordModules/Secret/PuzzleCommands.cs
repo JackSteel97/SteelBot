@@ -10,6 +10,7 @@ using Humanizer;
 using DSharpPlus.Entities;
 using SteelBot.Services.Configuration;
 using System.IO;
+using SteelBot.Helpers.Extensions;
 
 namespace SteelBot.DiscordModules.Secret
 {
@@ -18,7 +19,7 @@ namespace SteelBot.DiscordModules.Secret
     [RequireGuild]
     [GuildCheck(287309906137055247, 782237087352356876)]
     [Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
-    public class PuzzleCommands : BaseCommandModule
+    public class PuzzleCommands : TypingCommandModule
     {
         private const string PuzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.";
         private const int NumberOfQuestions = 29;

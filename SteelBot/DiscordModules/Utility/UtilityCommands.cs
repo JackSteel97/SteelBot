@@ -6,6 +6,7 @@ using Humanizer;
 using Newtonsoft.Json;
 using SteelBot.Attributes;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -20,7 +21,7 @@ namespace SteelBot.DiscordModules.Utility
     [Group("Utility")]
     [Description("Helpful functions.")]
     [Aliases("util", "u")]
-    public class UtilityCommands : BaseCommandModule
+    public class UtilityCommands : TypingCommandModule
     {
         private readonly Random Rand;
         private readonly AppConfigurationService AppConfigurationService;

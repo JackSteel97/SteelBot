@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.RankRoles
     [Aliases("trigger", "t")]
     [Description("Trigger management commands")]
     [RequireGuild]
-    public class TriggerCommands : BaseCommandModule
+    public class TriggerCommands : TypingCommandModule
     {
         private readonly DataHelpers DataHelpers;
 
