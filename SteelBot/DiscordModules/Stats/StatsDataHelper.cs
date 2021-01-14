@@ -52,7 +52,7 @@ namespace SteelBot.DiscordModules.Stats
             return embedBuilder;
         }
 
-        public async Task HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
+        public async Task<bool> HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
         {
             ulong guildId = args.Guild.Id;
             ulong userId = args.User.Id;
@@ -63,6 +63,8 @@ namespace SteelBot.DiscordModules.Stats
             {
                 await SendLevelUpMessage(args.Guild, args.User);
             }
+
+            return levelIncreased;
         }
 
         private async Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)

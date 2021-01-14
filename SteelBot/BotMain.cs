@@ -153,8 +153,10 @@ namespace SteelBot
                     {
                         await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
 
-                        // Polls are not supported outside of guilds.
-                        await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
+                        _ = Task.Run(async () =>
+                        {
+                            await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
+                        });
                     }
                 }
             }
@@ -204,8 +206,14 @@ namespace SteelBot
                     if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
                     {
                         await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
-
-                        await DataHelpers.Stats.HandleVoiceStateChange(args);
+                        _ = Task.Run(async () =>
+                        {
+                            bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);
+                            if (levelUp)
+                            {
+                                await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
+                            }
+                        });
                     }
                 }
             }
