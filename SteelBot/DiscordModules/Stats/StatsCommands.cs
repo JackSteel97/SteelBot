@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus.Interactivity;
 
 namespace SteelBot.DiscordModules.Stats
 {
@@ -249,6 +250,9 @@ namespace SteelBot.DiscordModules.Stats
                .WithTimestamp(DateTime.UtcNow);
 
             StringBuilder leaderboard = new StringBuilder();
+            int requiredPages = (int)Math.Ceiling((double)orderedByXp.Count / 2);
+
+            List<Page> pages = new List<Page>(requiredPages);
             for (int i = 0; i < orderedByXp.Count; i++)
             {
                 User user = orderedByXp[i];
@@ -268,12 +272,24 @@ namespace SteelBot.DiscordModules.Stats
                 {
                     leaderboard.AppendLine();
                 }
+
+                if (i % 2 == 1 || i == orderedByXp.Count - 1)
+                {
+                    // Manually start a new page every 2 users.
+                    int currentPage = (i / 2) + 1;
+
+                    DiscordEmbedBuilder embedPage = embedBuilder
+                        .WithDescription(leaderboard.ToString())
+                        .WithFooter($"Page {currentPage}/{requiredPages}");
+
+                    pages.Add(new Page(embed: embedBuilder));
+                    leaderboard.Clear();
+                }
             }
 
             var interactivity = context.Client.GetInteractivity();
-            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
-            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }
     }
 }
