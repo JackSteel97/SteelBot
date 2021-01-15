@@ -73,11 +73,11 @@ namespace SteelBot.DiscordModules.Stats
         }
 
         [GroupCommand]
-        [Description("Displays the leaderboard sorted by the given metric.")]
+        [Description("Displays the Top 50 leaderboard sorted by the given metric.")]
         [Cooldown(2, 60, CooldownBucketType.Channel)]
         public async Task MetricLeaderboard(CommandContext context, [RemainingText] string metric)
         {
-            const int top = 10;
+            const int top = 50;
             if (string.IsNullOrWhiteSpace(metric))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Warning($"Missing metric parameter.\nAvailable Metrics are: {string.Join(", ", AllowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"));
