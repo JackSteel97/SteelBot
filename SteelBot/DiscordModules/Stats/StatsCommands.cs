@@ -23,7 +23,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : TypingCommandModule
     {
-        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened" };
+        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened", "last active" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
 
@@ -136,6 +136,11 @@ namespace SteelBot.DiscordModules.Stats
                 case "deafened":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Deafened Time: `{u.TimeSpentDeafened.Humanize(3)}`");
+                    break;
+
+                case "last active":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.LastActivity).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Last Active: `{u.LastActivity.Humanize()}`");
                     break;
 
                 default:
