@@ -122,7 +122,8 @@ namespace SteelBot.DiscordModules.Polls
                     }
                     else if (args.User.Id != botId)
                     {
-                        await args.Channel.SendMessageAsync(embed: EmbedGenerator.Warning($"{user.Mention} tried to close Poll **{poll.RowId}**\nOnly the creator of the poll or an admin/mod can close it."));
+                        DiscordMember discordMember = (DiscordMember)args.User;
+                        await discordMember.SendMessageAsync(embed: EmbedGenerator.Warning($"You do not have permission to close poll **{poll.RowId}**"));
                     }
                 }
             }
