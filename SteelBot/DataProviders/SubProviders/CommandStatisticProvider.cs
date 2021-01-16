@@ -98,5 +98,10 @@ namespace SteelBot.DataProviders.SubProviders
         {
             return StatisticsByCommandName.ContainsKey(commandName);
         }
+
+        public List<CommandStatistic> GetAllCommandStatistics()
+        {
+            return StatisticsByCommandName.Values.ToList();
+        }
     }
 }

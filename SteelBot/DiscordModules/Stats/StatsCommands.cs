@@ -15,6 +15,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Interactivity;
+using ScottPlot;
+using System.IO;
+using ScottPlot.Drawing;
 
 namespace SteelBot.DiscordModules.Stats
 {
@@ -31,6 +34,41 @@ namespace SteelBot.DiscordModules.Stats
         {
             DataHelper = dataHelpers;
             LevelCardGenerator = levelCardGenerator;
+        }
+
+        [Command("commands")]
+        [Description("Displays statistics about what commands are used most globally.")]
+        [Cooldown(3, 60, CooldownBucketType.Global)]
+        [RequireOwner]
+        public async Task CommandStatistics(CommandContext context)
+        {
+            const string imageName = "commandstats.png";
+            var allStats = DataHelper.Stats.GetCommandStatistics();
+
+            // Sort descending.
+            allStats.Sort((cs1, cs2) => cs2.UsageCount.CompareTo(cs1.UsageCount));
+
+            int barCount = allStats.Count;
+
+            var plt = new ScottPlot.Plot(1280, 720);
+            plt.Style(Style.Gray1);
+
+            string[] labels = allStats.ConvertAll(s => s.CommandName).ToArray();
+            double[] yData = allStats.ConvertAll(s => (double)s.UsageCount).ToArray();
+
+            var bar = plt.AddBar(yData);
+            bar.ShowValuesAboveBars = true;
+            plt.SetAxisLimits(yMin: 0);
+            plt.XTicks(labels);
+            plt.XAxis.TickLabelStyle(rotation: 20);
+            plt.Grid(false);
+
+            plt.Title("Command Usage");
+            plt.YLabel("Usage Count");
+            plt.SaveFig(imageName);
+
+            await context.RespondWithFileAsync(imageName);
+            File.Delete(imageName);
         }
 
         [GroupCommand]

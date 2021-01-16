@@ -88,5 +88,10 @@ namespace SteelBot.DiscordModules.Stats
         {
             return Cache.Users.GetUsersInGuild(guildId);
         }
+
+        public List<CommandStatistic> GetCommandStatistics()
+        {
+            return Cache.CommandStatistics.GetAllCommandStatistics();
+        }
     }
 }
