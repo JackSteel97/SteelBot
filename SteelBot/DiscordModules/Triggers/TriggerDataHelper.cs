@@ -34,13 +34,12 @@ namespace SteelBot.DiscordModules.RankRoles
             if (Cache.Users.TryGetUser(guildId, creatorId, out User user))
             {
                 trigger.CreatorRowId = user.RowId;
+                await Cache.Triggers.AddTrigger(guildId, trigger, user);
             }
             else
             {
                 Logger.LogWarning($"Could not create Trigger because User [{creatorId}] does not exist.");
             }
-
-            await Cache.Triggers.AddTrigger(guildId, trigger);
         }
 
         public async Task<bool> DeleteTrigger(ulong guildId, string triggerText, DiscordMember deleter, DiscordChannel currentChannel)

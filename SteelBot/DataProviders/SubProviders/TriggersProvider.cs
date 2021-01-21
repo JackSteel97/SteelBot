@@ -39,7 +39,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private void AddTriggerToInternalCache(ulong guildId, Trigger trigger)
+        private void AddTriggerToInternalCache(ulong guildId, Trigger trigger, User creator = null)
         {
             if (!TriggersByGuild.TryGetValue(guildId, out Dictionary<string, Trigger> triggers))
             {
@@ -48,6 +48,10 @@ namespace SteelBot.DataProviders.SubProviders
             }
             if (!triggers.ContainsKey(trigger.TriggerText.ToLower()))
             {
+                if (creator != null)
+                {
+                    trigger.Creator = creator;
+                }
                 triggers.Add(trigger.TriggerText.ToLower(), trigger);
             }
         }
@@ -88,11 +92,11 @@ namespace SteelBot.DataProviders.SubProviders
             return TriggersByGuild.TryGetValue(guildId, out triggers);
         }
 
-        public async Task AddTrigger(ulong guildId, Trigger trigger)
+        public async Task AddTrigger(ulong guildId, Trigger trigger, User creator)
         {
             if (!BotKnowsTrigger(guildId, trigger.TriggerText))
             {
-                await InsertTrigger(guildId, trigger);
+                await InsertTrigger(guildId, trigger, creator);
             }
         }
 
@@ -104,7 +108,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private async Task InsertTrigger(ulong guildId, Trigger trigger)
+        private async Task InsertTrigger(ulong guildId, Trigger trigger, User creator)
         {
             Logger.LogInformation($"Writing a new Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database.");
             int writtenCount;
@@ -116,7 +120,7 @@ namespace SteelBot.DataProviders.SubProviders
 
             if (writtenCount > 0)
             {
-                AddTriggerToInternalCache(guildId, trigger);
+                AddTriggerToInternalCache(guildId, trigger, creator);
             }
             else
             {
@@ -131,6 +135,8 @@ namespace SteelBot.DataProviders.SubProviders
             int writtenCount;
             using (var db = DbContextFactory.CreateDbContext())
             {
+                // Remove creator to prevent EF trying to deleting things.
+                trigger.Creator = null;
                 db.Triggers.Remove(trigger);
                 writtenCount = await db.SaveChangesAsync();
             }
