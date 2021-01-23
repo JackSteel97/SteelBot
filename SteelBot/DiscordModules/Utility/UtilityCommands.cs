@@ -3,17 +3,12 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
-using Newtonsoft.Json;
-using SteelBot.Attributes;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Utility
@@ -90,11 +85,15 @@ namespace SteelBot.DiscordModules.Utility
                 // Remove from possible options.
                 remainingOptions.RemoveAt(randIndex);
             }
-            return context.RespondAsync(embed: EmbedGenerator.Primary(string.Join(", ", selectedOptions), $"Chosen Option{(numberToSelect > 1 ? "s" : "")}"));
+
+            DiscordMessageBuilder message = new DiscordMessageBuilder()
+                .WithEmbed(EmbedGenerator.Primary(string.Join(", ", selectedOptions), $"Chosen Option{(numberToSelect > 1 ? "s" : "")}"))
+                .WithReply(context.Message.Id, true);
+            return context.RespondAsync(message);
         }
 
         [Command("FlipCoin")]
-        [Aliases("TossCoin", "fc")]
+        [Aliases("TossCoin", "fc", "flip")]
         [Description("Flips a coin.")]
         [Cooldown(10, 60, CooldownBucketType.User)]
         public Task FlipCoin(CommandContext context)
@@ -105,7 +104,11 @@ namespace SteelBot.DiscordModules.Utility
             {
                 result = "Tails!";
             }
-            return context.RespondAsync(embed: EmbedGenerator.Primary(result));
+
+            DiscordMessageBuilder message = new DiscordMessageBuilder()
+                .WithEmbed(EmbedGenerator.Primary(result))
+                .WithReply(context.Message.Id, true);
+            return context.RespondAsync(message);
         }
 
         [Command("RollDie")]
@@ -115,7 +118,11 @@ namespace SteelBot.DiscordModules.Utility
         public Task RollDie(CommandContext context, int sides = 6)
         {
             int rolledNumber = Rand.Next(1, sides + 1);
-            return context.RespondAsync(embed: EmbedGenerator.Primary($"{context.User.Mention} rolled {rolledNumber}"));
+
+            DiscordMessageBuilder message = new DiscordMessageBuilder()
+                .WithEmbed(EmbedGenerator.Primary($"You rolled {rolledNumber}"))
+                .WithReply(context.Message.Id, true);
+            return context.RespondAsync(message);
         }
 
         [Command("Speak")]

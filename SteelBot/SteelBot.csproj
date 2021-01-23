@@ -8,8 +8,8 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<AssemblyVersion>0.35.73.7693</AssemblyVersion>
-		<FileVersion>0.35.73.7693</FileVersion>
+		<AssemblyVersion>0.35.76.7693</AssemblyVersion>
+		<FileVersion>0.35.76.7693</FileVersion>
 		<Version>0.35</Version>
 	</PropertyGroup>
 
