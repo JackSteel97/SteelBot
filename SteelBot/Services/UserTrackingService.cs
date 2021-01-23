@@ -1,5 +1,7 @@
-﻿using SteelBot.Database.Models;
+﻿using DSharpPlus.Entities;
+using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules;
 using System.Threading.Tasks;
 
 namespace SteelBot.Services
@@ -7,10 +9,12 @@ namespace SteelBot.Services
     public class UserTrackingService
     {
         private readonly DataCache Cache;
+        private readonly DataHelpers DataHelpers;
 
-        public UserTrackingService(DataCache cache)
+        public UserTrackingService(DataCache cache, DataHelpers dataHelpers)
         {
             Cache = cache;
+            DataHelpers = dataHelpers;
         }
 
         /// <summary>
@@ -19,7 +23,7 @@ namespace SteelBot.Services
         /// </summary>
         /// <param name="guildId">Guild the user is in.</param>
         /// <param name="userId">User's discord id.</param>
-        public async Task TrackUser(ulong guildId, ulong userId)
+        public async Task TrackUser(ulong guildId, ulong userId, DiscordGuild discordGuild)
         {
             // Add the guild if it somehow doesn't exist.
             bool guildExists = Cache.Guilds.BotKnowsGuild(guildId);
@@ -30,8 +34,14 @@ namespace SteelBot.Services
 
             Cache.Guilds.TryGetGuild(guildId, out Guild guild);
 
-            // Only inserted if the user does not already exist.
-            await Cache.Users.InsertUser(guildId, new User(userId, guild.RowId));
+            bool userExists = Cache.Users.BotKnowsUser(guildId, userId);
+            if (!userExists)
+            {
+                // Only inserted if the user does not already exist.
+                await Cache.Users.InsertUser(guildId, new User(userId, guild.RowId));
+
+                await DataHelpers.RankRoles.UserLevelledUp(guildId, userId, discordGuild);
+            }
         }
     }
 }

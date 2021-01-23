@@ -44,6 +44,7 @@ namespace SteelBot.DiscordModules.Roles
                 .WithTitle("Available Self Roles");
 
             StringBuilder rolesBuilder = new StringBuilder();
+            rolesBuilder.AppendLine(Formatter.Bold("All")).AppendLine($" - Join all available Self Roles");
             foreach (SelfRole role in allRoles)
             {
                 if (!role.Hidden)
@@ -69,6 +70,20 @@ namespace SteelBot.DiscordModules.Roles
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task JoinRole(CommandContext context, [RemainingText] string roleName)
         {
+            if (roleName.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+                string joinedRoles = await DataHelpers.Roles.JoinAllAvailableRoles(context.Member, context.Guild);
+                if (joinedRoles.Length > 0)
+                {
+                    await context.RespondAsync(embed: EmbedGenerator.Success(joinedRoles, "Joined Roles"));
+                }
+                else
+                {
+                    await context.RespondAsync(embed: EmbedGenerator.Warning("There are no roles that you don't already have."));
+                }
+                return;
+            }
+
             // Check role is a self role.
             if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
             {
@@ -83,9 +98,16 @@ namespace SteelBot.DiscordModules.Roles
                 await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid role on this server. Make sure your administrator has added the role."));
             }
 
+            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+
+            if (context.Member.Roles.Any(userRole => userRole.Id == role.Id))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"You already have the {roleMention} role."));
+                return;
+            }
+
             // Add to user.
             await context.Member.GrantRoleAsync(role, "Requested to join Self Role.");
-            string roleMention = role.IsMentionable ? role.Mention : role.Name;
             await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined {roleMention}"));
         }
 

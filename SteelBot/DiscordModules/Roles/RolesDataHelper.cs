@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Services.Configuration;
@@ -19,6 +20,30 @@ namespace SteelBot.DiscordModules.Roles
         {
             Logger = logger;
             Cache = cache;
+        }
+
+        public async Task<string> JoinAllAvailableRoles(DiscordMember member, DiscordGuild guild)
+        {
+            StringBuilder builder = new StringBuilder();
+            Dictionary<string, DiscordRole> discordRolesByName = guild.Roles.Values.ToDictionary(x => x.Name.ToLower());
+            var allRoles = GetSelfRoles(guild.Id);
+            foreach (var role in allRoles)
+            {
+                if (discordRolesByName.TryGetValue(role.RoleName.ToLower(), out DiscordRole discordRole))
+                {
+                    if (!member.Roles.Any(userRole => userRole.Id == discordRole.Id))
+                    {
+                        await member.GrantRoleAsync(discordRole, "Requested to join All Self Roles.");
+                        string roleMention = discordRole.IsMentionable ? discordRole.Mention : discordRole.Name;
+                        builder.AppendLine($"**{roleMention}**");
+                    }
+                }
+                else
+                {
+                    builder.AppendLine($"**{role.RoleName}** - is not a valid role on this server, make sure the server role has not been deleted.");
+                }
+            }
+            return builder.ToString();
         }
 
         public bool IsSelfRole(ulong guildId, string roleName)

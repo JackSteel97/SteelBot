@@ -43,8 +43,9 @@ namespace SteelBot
         private readonly DataHelpers DataHelpers;
         private readonly DataCache Cache;
         private CommandsNextExtension Commands;
+        private UserTrackingService UserTrackingService;
 
-        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache)
+        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -52,6 +53,7 @@ namespace SteelBot
             ServiceProvider = serviceProvider;
             DataHelpers = dataHelpers;
             Cache = cache;
+            UserTrackingService = userTrackingService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -151,7 +153,7 @@ namespace SteelBot
                     // Ignore bots and the current user.
                     if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
                     {
-                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
+                        await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
 
                         _ = Task.Run(async () =>
                         {
@@ -176,7 +178,7 @@ namespace SteelBot
                     // Ignore bots and the current user.
                     if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
                     {
-                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.Author.Id);
+                        await UserTrackingService.TrackUser(args.Guild.Id, args.Author.Id, args.Guild);
 
                         _ = Task.Run(async () =>
                         {
@@ -205,7 +207,7 @@ namespace SteelBot
                     // Ignore bots and the current user.
                     if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
                     {
-                        await DataHelpers.UserTracking.TrackUser(args.Guild.Id, args.User.Id);
+                        await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
                         _ = Task.Run(async () =>
                         {
                             bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);

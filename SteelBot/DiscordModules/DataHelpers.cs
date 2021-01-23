@@ -9,8 +9,6 @@ namespace SteelBot.DiscordModules
 {
     public class DataHelpers
     {
-        public UserTrackingService UserTracking { get; }
-
         public StatsDataHelper Stats { get; }
 
         public ConfigDataHelper Config { get; }
@@ -23,15 +21,13 @@ namespace SteelBot.DiscordModules
 
         public TriggerDataHelper Triggers { get; }
 
-        public DataHelpers(UserTrackingService userTracking,
-            StatsDataHelper statsHelper,
+        public DataHelpers(StatsDataHelper statsHelper,
             ConfigDataHelper configHelper,
             RolesDataHelper rolesHelper,
             PollsDataHelper pollsHelper,
             RankRoleDataHelper rankRolesHelper,
             TriggerDataHelper triggersDataHelper)
         {
-            UserTracking = userTracking;
             Stats = statsHelper;
             Config = configHelper;
             Roles = rolesHelper;
