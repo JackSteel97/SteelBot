@@ -26,7 +26,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : TypingCommandModule
     {
-        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened", "last active" };
+        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened", "last active", "stream", "video" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
 
@@ -67,7 +67,8 @@ namespace SteelBot.DiscordModules.Stats
             plt.YLabel("Usage Count");
             plt.SaveFig(imageName);
 
-            await context.RespondWithFileAsync(imageName);
+            DiscordMessageBuilder message = new DiscordMessageBuilder().WithFile(imageName);
+            await context.RespondAsync(message);
             File.Delete(imageName);
         }
 
@@ -86,7 +87,10 @@ namespace SteelBot.DiscordModules.Stats
             using (var imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
             {
                 string fileName = $"{user.DiscordId}_stats.png";
-                await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+                DiscordMessageBuilder message = new DiscordMessageBuilder()
+                    .WithFile(fileName, imageStream)
+                    .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+                await context.RespondAsync(message);
             }
         }
 
@@ -106,7 +110,10 @@ namespace SteelBot.DiscordModules.Stats
             using (var imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
             {
                 string fileName = $"{user.DiscordId}_stats.png";
-                await context.RespondWithFileAsync(fileName, imageStream, embed: embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+                DiscordMessageBuilder message = new DiscordMessageBuilder()
+                    .WithFile(fileName, imageStream)
+                    .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+                await context.RespondAsync(message);
             }
         }
 
@@ -179,6 +186,16 @@ namespace SteelBot.DiscordModules.Stats
                 case "last active":
                     orderedUsers = guildUsers.OrderByDescending(u => u.LastActivity).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Last Active: `{u.LastActivity.Humanize()}`");
+                    break;
+
+                case "stream":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentStreaming).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Streaming Time: `{u.TimeSpentStreaming.Humanize(3)}`");
+                    break;
+
+                case "video":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentOnVideo).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Video Time: `{u.TimeSpentOnVideo.Humanize(3)}`");
                     break;
 
                 default:
@@ -299,17 +316,18 @@ namespace SteelBot.DiscordModules.Stats
             for (int i = 0; i < orderedByXp.Count; i++)
             {
                 User user = orderedByXp[i];
-
                 leaderboard
                     .AppendLine($"**__{(i + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
                     .AppendLine($"**__Messages__**")
-                    .AppendLine($" - **Count** `{user.MessageCount}`")
-                    .AppendLine($" - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
-                    .AppendLine($" - **Average Length** `{user.GetAverageMessageLength()}`")
+                    .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount}`")
+                    .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
+                    .AppendLine($"{EmojiConstants.Objects.Ruler} - **Average Length** `{user.GetAverageMessageLength()} Characters`")
                     .AppendLine("**__Durations__**")
-                    .AppendLine($"- **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")
-                    .AppendLine($"- **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
-                    .AppendLine($"- **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`");
+                    .AppendLine($"{EmojiConstants.Objects.Microphone} - **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")
+                    .AppendLine($"{EmojiConstants.Objects.Television} - **Streaming** `{user.TimeSpentStreaming.Humanize(3)}`")
+                    .AppendLine($"{EmojiConstants.Objects.Camera} - **Video** `{user.TimeSpentOnVideo.Humanize(3)}`")
+                    .AppendLine($"{EmojiConstants.Objects.MutedSpeaker} - **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
+                    .AppendLine($"{EmojiConstants.Objects.BellWithSlash} - **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`");
 
                 if (i != orderedByXp.Count - 1)
                 {

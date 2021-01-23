@@ -43,7 +43,7 @@ namespace SteelBot
         private readonly DataHelpers DataHelpers;
         private readonly DataCache Cache;
         private CommandsNextExtension Commands;
-        private UserTrackingService UserTrackingService;
+        private readonly UserTrackingService UserTrackingService;
 
         public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService)
         {

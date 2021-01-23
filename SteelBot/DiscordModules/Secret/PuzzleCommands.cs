@@ -120,164 +120,169 @@ namespace SteelBot.DiscordModules.Secret
 
         private static async Task PostClue(CommandContext context, int puzzleNumber)
         {
+            DiscordMessageBuilder message = new DiscordMessageBuilder();
+
             switch (puzzleNumber)
             {
                 case 1:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Shakespeare’s Caesar knows the answer every day of the year, but only if you whisper nicely in the correct ear.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Shakespeare’s Caesar knows the answer every day of the year, but only if you whisper nicely in the correct ear.", "Clue"));
                     break;
 
                 case 2:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Where am I?", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Where am I?", "Clue"));
                     break;
 
                 case 3:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Just Sayin'", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Just Sayin'", "Clue"));
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Oui, took about 8 hours from Heathrow. There's actually a whole region of the same name, they're even on GMT down there too.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Oui, took about 8 hours from Heathrow. There's actually a whole region of the same name, they're even on GMT down there too.", "Clue"));
                     break;
 
                 case 5:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("It's not easter yet, is it?", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("It's not easter yet, is it?", "Clue"));
                     break;
 
                 case 6:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Do you have dyslexia?", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Do you have dyslexia?", "Clue"));
                     break;
 
                 case 7:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("These fatty acids all have single bonds.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("These fatty acids all have single bonds.", "Clue"));
                     break;
 
                 case 8:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Into the waves.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Into the waves.", "Clue"));
                     break;
 
                 case 9:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("The perfect spy.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("The perfect spy.", "Clue"));
                     break;
 
                 case 10:
-                    await context.RespondAsync(embed: EmbedGenerator.Info($"I promise I'm not trying to Console.Scam() you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info($"I promise I'm not trying to Console.Scam() you {DiscordEmoji.FromName(context.Client, ":innocent:")}", "Clue"));
                     break;
 
                 case 11:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("OwO.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("OwO.", "Clue"));
                     break;
 
                 case 12:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("mmmmmmmmmmm.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("mmmmmmmmmmm.", "Clue"));
                     break;
 
                 case 13:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("That's so meta.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("That's so meta.", "Clue"));
                     break;
 
                 case 14:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("These 3 words", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("These 3 words", "Clue"));
                     break;
 
                 case 15:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("All zipped up for the waves", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("All zipped up for the waves", "Clue"));
                     break;
 
                 case 16:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Hash brown", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Hash brown", "Clue"));
                     break;
 
                 case 17:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("We start from zero in this house, Library nerd", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("We start from zero in this house, Library nerd", "Clue"));
                     break;
 
                 case 18:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Where did we first meet?", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Where did we first meet?", "Clue"));
                     break;
 
                 case 19:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Name it.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Name it.", "Clue"));
                     break;
 
                 case 20:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Got a waterproof map?", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Got a waterproof map?", "Clue"));
                     break;
 
                 case 21:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Purple night message received, sir!", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Purple night message received, sir!", "Clue"));
                     break;
 
                 case 22:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("We need more dimensions!", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("We need more dimensions!", "Clue"));
                     break;
 
                 case 24:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Answer the question.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("Answer the question.", "Clue"));
                     break;
 
                 case 25:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("You already have everything you need.", "Clue"));
+                    message.WithEmbed(EmbedGenerator.Info("You already have everything you need.", "Clue"));
                     break;
 
                 case 28:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Give your answer as words.", "Clue", "Use dashes to separate words (same way as the level names)."));
+                    message.WithEmbed(EmbedGenerator.Info("Give your answer as words.", "Clue", "Use dashes to separate words (same way as the level names)."));
                     break;
 
                 case 29:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("`2020-11-22` - `2020-12-12`", "Clue", "Give your answer in words."));
+                    message.WithEmbed(EmbedGenerator.Info("`2020-11-22` - `2020-12-12`", "Clue", "Give your answer in words."));
                     break;
 
                 default:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("There is no extra clue available for this one.", "Good Luck"));
+                    message.WithEmbed(EmbedGenerator.Info("There is no extra clue available for this one.", "Good Luck"));
                     break;
             }
+            await context.RespondAsync(message);
         }
 
         private async Task PostPuzzle(CommandContext context, int puzzleNumber)
         {
+            DiscordMessageBuilder message = new DiscordMessageBuilder();
             switch (puzzleNumber)
             {
                 case 1:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("UifBotxfs"));
+                    message.WithEmbed(EmbedGenerator.Primary("UifBotxfs"));
                     break;
 
                 case 2:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("0x7F000001"));
+                    message.WithEmbed(EmbedGenerator.Primary("0x7F000001"));
                     break;
 
                 case 3:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary(".--. .- .-. ... . .. -. - -.--. .----. ..-. # -.-. -.- .----. --..-- / .--. .- .-. ... . .. -. - -.--. .----. .---- ----- ..--.- --- -.. -.. .----. --..-- / -- .- - .... .-.-.- ... --.- .-. - -.--. ..--- ..... -.... -.--.- -.--.- -.--.-"));
+                    message.WithEmbed(EmbedGenerator.Primary(".--. .- .-. ... . .. -. - -.--. .----. ..-. # -.-. -.- .----. --..-- / .--. .- .-. ... . .. -. - -.--. .----. .---- ----- ..--.- --- -.. -.. .----. --..-- / -- .- - .... .-.-.- ... --.- .-. - -.--. ..--- ..... -.... -.--.- -.--.- -.--.-"));
                     break;
 
                 case 4:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("That place exists, I thought it was made up to mean far-away??"));
+                    message.WithEmbed(EmbedGenerator.Primary("That place exists, I thought it was made up to mean far-away??"));
                     break;
 
                 case 5:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("Copy your name till you can't get further."));
+
+                    message.WithEmbed(EmbedGenerator.Primary("Copy your name till you can't get further."));
                     break;
 
                 case 6:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Jumbled.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Jumbled.jpg"));
                     break;
 
                 case 7:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Hugh.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Hugh.jpg"));
                     break;
 
                 case 8:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Outside.wav"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Outside.wav"));
                     break;
 
                 case 9:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Double.mp3"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Double.mp3"));
                     break;
 
                 case 10:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("control I"));
+                    message.WithEmbed(EmbedGenerator.Primary("control I"));
                     break;
 
                 case 11:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("Notice me Senpai"));
+                    message.WithEmbed(EmbedGenerator.Primary("Notice me Senpai"));
                     break;
 
                 case 12:
@@ -288,47 +293,47 @@ namespace SteelBot.DiscordModules.Secret
                         { "Cow.jpg", imageStream },
                         { "Inside.zip", zipStream }
                     };
-                    await context.RespondWithFilesAsync(streams, embed: EmbedGenerator.Primary("It's what's on the inside that counts."));
+                    message.WithFiles(streams).WithEmbed(EmbedGenerator.Primary("It's what's on the inside that counts."));
                     break;
 
                 case 13:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inception.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inception.jpg"));
                     break;
 
                 case 14:
-                    await context.RespondAsync(embed: EmbedGenerator.Primary("perfumed deferring hotspots"));
+                    message.WithEmbed(EmbedGenerator.Primary("perfumed deferring hotspots"));
                     break;
 
                 case 15:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Seven.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Seven.jpg"));
                     break;
 
                 case 16:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ATastyTreat.txt"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ATastyTreat.txt"));
                     break;
 
                 case 17:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ThatDoesNotGoThere.png"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ThatDoesNotGoThere.png"));
                     break;
 
                 case 18:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Goodbye.png"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Goodbye.png"));
                     break;
 
                 case 19:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "PrintMe.png"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "PrintMe.png"));
                     break;
 
                 case 20:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "West.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "West.jpg"));
                     break;
 
                 case 21:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Vietnam.png"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Vietnam.png"));
                     break;
 
                 case 22:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Trippy.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Trippy.jpg"));
                     break;
 
                 case 23:
@@ -339,7 +344,7 @@ namespace SteelBot.DiscordModules.Secret
                         { "LookUp.jpg", imageStream23 },
                         { "OhNo.xlsx", excelStream23 }
                     };
-                    await context.RespondWithFilesAsync(streams23);
+                    message.WithFiles(streams23);
                     break;
 
                 case 24:
@@ -349,33 +354,36 @@ namespace SteelBot.DiscordModules.Secret
                         .AddField("Third", "Motzkin Number Five")
                         .AddField("Fourth", "Catalan Number Two")
                         .AddField("Fifth", "Fibonacci Number Six");
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "DidYouTakeNotes.zip"), embed: embedBuilder.Build());
+
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "DidYouTakeNotes.zip"))
+                        .WithEmbed(embedBuilder.Build());
                     break;
 
                 case 25:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ItsAllThere.mp3"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ItsAllThere.mp3"));
                     break;
 
                 case 26:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Spook.wav"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Spook.wav"));
                     break;
 
                 case 27:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ISO8601.mp3"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ISO8601.mp3"));
                     break;
 
                 case 28:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "25.jpg"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "25.jpg"));
                     break;
 
                 case 29:
-                    await context.RespondWithFileAsync(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Ooer.png"));
+                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Ooer.png"));
                     break;
 
                 default:
-                    await context.RespondAsync(embed: EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
+                    message.WithEmbed(EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
             }
+            await context.RespondAsync(message);
         }
 
         private static string GetAnswer(int puzzleNumber)

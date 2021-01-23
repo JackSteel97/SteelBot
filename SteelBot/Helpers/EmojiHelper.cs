@@ -17,14 +17,23 @@ namespace SteelBot.Helpers
             public const string NumberEight = "\u0038\u20e3";
             public const string NumberNine = "\u0039\u20e3";
             public const string NumberTen = "\uD83D\uDD1F";
+            public const string HashKeycap = "#\ufe0f\u20e3";
         }
 
         public static class Objects
         {
             public const string TrashBin = "\uD83D\uDDD1";
             public const string StopSign = "\uD83D\uDED1";
+            public const string LightBulb = "\ud83d\udca1";
+            public const string Ruler = "\ud83d\udccf";
+            public const string Microphone = "\ud83c\udfa4";
+            public const string Camera = "\ud83d\udcf7";
+            public const string MutedSpeaker = "\ud83d\udd07";
+            public const string BellWithSlash = "\ud83d\udd15";
+            public const string Television = "\ud83d\udcfa";
         }
     }
+
     public static class EmojiHelper
     {
         public static string GetNumberEmoji(int number)
@@ -33,26 +42,37 @@ namespace SteelBot.Helpers
             {
                 case 0:
                     return EmojiConstants.Numbers.NumberZero;
+
                 case 1:
                     return EmojiConstants.Numbers.NumberOne;
+
                 case 2:
                     return EmojiConstants.Numbers.NumberTwo;
+
                 case 3:
                     return EmojiConstants.Numbers.NumberThree;
+
                 case 4:
                     return EmojiConstants.Numbers.NumberFour;
+
                 case 5:
                     return EmojiConstants.Numbers.NumberFive;
+
                 case 6:
                     return EmojiConstants.Numbers.NumberSix;
+
                 case 7:
                     return EmojiConstants.Numbers.NumberSeven;
+
                 case 8:
                     return EmojiConstants.Numbers.NumberEight;
+
                 case 9:
                     return EmojiConstants.Numbers.NumberNine;
+
                 case 10:
                     return EmojiConstants.Numbers.NumberTen;
+
                 default:
                     throw new ArgumentException("This number does not have an emoji equivalent", nameof(number));
             }

@@ -8,8 +8,8 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<AssemblyVersion>0.35.52.7693</AssemblyVersion>
-		<FileVersion>0.35.52.7693</FileVersion>
+		<AssemblyVersion>0.35.73.7693</AssemblyVersion>
+		<FileVersion>0.35.73.7693</FileVersion>
 		<Version>0.35</Version>
 	</PropertyGroup>
 
@@ -18,9 +18,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DSharpPlus" Version="4.0.0-rc1" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-rc1" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-rc1" />
+		<PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00783" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00783" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00783" />
 		<PackageReference Include="Humanizer.Core" Version="2.8.26" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.2" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.2">

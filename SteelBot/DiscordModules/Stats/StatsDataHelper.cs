@@ -45,10 +45,11 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
                 .AddField("Message Efficiency", Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2")), true)
                 .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(3)}`", true)
+                .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", true)
+                .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(3)}`", true)
                 .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(3)}`", true)
-                //.AddField("\u200B", "\u200B") TODO: Uncomment when adding streaming time for 2x2 grid of times.
-                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", false);
-            //.AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", false)
+                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", true);
+
             return embedBuilder;
         }
 
@@ -58,7 +59,6 @@ namespace SteelBot.DiscordModules.Stats
             ulong userId = args.User.Id;
 
             bool levelIncreased = await Cache.Users.UpdateVoiceStateCounters(guildId, userId, args.After);
-
             if (levelIncreased)
             {
                 await SendLevelUpMessage(args.Guild, args.User);

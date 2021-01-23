@@ -219,6 +219,14 @@ namespace SteelBot.DataProviders.SubProviders
                 {
                     copyOfUser.TimeSpentDeafened += updateTimestamp - copyOfUser.DeafenedStartTime.Value;
                 }
+                if (copyOfUser.StreamingStartTime.HasValue)
+                {
+                    copyOfUser.TimeSpentStreaming += updateTimestamp - copyOfUser.StreamingStartTime.Value;
+                }
+                if (copyOfUser.VideoStartTime.HasValue)
+                {
+                    copyOfUser.TimeSpentOnVideo += updateTimestamp - copyOfUser.VideoStartTime.Value;
+                }
                 levelIncreased = copyOfUser.UpdateLevel();
 
                 // Update times.
@@ -228,7 +236,8 @@ namespace SteelBot.DataProviders.SubProviders
                     copyOfUser.VoiceStartTime = null;
                     copyOfUser.MutedStartTime = null;
                     copyOfUser.DeafenedStartTime = null;
-                    // TODO: Add streaming state support.
+                    copyOfUser.StreamingStartTime = null;
+                    copyOfUser.VideoStartTime = null;
                 }
                 else
                 {
@@ -243,6 +252,7 @@ namespace SteelBot.DataProviders.SubProviders
                     {
                         copyOfUser.MutedStartTime = null;
                     }
+
                     if (newState.IsSelfDeafened)
                     {
                         copyOfUser.DeafenedStartTime = updateTimestamp;
@@ -250,6 +260,24 @@ namespace SteelBot.DataProviders.SubProviders
                     else
                     {
                         copyOfUser.DeafenedStartTime = null;
+                    }
+
+                    if (newState.IsSelfStream)
+                    {
+                        copyOfUser.StreamingStartTime = updateTimestamp;
+                    }
+                    else
+                    {
+                        copyOfUser.StreamingStartTime = null;
+                    }
+
+                    if (newState.IsSelfVideo)
+                    {
+                        copyOfUser.VideoStartTime = updateTimestamp;
+                    }
+                    else
+                    {
+                        copyOfUser.VideoStartTime = null;
                     }
                 }
 

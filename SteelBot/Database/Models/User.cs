@@ -16,10 +16,12 @@ namespace SteelBot.Database.Models
         public ulong TimeSpentMutedSeconds { get; set; }
         public ulong TimeSpentDeafenedSeconds { get; set; }
         public ulong TimeSpentStreamingSeconds { get; set; }
+        public ulong TimeSpentOnVideoSeconds { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
         public DateTime? DeafenedStartTime { get; set; }
         public DateTime? StreamingStartTime { get; set; }
+        public DateTime? VideoStartTime { get; set; }
         public DateTime? VoiceStartTime { get; set; }
         public DateTime LastActivity { get; set; }
 
@@ -98,6 +100,18 @@ namespace SteelBot.Database.Models
             }
         }
 
+        public TimeSpan TimeSpentOnVideo
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentOnVideoSeconds);
+            }
+            set
+            {
+                TimeSpentOnVideoSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
         #endregion TimeSpan Computers
 
         /// <summary>
@@ -173,6 +187,7 @@ namespace SteelBot.Database.Models
             currentXp += (ulong)Math.Floor(TimeSpentInVoice.TotalMinutes);
 
             currentXp += (ulong)Math.Floor(TimeSpentStreaming.TotalMinutes * 5);
+            currentXp += (ulong)Math.Floor(TimeSpentOnVideo.TotalMinutes * 10);
 
             if (totalNegativeXp < currentXp)
             {
