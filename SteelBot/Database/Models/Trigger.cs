@@ -30,6 +30,8 @@ namespace SteelBot.Database.Models
 
         public ulong? ChannelDiscordId { get; set; }
 
+        public long TimesActivated { get; set; }
+
         /// <summary>
         /// Empty constructor.
         /// Used by EF - do not remove.

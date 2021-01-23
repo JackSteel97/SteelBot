@@ -105,6 +105,7 @@ namespace SteelBot.DiscordModules.RankRoles
                         if (activateTrigger)
                         {
                             await channelId.SendMessageAsync(trigger.Response);
+                            await Cache.Triggers.IncrementActivations(guildId, trigger);
                         }
                     }
                 }

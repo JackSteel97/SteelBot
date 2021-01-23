@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -41,7 +42,7 @@ namespace SteelBot.DiscordModules.RankRoles
                 {
                     if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == context.Channel.Id)
                     {
-                        embedBuilder.AddField(trigger.TriggerText, $"{trigger.Response}\nBy: <@{trigger.Creator.DiscordId}>");
+                        embedBuilder.AddField(trigger.TriggerText, $"Response: {trigger.Response}\nBy: <@{trigger.Creator.DiscordId}>\nUsed {"time".ToQuantity(trigger.TimesActivated)}");
                         triggersExistHere = true;
                     }
                 }

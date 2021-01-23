@@ -108,6 +108,12 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public async Task IncrementActivations(ulong guildId, Trigger trigger)
+        {
+            trigger.TimesActivated++;
+            await UpdateTrigger(guildId, trigger);
+        }
+
         private async Task InsertTrigger(ulong guildId, Trigger trigger, User creator)
         {
             Logger.LogInformation($"Writing a new Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database.");
@@ -125,6 +131,30 @@ namespace SteelBot.DataProviders.SubProviders
             else
             {
                 Logger.LogError($"Writing Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database inserted no entities. The internal cache was not changed.");
+            }
+        }
+
+        private async Task UpdateTrigger(ulong guildId, Trigger newTrigger)
+        {
+            Logger.LogInformation($"Updating Trigger [{newTrigger.TriggerText}] for Guild [{guildId}] in the database.");
+
+            int writtenCount;
+            using (var db = DbContextFactory.CreateDbContext())
+            {
+                // To prevent EF tracking issue, grab and alter existing value.
+                var original = db.Triggers.First(u => u.RowId == newTrigger.RowId);
+                db.Entry(original).CurrentValues.SetValues(newTrigger);
+                db.Triggers.Update(original);
+                writtenCount = await db.SaveChangesAsync();
+            }
+
+            if (writtenCount > 0)
+            {
+                TriggersByGuild[guildId][newTrigger.TriggerText.ToLower()] = newTrigger;
+            }
+            else
+            {
+                Logger.LogError($"Updating Trigger [{newTrigger.TriggerText}] in Guild [{guildId}] did not alter any entities. The internal cache was not changed.");
             }
         }
 
