@@ -32,6 +32,14 @@ namespace SteelBot.Helpers
             public const string BellWithSlash = "\ud83d\udd15";
             public const string Television = "\ud83d\udcfa";
         }
+
+        /// <summary>
+        /// Discord emoji ids from my dev server.
+        /// </summary>
+        public static class CustomDiscordEmojis
+        {
+            public const string LoadingSpinner = "<a:loading:804037223423016971>";
+        }
     }
 
     public static class EmojiHelper

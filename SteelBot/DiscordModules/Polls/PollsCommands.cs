@@ -49,7 +49,7 @@ namespace SteelBot.DiscordModules.Polls
                 return -1;
             }
 
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, out DiscordEmoji[] reactions);
+            DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions);
 
             var sentMessage = await context.RespondAsync(embed: builder.Build());
 
@@ -68,12 +68,10 @@ namespace SteelBot.DiscordModules.Polls
             {
                 if (options.Length < 10)
                 {
-                    // Update message with id if someone could add options.
-                    optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                    optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
-                    builder.WithDescription(optionBuilder.ToString());
+                    // Update message with id.
+                    DiscordEmbedBuilder builderWithId = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, DataHelper.Config.GetPrefix(context.Guild.Id), out _, pollId.ToString());
 
-                    await sentMessage.ModifyAsync(embed: builder.Build());
+                    await sentMessage.ModifyAsync(embed: builderWithId.Build());
                 }
             }
 
@@ -167,19 +165,11 @@ namespace SteelBot.DiscordModules.Polls
             Poll updatedPoll = await DataHelper.Polls.AddOptionToPoll(poll, newOption);
 
             var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
-                pollAuthor, out DiscordEmoji[] reactions);
+            DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
+                pollAuthor, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions, pollId.ToString());
 
             var channel = await context.Client.GetChannelAsync(updatedPoll.ChannelId);
             var message = await channel.GetMessageAsync(updatedPoll.MessageId);
-
-            if (updatedPoll.Options.Count < 10)
-            {
-                // Update message with id if someone could add options.
-                optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
-                builder.WithDescription(optionBuilder.ToString());
-            }
 
             await message.ModifyAsync(embed: builder.Build());
 
@@ -212,7 +202,7 @@ namespace SteelBot.DiscordModules.Polls
                 await context.RespondAsync(embed: EmbedGenerator.Warning("You cannot remove the last option on a poll."));
                 return;
             }
-            if (context.User.Id != poll.PollCreator.DiscordId)
+            if (!PollsDataHelper.UserHasEditPermissionOnPoll(poll, context.Member, context.Channel, context.Client.CurrentUser.Id))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Warning("Only the poll creator can remove options."));
                 return;
@@ -230,19 +220,11 @@ namespace SteelBot.DiscordModules.Polls
             Poll updatedPoll = await DataHelper.Polls.RemoveOptionFromPoll(poll, optionToRemove);
 
             var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
-            (DiscordEmbedBuilder builder, StringBuilder optionBuilder) = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
-                pollAuthor, out DiscordEmoji[] reactions);
+            DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
+                pollAuthor, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions, pollId.ToString());
 
             var channel = context.Guild.GetChannel(updatedPoll.ChannelId);
             var message = await channel.GetMessageAsync(updatedPoll.MessageId);
-
-            if (updatedPoll.Options.Count < 10)
-            {
-                // Update message with id if someone could add options.
-                optionBuilder.AppendLine($"Poll Id: **{pollId}**");
-                optionBuilder.AppendLine($"Use `{DataHelper.Config.GetPrefix(context.Guild.Id)}Poll AddOption {pollId} <OptionText>` to add another option to this poll.");
-                builder.WithDescription(optionBuilder.ToString());
-            }
 
             await message.ModifyAsync(embed: builder.Build());
 

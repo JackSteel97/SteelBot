@@ -165,7 +165,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 case "efficiency":
                     orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency()).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency().ToString("P2")}`");
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency():P2}`");
                     break;
 
                 case "voice":

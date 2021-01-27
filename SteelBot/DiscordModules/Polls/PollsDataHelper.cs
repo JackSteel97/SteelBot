@@ -73,7 +73,7 @@ namespace SteelBot.DiscordModules.Polls
             return updatedPoll;
         }
 
-        public static (DiscordEmbedBuilder builder, StringBuilder optionBuilder) GeneratePollEmbedBuilder(string title, string[] options, DiscordUser creator, out DiscordEmoji[] reactions)
+        public static DiscordEmbedBuilder GeneratePollEmbedBuilder(string title, string[] options, DiscordUser creator, string commandPrefix, out DiscordEmoji[] reactions, string pollId = null)
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.PrimaryColour)
                .WithAuthor(creator.Username, null, creator.AvatarUrl)
@@ -89,8 +89,25 @@ namespace SteelBot.DiscordModules.Polls
                 reactions[i] = DiscordEmoji.FromUnicode(emoji);
             }
             reactions[options.Length] = DiscordEmoji.FromUnicode(EmojiConstants.Objects.StopSign);
+
+            optionString.AppendLine($"Poll Id: **{pollId ?? EmojiConstants.CustomDiscordEmojis.LoadingSpinner}**");
+
+            if (!string.IsNullOrWhiteSpace(pollId))
+            {
+                if (options.Length < 10)
+                {
+                    // Update message if someone could add options.
+                    optionString.AppendLine($"Use `{commandPrefix}Poll Add {pollId} <OptionText>` to add another option to this poll.");
+                }
+                else
+                {
+                    // Update message if someone could remove options.
+                    optionString.AppendLine($"Use `{commandPrefix}Poll Remove {pollId} <OptionText>` to remove an option from this poll.");
+                }
+            }
+
             builder.WithDescription(optionString.ToString());
-            return (builder, optionString);
+            return builder;
         }
 
         public static bool UserHasEditPermissionOnPoll(Poll poll, DiscordMember user, DiscordChannel channel, ulong botUserId)
