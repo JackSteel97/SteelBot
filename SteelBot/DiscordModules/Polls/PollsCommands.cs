@@ -125,6 +125,7 @@ namespace SteelBot.DiscordModules.Polls
         }
 
         [Command("AddOption")]
+        [Aliases("add", "a")]
         [Description("Adds an option to the specified poll.")]
         [Cooldown(10, 120, CooldownBucketType.User)]
         public async Task AddOption(CommandContext context, long pollId, [RemainingText] string newOption)
@@ -142,6 +143,11 @@ namespace SteelBot.DiscordModules.Polls
             if (poll.Options.Count >= 10)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error("Max number of options per poll already reached."));
+                return;
+            }
+            if (poll.Options.Exists(opt => opt.OptionText.Equals(newOption, StringComparison.OrdinalIgnoreCase)))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"This poll already has an option for {newOption}."));
                 return;
             }
             if (newOption.Length > 255)
@@ -186,6 +192,7 @@ namespace SteelBot.DiscordModules.Polls
         }
 
         [Command("RemoveOption")]
+        [Aliases("remove", "delete", "rm")]
         [Description("Removes an option from the specified poll.")]
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task RemoveOption(CommandContext context, long pollId, [RemainingText] string optionToRemove)
