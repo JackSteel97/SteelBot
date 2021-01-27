@@ -44,11 +44,11 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Message Count", $"`{user.MessageCount} Messages`", true)
                 .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
                 .AddField("Message Efficiency", Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2")), true)
-                .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(3)}`", true)
-                .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(3)}`", true)
-                .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(3)}`", true)
-                .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(3)}`", true)
-                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(3)}`", true);
+                .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)}`", true)
+                .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)}`", true)
+                .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)}`", true)
+                .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(2)}`", true)
+                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(2)}`", true);
 
             return embedBuilder;
         }
