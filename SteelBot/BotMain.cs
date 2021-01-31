@@ -21,6 +21,7 @@ using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Secret;
 using SteelBot.DiscordModules.Stats;
+using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.Helpers;
 using SteelBot.Services;
@@ -115,6 +116,7 @@ namespace SteelBot
             Commands.RegisterCommands<TriggerCommands>();
             Commands.RegisterCommands<FeedbackCommands>();
             Commands.RegisterCommands<FunCommands>();
+            Commands.RegisterCommands<StocksCommands>();
 
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }

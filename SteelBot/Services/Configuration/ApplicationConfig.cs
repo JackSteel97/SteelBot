@@ -11,5 +11,7 @@ namespace SteelBot.Services.Configuration
         public string UnknownCommandResponse { get; set; }
         public ulong CommonServerId { get; set; }
         public ulong CreatorUserId { get; set; }
+        public string AlphaVantageApiKey { get; set; }
+        public int StockCacheTimeMinutes { get; set; }
     }
 }

@@ -114,6 +114,7 @@ namespace SteelBot
             // Add custom services.
             serviceProvider.AddSingleton<UserTrackingService>();
             serviceProvider.AddSingleton<LevelCardGenerator>();
+            serviceProvider.AddSingleton<StockPriceService>();
         }
 
         public static void Main(string[] args)
