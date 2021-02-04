@@ -30,13 +30,29 @@ namespace SteelBot.DiscordModules.Stocks
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task GetStockPrice(CommandContext context, string stockSymbol)
         {
+            await GetStockPriceInternal(context, stockSymbol);
+        }
+
+        [Command("Detailed")]
+        [Aliases("d", "verbose")]
+        [Description("Get the detailed price data for a particular stock.")]
+        [Cooldown(10, 60, CooldownBucketType.User)]
+        public async Task GetDetailedStockPrice(CommandContext context, string stockSymbol)
+        {
+            await GetStockPriceInternal(context, stockSymbol, true);
+        }
+
+        #region Helpers
+
+        private async Task GetStockPriceInternal(CommandContext context, string stockSymbol, bool detailed = false)
+        {
             if (string.IsNullOrWhiteSpace(stockSymbol))
             {
                 await context.RespondAsync(EmbedGenerator.Warning("No stock symbol provided."));
                 return;
             }
             string upperSymbol = stockSymbol.ToUpper();
-            var initialResponse = GenerateStockDataEmbed(upperSymbol);
+            var initialResponse = GenerateStockDataEmbed(upperSymbol, detailed);
             var initialResponseMsg = await context.RespondAsync(initialResponse);
 
             var stockQuote = await StockPriceService.GetStock(stockSymbol);
@@ -48,15 +64,13 @@ namespace SteelBot.DiscordModules.Stocks
             }
             else
             {
-                finalResponse = GenerateStockDataEmbed(upperSymbol, quote: stockQuote);
+                finalResponse = GenerateStockDataEmbed(upperSymbol, detailed, stockQuote);
             }
 
             DiscordMessageBuilder finalMessage = new DiscordMessageBuilder().WithReply(context.Message.Id, true)
                 .WithEmbed(finalResponse);
             await initialResponseMsg.ModifyAsync(finalMessage);
         }
-
-        #region Helpers
 
         private DiscordEmbed GenerateStockDataEmbed(string symbol, bool detailed = false, GlobalQuote quote = null)
         {
@@ -70,11 +84,11 @@ namespace SteelBot.DiscordModules.Stocks
 
             if (detailed)
             {
-                builder = builder.AddField("Open", quoteAvailable ? $"${quote.OpeningPrice:N2}" : loading)
-                    .AddField("Close", quoteAvailable ? $"${quote.PreviousClosingPrice:N2}" : loading)
-                    .AddField("High", quoteAvailable ? $"${quote.HighestPrice:N2}" : loading)
-                    .AddField("Low", quoteAvailable ? $"${quote.LowestPrice:N2}" : loading)
-                    .AddField("Change", quoteAvailable ? $"{quote.ChangePercent:N2}%" : loading);
+                builder = builder.AddField("Open", quoteAvailable ? $"${quote.OpeningPrice:N2}" : loading, true)
+                    .AddField("Close", quoteAvailable ? $"${quote.PreviousClosingPrice:N2}" : loading, true)
+                    .AddField("High", quoteAvailable ? $"${quote.HighestPrice:N2}" : loading, true)
+                    .AddField("Low", quoteAvailable ? $"${quote.LowestPrice:N2}" : loading, true)
+                    .AddField("Change", quoteAvailable ? $"{quote.ChangePercent:N2}%" : loading, true);
             }
 
             if (quote == null)

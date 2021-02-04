@@ -7,6 +7,7 @@ using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.Services
@@ -25,7 +26,7 @@ namespace SteelBot.Services
             CacheTime = TimeSpan.FromMinutes(AppConfigurationService.Application.StockCacheTimeMinutes);
 
             var httpClient = new HttpClient();
-            var rateLimitedClient = new HttpClientWithRateLimit(httpClient, 5, 3);
+            var rateLimitedClient = new CustomHttpClientWithRateLimit(httpClient, 5, 1);
             var client = new AlphaVantageClient(AppConfigurationService.Application.AlphaVantageApiKey, rateLimitedClient);
             Cache = cache;
             StocksClient = client.Stocks();
@@ -83,6 +84,82 @@ namespace SteelBot.Services
                 await Cache.Exceptions.InsertException(new Database.Models.ExceptionLog(e, $"GetStockPrice({stockSymbol})"));
                 return null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Only requests passing through given instance of the client are throttled.
+    /// Two different instances of the client may have totally different rate limits.
+    /// </summary>
+    /// <remarks>
+    /// Pulled out from AlphaVantage.Net library source at (https://github.com/LutsenkoKirill/AlphaVantage.Net) and altered to fix implementation.
+    /// For fixes see: https://github.com/LutsenkoKirill/AlphaVantage.Net/pull/20/files
+    /// </remarks>
+    public class CustomHttpClientWithRateLimit : IHttpClientWrapper
+    {
+        private readonly HttpClient _client;
+        private readonly TimeSpan _minRequestInterval;//Calculated based on rpm limit in constructor
+        private readonly Semaphore _concurrentRequestsCounter;
+        private DateTime _previousRequestStartTime;
+        private readonly object _lockObject = new object();
+
+        public CustomHttpClientWithRateLimit(HttpClient client, int maxRequestPerMinutes, int maxConcurrentRequests)
+        {
+            _client = client;
+            _minRequestInterval = new TimeSpan(0, 0, 0, 0, 60000 / maxRequestPerMinutes);
+            _concurrentRequestsCounter = new Semaphore(maxConcurrentRequests, maxConcurrentRequests);
+            _previousRequestStartTime = DateTime.MinValue;
+        }
+
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        {
+            HttpResponseMessage? response = null;
+            _concurrentRequestsCounter.WaitOne();
+            await WaitForRequestedMinimumInterval();
+            try
+            {
+                response = await _client.SendAsync(request);
+            }
+            finally
+            {
+                _concurrentRequestsCounter.Release();
+            }
+
+            return response;
+        }
+
+        private async Task WaitForRequestedMinimumInterval()
+        {
+            TimeSpan? delayInterval = null;
+            lock (_lockObject)
+            {
+                var timeSinceLastRequest = DateTime.Now - _previousRequestStartTime;
+                if (timeSinceLastRequest < _minRequestInterval)
+                {
+                    delayInterval = _minRequestInterval - timeSinceLastRequest;
+                }
+                _previousRequestStartTime = DateTime.Now;
+                if (delayInterval.HasValue)
+                {
+                    _previousRequestStartTime.AddMilliseconds(delayInterval.Value.Milliseconds);
+                }
+            }
+
+            if (delayInterval.HasValue)
+            {
+                await Task.Delay((int)Math.Ceiling(delayInterval.Value.TotalMilliseconds));
+            }
+        }
+
+        public void SetTimeOut(TimeSpan timeSpan)
+        {
+            _client.Timeout = timeSpan;
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
+            _concurrentRequestsCounter.Dispose();
         }
     }
 
