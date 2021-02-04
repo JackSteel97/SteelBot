@@ -27,7 +27,7 @@ namespace SteelBot.DiscordModules.Stocks
 
         [GroupCommand]
         [Description("Get the price data for a particular stock.")]
-        [Cooldown(10, 60, CooldownBucketType.User)]
+        [Cooldown(2, 60, CooldownBucketType.User)]
         public async Task GetStockPrice(CommandContext context, string stockSymbol)
         {
             await GetStockPriceInternal(context, stockSymbol);
@@ -36,7 +36,7 @@ namespace SteelBot.DiscordModules.Stocks
         [Command("Detailed")]
         [Aliases("d", "verbose")]
         [Description("Get the detailed price data for a particular stock.")]
-        [Cooldown(10, 60, CooldownBucketType.User)]
+        [Cooldown(2, 60, CooldownBucketType.User)]
         public async Task GetDetailedStockPrice(CommandContext context, string stockSymbol)
         {
             await GetStockPriceInternal(context, stockSymbol, true);

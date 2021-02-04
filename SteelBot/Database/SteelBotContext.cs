@@ -16,6 +16,8 @@ namespace SteelBot.Database
 
         public DbSet<PollOption> PollOptions { get; set; }
         public DbSet<Trigger> Triggers { get; set; }
+        public DbSet<StockPortfolio> StockPortfolios { get; set; }
+        public DbSet<OwnedStock> OwnedStocks { get; set; }
 
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
         public DbSet<CommandStatistic> CommandStatistics { get; set; }
@@ -51,6 +53,7 @@ namespace SteelBot.Database
 
                 entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
                 entity.HasOne(u => u.CurrentRankRole).WithMany(rr => rr.UsersWithRole).HasForeignKey(u => u.CurrentRankRoleRowId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(u => u.StockPortfolio).WithOne(pf => pf.Owner).HasForeignKey<StockPortfolio>(pf => pf.OwnerRowId);
             });
 
             modelBuilder.Entity<SelfRole>(entity =>
@@ -88,6 +91,19 @@ namespace SteelBot.Database
             {
                 entity.HasKey(cs => cs.RowId);
                 entity.HasIndex(cs => cs.CommandName).IsUnique();
+            });
+
+            modelBuilder.Entity<StockPortfolio>(entity =>
+            {
+                entity.HasKey(pf => pf.RowId);
+                entity.Ignore(pf => pf.OwnedStockBySymbol);
+
+                entity.HasMany(pf => pf.OwnedStock).WithOne(os => os.ParentPortfolio).HasForeignKey(os => os.ParentPortfolio);
+            });
+
+            modelBuilder.Entity<OwnedStock>(entity =>
+            {
+                entity.HasKey(os => os.RowId);
             });
         }
     }

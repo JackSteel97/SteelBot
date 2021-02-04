@@ -41,6 +41,7 @@ namespace SteelBot.Database.Models
 
         public RankRole CurrentRankRole { get; set; }
         public List<Trigger> CreatedTriggers { get; set; }
+        public StockPortfolio StockPortfolio { get; set; }
 
         public ulong TotalXp
         {
