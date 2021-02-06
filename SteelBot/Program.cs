@@ -19,6 +19,7 @@ using System.Reflection;
 using SteelBot.DiscordModules.RankRoles;
 using System.IO;
 using SteelBot.Helpers;
+using SteelBot.DiscordModules.Stocks;
 
 namespace SteelBot
 {
@@ -88,6 +89,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<PollsDataHelper>();
             serviceProvider.AddSingleton<RankRoleDataHelper>();
             serviceProvider.AddSingleton<TriggerDataHelper>();
+            serviceProvider.AddSingleton<PortfolioDataHelper>();
             // Add base provider.
             serviceProvider.AddSingleton<DataHelpers>();
         }
@@ -104,6 +106,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<TriggersProvider>();
             serviceProvider.AddSingleton<CommandStatisticProvider>();
             serviceProvider.AddSingleton<FunProvider>();
+            serviceProvider.AddSingleton<StockPortfoliosProvider>();
 
             // Add base provider.
             serviceProvider.AddSingleton<DataCache>();

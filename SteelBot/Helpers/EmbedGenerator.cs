@@ -19,12 +19,17 @@ namespace SteelBot.Helpers
             return builder.Build();
         }
 
-        public static DiscordEmbed Warning(string warningMessage)
+        public static DiscordEmbed Warning(string warningMessage, string footer = "")
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(WarningColour)
                 .WithTitle("Warning")
                 .WithDescription(warningMessage);
+
+            if (!string.IsNullOrWhiteSpace(footer))
+            {
+                builder = builder.WithFooter(footer);
+            }
             return builder.Build();
         }
 

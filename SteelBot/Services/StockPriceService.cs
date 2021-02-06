@@ -5,6 +5,7 @@ using AlphaVantage.Net.Stocks.Client;
 using SteelBot.DataProviders;
 using SteelBot.Services.Configuration;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace SteelBot.Services
     {
         private readonly AppConfigurationService AppConfigurationService;
         private readonly DataCache Cache;
-        private readonly Dictionary<string, CachedStock> StockCache = new Dictionary<string, CachedStock>();
+        private readonly ConcurrentDictionary<string, CachedStock> StockCache = new ConcurrentDictionary<string, CachedStock>();
         private readonly TimeSpan CacheTime;
         private readonly StocksClient StocksClient;
 
@@ -26,7 +27,7 @@ namespace SteelBot.Services
             CacheTime = TimeSpan.FromMinutes(AppConfigurationService.Application.StockCacheTimeMinutes);
 
             var httpClient = new HttpClient();
-            var rateLimitedClient = new CustomHttpClientWithRateLimit(httpClient, 5, 1);
+            var rateLimitedClient = new CustomHttpClientWithRateLimit(httpClient, 4, 1);
             var client = new AlphaVantageClient(AppConfigurationService.Application.AlphaVantageApiKey, rateLimitedClient);
             Cache = cache;
             StocksClient = client.Stocks();
@@ -35,12 +36,46 @@ namespace SteelBot.Services
         public void Dispose()
         {
             StocksClient.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public async Task<GlobalQuote> GetStock(string stockSymbol)
         {
-            string lowerStockSymbol = stockSymbol.ToLower();
-            if (StockCache.TryGetValue(lowerStockSymbol, out CachedStock cachedStock))
+            string upperStockSymbol = stockSymbol.ToUpper();
+            var stockFromCache = GetStockFromInternalCache(upperStockSymbol);
+            if (stockFromCache != null)
+            {
+                return stockFromCache;
+            }
+
+            // Cache miss or not valid
+            return await GetAndCacheStock(upperStockSymbol);
+        }
+
+        private async Task<GlobalQuote> GetAndCacheStock(string stockSymbol)
+        {
+            var stock = await GetStockFromApi(stockSymbol);
+            var newCachedStock = new CachedStock()
+            {
+                lastUpdated = DateTime.UtcNow,
+                stockQuote = stock
+            };
+            if (StockCache.ContainsKey(stockSymbol))
+            {
+                // Update.
+                StockCache[stockSymbol] = newCachedStock;
+            }
+            else
+            {
+                // Insert.
+                StockCache.TryAdd(stockSymbol, newCachedStock);
+            }
+            return stock;
+        }
+
+        public GlobalQuote GetStockFromInternalCache(string stockSymbol)
+        {
+            if (StockCache.TryGetValue(stockSymbol, out CachedStock cachedStock))
             {
                 // Cache hit.
                 var timeSinceLastUpdate = DateTime.UtcNow - cachedStock.lastUpdated;
@@ -50,25 +85,7 @@ namespace SteelBot.Services
                     return cachedStock.stockQuote;
                 }
             }
-
-            // Cache miss or not valid
-            var stock = await GetStockFromApi(stockSymbol);
-            var newCachedStock = new CachedStock()
-            {
-                lastUpdated = DateTime.UtcNow,
-                stockQuote = stock
-            };
-            if (StockCache.ContainsKey(lowerStockSymbol))
-            {
-                // Update.
-                StockCache[lowerStockSymbol] = newCachedStock;
-            }
-            else
-            {
-                // Insert.
-                StockCache.Add(lowerStockSymbol, newCachedStock);
-            }
-            return stock;
+            return null;
         }
 
         private async Task<GlobalQuote> GetStockFromApi(string stockSymbol)
@@ -113,7 +130,7 @@ namespace SteelBot.Services
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
-            HttpResponseMessage? response = null;
+            HttpResponseMessage response = null;
             _concurrentRequestsCounter.WaitOne();
             await WaitForRequestedMinimumInterval();
             try
@@ -160,6 +177,7 @@ namespace SteelBot.Services
         {
             _client.Dispose();
             _concurrentRequestsCounter.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 

@@ -12,7 +12,7 @@ namespace SteelBot.Database.Models
         public StockPortfolio ParentPortfolio { get; set; }
         public long ParentPortfolioRowId { get; set; }
         public string Symbol { get; set; }
-        public double AmountOwned { get; set; }
+        public decimal AmountOwned { get; set; }
         public DateTime LastUpdated { get; set; }
 
         /// <summary>
@@ -21,13 +21,17 @@ namespace SteelBot.Database.Models
         /// </summary>
         public OwnedStock() { }
 
-        public OwnedStock(StockPortfolio parentPortfolio, string symbol, double starterAmount, DateTime creationTime)
+        public OwnedStock(StockPortfolio parentPortfolio, string symbol, decimal starterAmount, DateTime creationTime)
         {
-            ParentPortfolio = parentPortfolio;
             ParentPortfolioRowId = parentPortfolio.RowId;
-            Symbol = symbol;
+            Symbol = symbol.ToUpper();
             AmountOwned = starterAmount;
             LastUpdated = creationTime;
+        }
+
+        public OwnedStock Clone()
+        {
+            return (OwnedStock)this.MemberwiseClone();
         }
     }
 }

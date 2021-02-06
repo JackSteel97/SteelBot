@@ -14,13 +14,14 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private readonly ILogger<StockPortfoliosProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private Dictionary<ulong, StockPortfolio> PortfoliosByUserDiscordId;
+        private readonly Dictionary<ulong, StockPortfolio> PortfoliosByUserDiscordId;
 
         public StockPortfoliosProvider(ILogger<StockPortfoliosProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
 
+            PortfoliosByUserDiscordId = new Dictionary<ulong, StockPortfolio>();
             LoadPortfoliosData();
         }
 
@@ -41,6 +42,21 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public bool TryGetPortfolio(ulong userId, out StockPortfolio portfolio)
+        {
+            return PortfoliosByUserDiscordId.TryGetValue(userId, out portfolio);
+        }
+
+        public bool TryGetOwnedStock(ulong userId, string stockSymbol, out OwnedStock stock)
+        {
+            stock = null;
+            if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
+            {
+                return portfolio.OwnedStockBySymbol.TryGetValue(stockSymbol.ToUpper(), out stock);
+            }
+            return false;
+        }
+
         public bool UserHasPortfolio(ulong userId)
         {
             return PortfoliosByUserDiscordId.ContainsKey(userId);
@@ -59,11 +75,11 @@ namespace SteelBot.DataProviders.SubProviders
         {
             if (!UserHasPortfolio(user.DiscordId))
             {
-                await InsertPortfolio(new StockPortfolio(user));
+                await InsertPortfolio(new StockPortfolio(user), user);
             }
         }
 
-        private void AddStockToInternalCache(ulong userId, string stockSymbol, double amount, DateTime updateTime)
+        private void AddStockToInternalCache(ulong userId, string stockSymbol, decimal amount, DateTime updateTime)
         {
             if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
             {
@@ -74,7 +90,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private void UpdateStockAmountInInternalCache(ulong userId, string stockSymbol, double newAmount, DateTime updateTime)
+        private void UpdateStockAmountInInternalCache(ulong userId, string stockSymbol, decimal newAmount, DateTime updateTime)
         {
             if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
             {
@@ -87,17 +103,33 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private async Task InsertPortfolio(StockPortfolio portfolio)
+        private void RemoveStockFromInternalCache(ulong userId, string stockSymbol)
+        {
+            if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
+            {
+                string upperSymbol = stockSymbol.ToUpper();
+                portfolio.OwnedStockBySymbol.Remove(upperSymbol);
+                portfolio.OwnedStock.RemoveAt(
+                    portfolio.OwnedStock.FindIndex(s =>
+                        s.Symbol.Equals(upperSymbol, StringComparison.OrdinalIgnoreCase))
+                    );
+            }
+        }
+
+        private async Task InsertPortfolio(StockPortfolio portfolio, User owner)
         {
             Logger.LogInformation($"Writing a new stock portfolio for user [{portfolio.OwnerRowId}] to the database.");
             int writtenCount;
             using (var db = DbContextFactory.CreateDbContext())
             {
+                portfolio.Owner = null;
                 db.StockPortfolios.Add(portfolio);
                 writtenCount = await db.SaveChangesAsync();
             }
             if (writtenCount > 0)
             {
+                portfolio.Owner = owner;
+                portfolio.BuildOwnedStockCache();
                 PortfoliosByUserDiscordId.Add(portfolio.Owner.DiscordId, portfolio);
             }
             else
@@ -106,10 +138,29 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private async Task InsertOwnedStock(OwnedStock stock)
+        public async Task AddNewOwnedStock(ulong userId, OwnedStock stock)
+        {
+            await InsertOwnedStock(userId, stock);
+        }
+
+        public async Task UpdateOwnedStock(ulong userId, OwnedStock newStock)
+        {
+            if (newStock.AmountOwned <= 0)
+            {
+                // Remove it.
+                await DeleteOwnedStock(userId, newStock);
+            }
+            else
+            {
+                await UpdateOwnedStockAmount(userId, newStock, newStock.AmountOwned);
+            }
+        }
+
+        private async Task InsertOwnedStock(ulong userId, OwnedStock stock)
         {
             DateTime updateTime = DateTime.UtcNow;
-            Logger.LogInformation($"Writing a new owned stock for user [{stock.ParentPortfolio.OwnerRowId}] to the database.");
+            stock.LastUpdated = updateTime;
+            Logger.LogInformation($"Writing a new owned stock for portfolio [{stock.ParentPortfolioRowId}] to the database.");
             int writtenCount;
             using (var db = DbContextFactory.CreateDbContext())
             {
@@ -118,18 +169,18 @@ namespace SteelBot.DataProviders.SubProviders
             }
             if (writtenCount > 0)
             {
-                AddStockToInternalCache(stock.ParentPortfolio.Owner.DiscordId, stock.Symbol, stock.AmountOwned, updateTime);
+                AddStockToInternalCache(userId, stock.Symbol, stock.AmountOwned, updateTime);
             }
             else
             {
-                Logger.LogError($"Writing a new owned stock for user [{stock.ParentPortfolio.OwnerRowId}] to the database inserted no entities. The internal cache was not changed.");
+                Logger.LogError($"Writing a new owned stock for portfolio [{stock.ParentPortfolioRowId}] to the database inserted no entities. The internal cache was not changed.");
             }
         }
 
-        private async Task UpdateOwnedStockAmount(OwnedStock stockToUpdate, double newAmount)
+        private async Task UpdateOwnedStockAmount(ulong userId, OwnedStock stockToUpdate, decimal newAmount)
         {
             DateTime updateTime = DateTime.UtcNow;
-            Logger.LogInformation($"Updating an owned stock [{stockToUpdate.Symbol}] for user [{stockToUpdate.ParentPortfolio.OwnerRowId}] in the database.");
+            Logger.LogInformation($"Updating an owned stock [{stockToUpdate.Symbol}] for portfolio [{stockToUpdate.ParentPortfolioRowId}] in the database.");
 
             int writtenCount;
             using (var db = DbContextFactory.CreateDbContext())
@@ -144,11 +195,34 @@ namespace SteelBot.DataProviders.SubProviders
 
             if (writtenCount > 0)
             {
-                UpdateStockAmountInInternalCache(stockToUpdate.ParentPortfolio.Owner.DiscordId, stockToUpdate.Symbol, newAmount, updateTime);
+                UpdateStockAmountInInternalCache(userId, stockToUpdate.Symbol, newAmount, updateTime);
             }
             else
             {
-                Logger.LogError($"Updating an owned stock [{stockToUpdate.Symbol}] for user [{stockToUpdate.ParentPortfolio.OwnerRowId}] in the database did not alter any entities. The internal cache was not changed.");
+                Logger.LogError($"Updating an owned stock [{stockToUpdate.Symbol}] for portfolio [{stockToUpdate.ParentPortfolioRowId}] in the database did not alter any entities. The internal cache was not changed.");
+            }
+        }
+
+        private async Task DeleteOwnedStock(ulong userId, OwnedStock stockToUpdate)
+        {
+            Logger.LogInformation($"Deleting an owned stock [{stockToUpdate.Symbol}] for user [{stockToUpdate.ParentPortfolioRowId}] from the database.");
+
+            int writtenCount;
+            using (var db = DbContextFactory.CreateDbContext())
+            {
+                // To prevent EF tracking issue, grab and alter existing value.
+                OwnedStock original = db.OwnedStocks.First(u => u.RowId == stockToUpdate.RowId);
+                db.OwnedStocks.Remove(original);
+                writtenCount = await db.SaveChangesAsync();
+            }
+
+            if (writtenCount > 0)
+            {
+                RemoveStockFromInternalCache(userId, stockToUpdate.Symbol);
+            }
+            else
+            {
+                Logger.LogError($"Deleting an owned stock [{stockToUpdate.Symbol}] for user [{stockToUpdate.ParentPortfolioRowId}] from the database did not alter any entities. The internal cache was not changed.");
             }
         }
     }

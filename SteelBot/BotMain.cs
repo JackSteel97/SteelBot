@@ -117,6 +117,7 @@ namespace SteelBot
             Commands.RegisterCommands<FeedbackCommands>();
             Commands.RegisterCommands<FunCommands>();
             Commands.RegisterCommands<StocksCommands>();
+            Commands.RegisterCommands<PortfolioCommands>();
 
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }

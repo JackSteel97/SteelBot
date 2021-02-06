@@ -98,7 +98,7 @@ namespace SteelBot.Database
                 entity.HasKey(pf => pf.RowId);
                 entity.Ignore(pf => pf.OwnedStockBySymbol);
 
-                entity.HasMany(pf => pf.OwnedStock).WithOne(os => os.ParentPortfolio).HasForeignKey(os => os.ParentPortfolio);
+                entity.HasMany(pf => pf.OwnedStock).WithOne(os => os.ParentPortfolio).HasForeignKey(os => os.ParentPortfolioRowId);
             });
 
             modelBuilder.Entity<OwnedStock>(entity =>
