@@ -42,6 +42,35 @@ namespace SteelBot.DiscordModules.Stocks
             await GetStockPriceInternal(context, stockSymbol, true);
         }
 
+        [Command("Search")]
+        [Aliases("find", "f", "s")]
+        [Description("Look up a stock by search keywords instead of the symbol.")]
+        [Cooldown(2, 60, CooldownBucketType.User)]
+        public async Task SearchStocks(CommandContext context, [RemainingText] string keywords)
+        {
+            if (string.IsNullOrWhiteSpace(keywords))
+            {
+                await context.RespondAsync(EmbedGenerator.Warning("No search keywords provided."));
+                return;
+            }
+            var initialEmbed = new DiscordEmbedBuilder()
+                .WithTitle($"Searching for `{keywords}`")
+                .WithDescription($"{EmojiConstants.CustomDiscordEmojis.LoadingSpinner} Please wait {EmojiConstants.CustomDiscordEmojis.LoadingSpinner}");
+            var initialMessage = await context.RespondAsync(initialEmbed.Build());
+
+            var quote = await StockPriceService.SearchStock(keywords);
+            DiscordMessageBuilder finalMessage = new DiscordMessageBuilder().WithContent(context.User.Mention);
+            if (quote == null)
+            {
+                finalMessage = finalMessage.WithEmbed(EmbedGenerator.Info("Sorry, I couldn't find any results for that search."));
+            }
+            else
+            {
+                finalMessage = finalMessage.WithEmbed(GenerateStockDataEmbed(quote.Symbol, false, quote));
+            }
+            await initialMessage.ModifyAsync(finalMessage);
+        }
+
         #region Helpers
 
         private async Task GetStockPriceInternal(CommandContext context, string stockSymbol, bool detailed = false)
@@ -67,7 +96,7 @@ namespace SteelBot.DiscordModules.Stocks
                 finalResponse = GenerateStockDataEmbed(upperSymbol, detailed, stockQuote);
             }
 
-            DiscordMessageBuilder finalMessage = new DiscordMessageBuilder().WithReply(context.Message.Id, true)
+            DiscordMessageBuilder finalMessage = new DiscordMessageBuilder().WithContent(context.User.Mention)
                 .WithEmbed(finalResponse);
             await initialResponseMsg.ModifyAsync(finalMessage);
         }

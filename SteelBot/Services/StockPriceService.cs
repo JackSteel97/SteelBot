@@ -7,6 +7,7 @@ using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,17 @@ namespace SteelBot.Services
         {
             StocksClient.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        public async Task<GlobalQuote> SearchStock(string keywords)
+        {
+            var matches = await StocksClient.SearchSymbolAsync(keywords);
+
+            if (matches.Count > 0)
+            {
+                return await GetStock(matches.First().Symbol);
+            }
+            return null;
         }
 
         public async Task<GlobalQuote> GetStock(string stockSymbol)
