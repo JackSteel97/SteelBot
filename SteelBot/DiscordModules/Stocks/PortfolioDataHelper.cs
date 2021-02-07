@@ -69,7 +69,7 @@ namespace SteelBot.DiscordModules.Stocks
             return embed;
         }
 
-        public async Task RunUpdateValuesTask(DiscordMessage originalMessage, string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol)
+        public async Task RunUpdateValuesTask(DiscordMessage originalMessage, string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol, ulong userId)
         {
             foreach (var quote in quotesBySymbol)
             {
@@ -93,6 +93,8 @@ namespace SteelBot.DiscordModules.Stocks
                     await originalMessage.ModifyAsync(newEmbed.Build());
                 }
             }
+
+            _ = TakePortfolioSnapshot(userId);
         }
 
         public bool UserHasPortfolio(ulong userId)
@@ -103,6 +105,15 @@ namespace SteelBot.DiscordModules.Stocks
         public bool TryGetPortfolio(ulong userId, out StockPortfolio portfolio)
         {
             return Cache.Portfolios.TryGetPortfolio(userId, out portfolio);
+        }
+
+        public async Task TakePortfolioSnapshot(ulong userId)
+        {
+            if (TryGetPortfolio(userId, out StockPortfolio portfolio))
+            {
+                var snapshot = await portfolio.GenerateSnapshot(StockPriceService);
+                await Cache.Portfolios.AddPortfolioSnapshot(userId, snapshot);
+            }
         }
 
         public async Task<bool> AddStock(ulong guildId, ulong userId, string stockSymbol, decimal amount)

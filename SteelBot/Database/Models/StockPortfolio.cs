@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SteelBot.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace SteelBot.Database.Models
         public List<OwnedStock> OwnedStock { get; set; }
 
         public Dictionary<string, OwnedStock> OwnedStockBySymbol { get; set; }
+        public List<StockPortfolioSnapshot> Snapshots { get; set; }
 
         /// <summary>
         /// Empty constructor.
@@ -34,6 +36,21 @@ namespace SteelBot.Database.Models
         public void BuildOwnedStockCache()
         {
             OwnedStockBySymbol = OwnedStock.ToDictionary(os => os.Symbol);
+        }
+
+        public async Task<StockPortfolioSnapshot> GenerateSnapshot(StockPriceService stockPriceService)
+        {
+            decimal totalValue = 0;
+            foreach (OwnedStock stock in OwnedStock)
+            {
+                var quote = await stockPriceService.GetStock(stock.Symbol);
+                if (quote != null)
+                {
+                    totalValue += quote.Price * stock.AmountOwned;
+                }
+            }
+
+            return new StockPortfolioSnapshot(this, totalValue);
         }
     }
 }

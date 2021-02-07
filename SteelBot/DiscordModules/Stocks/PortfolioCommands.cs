@@ -53,7 +53,7 @@ namespace SteelBot.DiscordModules.Stocks
 
                 var originalMessage = await context.RespondAsync(initialEmbed.Build());
 
-                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks, quotesBySymbol);
+                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks, quotesBySymbol, context.User.Id);
             }
         }
 
@@ -87,6 +87,8 @@ namespace SteelBot.DiscordModules.Stocks
             }
 
             await context.RespondAsync(embed: EmbedGenerator.Success($"Added {amount} **{stockSymbol.ToUpper()}** to your portfolio."));
+
+            _ = DataHelpers.Portfolios.TakePortfolioSnapshot(context.User.Id);
         }
 
         [Command("remove")]
@@ -113,6 +115,8 @@ namespace SteelBot.DiscordModules.Stocks
                 return;
             }
             await context.RespondAsync(embed: EmbedGenerator.Success($"Removed {(amount.HasValue ? amount.ToString() : "All")} **{stockSymbol.ToUpper()}** from your portfolio."));
+
+            _ = DataHelpers.Portfolios.TakePortfolioSnapshot(context.User.Id);
         }
     }
 }

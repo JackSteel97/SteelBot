@@ -33,9 +33,13 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 var allPortfolios = db.StockPortfolios.AsNoTracking()
                     .Include(pf => pf.Owner)
+                    .Include(pf => pf.Snapshots)
                     .Include(pf => pf.OwnedStock);
                 foreach (StockPortfolio portfolio in allPortfolios)
                 {
+                    // Make sure the snapshots are in ascending order.
+                    portfolio.Snapshots = portfolio.Snapshots.OrderBy(ss => ss.SnapshotTaken).ToList();
+
                     portfolio.BuildOwnedStockCache();
                     PortfoliosByUserDiscordId.Add(portfolio.Owner.DiscordId, portfolio);
                 }
@@ -90,6 +94,15 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        private void AddSnapshotToInternalCache(ulong userId, StockPortfolioSnapshot snapshot)
+        {
+            if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
+            {
+                snapshot.ParentPortfolio = portfolio;
+                portfolio.Snapshots.Add(snapshot);
+            }
+        }
+
         private void UpdateStockAmountInInternalCache(ulong userId, string stockSymbol, decimal newAmount, DateTime updateTime)
         {
             if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
@@ -138,6 +151,11 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public async Task AddPortfolioSnapshot(ulong userId, StockPortfolioSnapshot snapshot)
+        {
+            await InsertPortfolioSnapshot(userId, snapshot);
+        }
+
         public async Task AddNewOwnedStock(ulong userId, OwnedStock stock)
         {
             await InsertOwnedStock(userId, stock);
@@ -174,6 +192,25 @@ namespace SteelBot.DataProviders.SubProviders
             else
             {
                 Logger.LogError($"Writing a new owned stock for portfolio [{stock.ParentPortfolioRowId}] to the database inserted no entities. The internal cache was not changed.");
+            }
+        }
+
+        private async Task InsertPortfolioSnapshot(ulong userId, StockPortfolioSnapshot snapshot)
+        {
+            Logger.LogInformation($"Writing a new snapshot for portfolio [{snapshot.ParentPortfolioRowId}] to the database.");
+            int writtenCount;
+            using (var db = DbContextFactory.CreateDbContext())
+            {
+                db.StockPortfolioSnapshots.Add(snapshot);
+                writtenCount = await db.SaveChangesAsync();
+            }
+            if (writtenCount > 0)
+            {
+                AddSnapshotToInternalCache(userId, snapshot);
+            }
+            else
+            {
+                Logger.LogError($"Writing a new snapshot for portfolio [{snapshot.ParentPortfolioRowId}] to the database inserted no entities. The internal cache was not changed.");
             }
         }
 

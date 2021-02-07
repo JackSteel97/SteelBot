@@ -18,6 +18,7 @@ namespace SteelBot.Database
         public DbSet<Trigger> Triggers { get; set; }
         public DbSet<StockPortfolio> StockPortfolios { get; set; }
         public DbSet<OwnedStock> OwnedStocks { get; set; }
+        public DbSet<StockPortfolioSnapshot> StockPortfolioSnapshots { get; set; }
 
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
         public DbSet<CommandStatistic> CommandStatistics { get; set; }
@@ -99,9 +100,16 @@ namespace SteelBot.Database
                 entity.Ignore(pf => pf.OwnedStockBySymbol);
 
                 entity.HasMany(pf => pf.OwnedStock).WithOne(os => os.ParentPortfolio).HasForeignKey(os => os.ParentPortfolioRowId);
+                entity.HasMany(pf => pf.Snapshots).WithOne(ss => ss.ParentPortfolio).HasForeignKey(ss => ss.ParentPortfolioRowId);
             });
 
             modelBuilder.Entity<OwnedStock>(entity =>
+            {
+                entity.HasKey(os => os.RowId);
+                entity.Property(os => os.Symbol).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<StockPortfolioSnapshot>(entity =>
             {
                 entity.HasKey(os => os.RowId);
             });
