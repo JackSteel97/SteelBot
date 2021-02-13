@@ -1,5 +1,7 @@
 ﻿using AlphaVantage.Net.Core.Client;
 using AlphaVantage.Net.Core.HttpClientWrapper;
+using AlphaVantage.Net.Forex;
+using AlphaVantage.Net.Forex.Client;
 using AlphaVantage.Net.Stocks;
 using AlphaVantage.Net.Stocks.Client;
 using SteelBot.DataProviders;
@@ -21,6 +23,8 @@ namespace SteelBot.Services
         private readonly ConcurrentDictionary<string, CachedStock> StockCache = new ConcurrentDictionary<string, CachedStock>();
         private readonly TimeSpan CacheTime;
         private readonly StocksClient StocksClient;
+        private readonly ForexClient FxClient;
+        private CachedFxRate CachedFxRate = new CachedFxRate();
 
         public StockPriceService(AppConfigurationService appConfigurationService, DataCache cache)
         {
@@ -32,12 +36,26 @@ namespace SteelBot.Services
             var client = new AlphaVantageClient(AppConfigurationService.Application.AlphaVantageApiKey, rateLimitedClient);
             Cache = cache;
             StocksClient = client.Stocks();
+            FxClient = client.Forex();
         }
 
         public void Dispose()
         {
             StocksClient.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        public async Task<ForexExchangeRate> GetGbpUsdExchangeRate()
+        {
+            var timeSinceLastUpdate = DateTime.UtcNow - CachedFxRate.lastUpdated;
+            if (timeSinceLastUpdate >= CacheTime)
+            {
+                // Get new rate.
+                var rate = await FxClient.GetExchangeRateAsync(AlphaVantage.Net.Common.Currencies.PhysicalCurrency.USD, AlphaVantage.Net.Common.Currencies.PhysicalCurrency.GBP);
+                CachedFxRate.exchangeRate = rate;
+                CachedFxRate.lastUpdated = DateTime.UtcNow;
+            }
+            return CachedFxRate.exchangeRate;
         }
 
         public async Task<GlobalQuote> SearchStock(string keywords)
@@ -196,6 +214,12 @@ namespace SteelBot.Services
     public struct CachedStock
     {
         public GlobalQuote stockQuote;
+        public DateTime lastUpdated;
+    }
+
+    public struct CachedFxRate
+    {
+        public ForexExchangeRate exchangeRate;
         public DateTime lastUpdated;
     }
 }

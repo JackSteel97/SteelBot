@@ -27,33 +27,46 @@ namespace SteelBot.DiscordModules.Stocks
         }
 
         [GroupCommand]
-        [Description("View my portfolio.")]
-        [Cooldown(2, 60, CooldownBucketType.User)]
+        [Description("View my stock portfolio.")]
+        [Cooldown(1, 60, CooldownBucketType.User)]
         public async Task ViewMyPortfolio(CommandContext context)
         {
-            if (!DataHelpers.Portfolios.UserHasPortfolio(context.User.Id))
+            if (!DataHelpers.Portfolios.TryGetPortfolio(context.User.Id, out StockPortfolio portfolio))
             {
                 await context.RespondAsync(embed: EmbedGenerator.Warning("You don't have a portfolio yet."));
                 return;
             }
 
-            if (DataHelpers.Portfolios.TryGetPortfolio(context.User.Id, out StockPortfolio portfolio))
+            if (portfolio.OwnedStock.Count <= 0)
             {
-                if (portfolio.OwnedStock.Count <= 0)
-                {
-                    await context.RespondAsync(embed: EmbedGenerator.Info("Your porfolio is empty."));
-                    return;
-                }
+                await context.RespondAsync(embed: EmbedGenerator.Info("Your porfolio is empty."));
+                return;
+            }
 
-                var ownedStocks = portfolio.OwnedStock.OrderBy(os => os.Symbol).ToList();
-                // Get all the prices we can.
-                var quotesBySymbol = DataHelpers.Portfolios.GetQuotesFromCache(ownedStocks);
-                // Generate embed.
-                var initialEmbed = DataHelpers.Portfolios.GetPortfolioStocksDisplay(context.Member.Username, ownedStocks, quotesBySymbol);
+            var ownedStocks = portfolio.OwnedStock.OrderBy(os => os.Symbol).ToList();
+            // Get all the prices we can.
+            var quotesBySymbol = DataHelpers.Portfolios.GetQuotesFromCache(ownedStocks);
 
-                var originalMessage = await context.RespondAsync(initialEmbed.Build());
+            // Get the last snapshot value in dollars.
+            var lastSnapshotValue = portfolio.GetLastSnapshotValue();
 
-                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks, quotesBySymbol, context.User.Id);
+            // Get the exchange rate for secondary prices.
+            var exchangeRate = await StockPriceService.GetGbpUsdExchangeRate();
+
+            // Generate embed.
+            var initialEmbed = DataHelpers.Portfolios.GetPortfolioStocksDisplay(context.Member.Username, ownedStocks, quotesBySymbol, lastSnapshotValue, exchangeRate.ExchangeRate, out bool stillLoading);
+
+            var originalMessage = await context.RespondAsync(initialEmbed.Build());
+
+            // Only run this if we actually need to update any values.
+            if (stillLoading)
+            {
+                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks, quotesBySymbol, context.User.Id, lastSnapshotValue, exchangeRate.ExchangeRate);
+            }
+            else
+            {
+                // Otherwise just take the snapshot now.
+                _ = DataHelpers.Portfolios.TakePortfolioSnapshot(context.User.Id);
             }
         }
 
@@ -115,8 +128,6 @@ namespace SteelBot.DiscordModules.Stocks
                 return;
             }
             await context.RespondAsync(embed: EmbedGenerator.Success($"Removed {(amount.HasValue ? amount.ToString() : "All")} **{stockSymbol.ToUpper()}** from your portfolio."));
-
-            _ = DataHelpers.Portfolios.TakePortfolioSnapshot(context.User.Id);
         }
     }
 }

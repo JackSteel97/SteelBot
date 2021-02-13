@@ -39,6 +39,8 @@ namespace SteelBot.Helpers
         public static class CustomDiscordEmojis
         {
             public const string LoadingSpinner = "<a:loading:804037223423016971>";
+            public const string GreenArrowUp = "<a:green_up_arrow:808065949776740363>";
+            public const string RedArrowDown = "<a:red_down_arrow:808065950770266133>";
         }
     }
 

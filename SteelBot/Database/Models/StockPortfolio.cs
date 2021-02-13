@@ -52,5 +52,15 @@ namespace SteelBot.Database.Models
 
             return new StockPortfolioSnapshot(this, totalValue);
         }
+
+        public decimal GetLastSnapshotValue()
+        {
+            decimal lastSnapshotValue = 0;
+            if (Snapshots.Count > 0)
+            {
+                lastSnapshotValue = Snapshots[Snapshots.Count - 1].TotalValueDollars;
+            }
+            return lastSnapshotValue;
+        }
     }
 }

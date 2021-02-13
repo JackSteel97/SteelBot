@@ -34,13 +34,13 @@ namespace SteelBot.DiscordModules.Stocks
             return quotesBySymbol;
         }
 
-        public DiscordEmbedBuilder GetPortfolioStocksDisplay(string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol)
+        public DiscordEmbedBuilder GetPortfolioStocksDisplay(string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol, decimal lastSnapshotValue, decimal exchangeRateFromDollars, out bool anyStillLoading)
         {
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
                            .WithTitle($"{username} Stock Portfolio.");
             const string loading = EmojiConstants.CustomDiscordEmojis.LoadingSpinner;
 
-            bool anyStillLoading = false;
+            anyStillLoading = false;
             decimal grandTotal = 0;
             foreach (var stock in stocks)
             {
@@ -59,17 +59,30 @@ namespace SteelBot.DiscordModules.Stocks
                 embed.AddField($"{stock.Symbol} - `{stock.AmountOwned:G29} shares`", $"Equity {value}", true);
             }
 
-            embed = embed.WithDescription($"Portfolio Value {(anyStillLoading ? loading : $"`${grandTotal:N2}`")}");
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"**Portfolio Value:** {(anyStillLoading ? loading : $"`${grandTotal:N2}` ≈ `£{(grandTotal * exchangeRateFromDollars):N2}`")}");
 
-            if (anyStillLoading)
+            if (!anyStillLoading)
+            {
+                if (lastSnapshotValue != grandTotal)
+                {
+                    string indicator = grandTotal > lastSnapshotValue ? EmojiConstants.CustomDiscordEmojis.GreenArrowUp : EmojiConstants.CustomDiscordEmojis.RedArrowDown;
+
+                    decimal percentageChange = MathsHelper.PercentageChange(lastSnapshotValue, grandTotal);
+                    sb.Append($" - {indicator}`{percentageChange:P2}`");
+                }
+            }
+            else
             {
                 embed = embed.WithFooter("Prices may a take a while to load due to limits imposed by the data provider.");
             }
 
+            embed = embed.WithDescription(sb.ToString());
+
             return embed;
         }
 
-        public async Task RunUpdateValuesTask(DiscordMessage originalMessage, string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol, ulong userId)
+        public async Task RunUpdateValuesTask(DiscordMessage originalMessage, string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol, ulong userId, decimal lastSnapshotValue, decimal exchangeRateFromDollars)
         {
             foreach (var quote in quotesBySymbol)
             {
@@ -88,7 +101,7 @@ namespace SteelBot.DiscordModules.Stocks
                     }
 
                     // Generate new embed.
-                    var newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol);
+                    var newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol, lastSnapshotValue, exchangeRateFromDollars, out _);
 
                     await originalMessage.ModifyAsync(newEmbed.Build());
                 }
