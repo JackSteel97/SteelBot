@@ -1,11 +1,14 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using AlphaVantage.Net.Stocks;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +27,42 @@ namespace SteelBot.DiscordModules.Stocks
         {
             DataHelpers = dataHelpers;
             StockPriceService = stockPriceService;
+        }
+
+        [Command("history")]
+        [Aliases("h", "value")]
+        [Description("View a chart showing the value of your portfolio over time.")]
+        [Cooldown(1, 60, CooldownBucketType.User)]
+        public async Task ViewPortfolioHistory(CommandContext context)
+        {
+            if (!DataHelpers.Portfolios.TryGetPortfolio(context.User.Id, out StockPortfolio portfolio))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning("You don't have a portfolio yet."));
+                return;
+            }
+
+            if (portfolio.OwnedStock.Count <= 0)
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Info("Your porfolio is empty."));
+                return;
+            }
+
+            string historyFileName = $"portfolio_history_{portfolio.RowId}.png";
+
+            DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(context.Message.Id, true);
+
+            var historyChart = portfolio.GenerateValueHistoryChart();
+            historyChart.SaveFig(historyFileName);
+            using (var imageStream = File.OpenRead(historyFileName))
+            {
+                var embed = new DiscordEmbedBuilder()
+                    .WithImageUrl($"attachment://{historyFileName}")
+                    .WithTitle($"{context.Member.Username} Portfolio Value History")
+                    .WithColor(EmbedGenerator.InfoColour);
+                message = message.WithFile(historyFileName, imageStream).WithEmbed(embed);
+
+                await context.RespondAsync(message);
+            }
         }
 
         [GroupCommand]
@@ -56,16 +95,21 @@ namespace SteelBot.DiscordModules.Stocks
             // Generate embed.
             var initialEmbed = DataHelpers.Portfolios.GetPortfolioStocksDisplay(context.Member.Username, ownedStocks, quotesBySymbol, lastSnapshotValue, exchangeRate.ExchangeRate, out bool stillLoading);
 
-            var originalMessage = await context.RespondAsync(initialEmbed.Build());
+            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
 
-            // Only run this if we actually need to update any values.
+            messageBuilder = messageBuilder.WithEmbed(initialEmbed.Build());
+
+            var originalMessage = await context.RespondAsync(messageBuilder);
+
             if (stillLoading)
             {
-                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks, quotesBySymbol, context.User.Id, lastSnapshotValue, exchangeRate.ExchangeRate);
+                _ = DataHelpers.Portfolios.RunUpdateValuesTask(originalMessage, context.Member.Username, ownedStocks,
+                    quotesBySymbol, context.User.Id, lastSnapshotValue, exchangeRate.ExchangeRate)
+                    .ContinueWith((t) => DataHelpers.Portfolios.SendBreakdownChart(context.Message.Id, portfolio, quotesBySymbol, context.Channel));
             }
             else
             {
-                // Otherwise just take the snapshot now.
+                _ = DataHelpers.Portfolios.SendBreakdownChart(context.Message.Id, portfolio, quotesBySymbol, context.Channel);
                 _ = DataHelpers.Portfolios.TakePortfolioSnapshot(context.User.Id);
             }
         }

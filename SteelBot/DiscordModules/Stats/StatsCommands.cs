@@ -18,6 +18,7 @@ using DSharpPlus.Interactivity;
 using ScottPlot;
 using System.IO;
 using ScottPlot.Drawing;
+using System.Drawing;
 
 namespace SteelBot.DiscordModules.Stats
 {
@@ -60,15 +61,19 @@ namespace SteelBot.DiscordModules.Stats
             bar.ShowValuesAboveBars = true;
             plt.SetAxisLimits(yMin: 0);
             plt.XTicks(labels);
-            plt.XAxis.TickLabelStyle(rotation: 20);
+            plt.XAxis.TickLabelStyle(Color.White, rotation: 20);
+            plt.YAxis.TickLabelStyle(Color.White);
             plt.Grid(false);
 
             plt.Title("Command Usage");
             plt.YLabel("Usage Count");
             plt.SaveFig(imageName);
 
-            DiscordMessageBuilder message = new DiscordMessageBuilder().WithFile(imageName);
-            await context.RespondAsync(message);
+            using (FileStream imageStream = File.OpenRead(imageName))
+            {
+                DiscordMessageBuilder message = new DiscordMessageBuilder().WithFile(imageName, imageStream);
+                await context.RespondAsync(message);
+            }
             File.Delete(imageName);
         }
 

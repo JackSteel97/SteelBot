@@ -10,7 +10,11 @@ namespace SteelBot.Helpers
     {
         public static decimal PercentageChange(decimal oldValue, decimal newValue)
         {
-            return (newValue - oldValue) / Math.Abs(oldValue);
+            if (oldValue != 0)
+            {
+                return (newValue - oldValue) / Math.Abs(oldValue);
+            }
+            return newValue / 100;
         }
     }
 }

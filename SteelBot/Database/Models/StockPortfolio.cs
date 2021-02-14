@@ -1,6 +1,9 @@
-﻿using SteelBot.Services;
+﻿using AlphaVantage.Net.Stocks;
+using ScottPlot;
+using SteelBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -58,9 +61,69 @@ namespace SteelBot.Database.Models
             decimal lastSnapshotValue = 0;
             if (Snapshots.Count > 0)
             {
-                lastSnapshotValue = Snapshots[Snapshots.Count - 1].TotalValueDollars;
+                lastSnapshotValue = Snapshots[^1].TotalValueDollars;
             }
             return lastSnapshotValue;
+        }
+
+        public Plot GenerateValueHistoryChart()
+        {
+            double[] xValues = new double[Snapshots.Count];
+            double[] yValues = new double[Snapshots.Count];
+
+            for (int i = 0; i < Snapshots.Count; i++)
+            {
+                xValues[i] = Snapshots[i].SnapshotTaken.ToOADate();
+                yValues[i] = Convert.ToDouble(Snapshots[i].TotalValueDollars);
+            }
+
+            Plot plt = new Plot();
+            plt.Style(Style.Gray1);
+            //plt.AddScatter(xValues, yValues);
+            plt.AddFill(xValues, yValues);
+            plt.SetAxisLimits(xMin: xValues[0], xMax: xValues[^1], yMin: 0);
+            plt.XAxis.DateTimeFormat(true);
+            plt.XAxis.TickLabelStyle(Color.White);
+            plt.YAxis.TickLabelStyle(Color.White);
+
+            plt.Title("History of Portfolio Value");
+            plt.YLabel("Value in USD ($)");
+
+            return plt;
+        }
+
+        public Plot GeneratePortfolioBreakdownChart(Dictionary<string, GlobalQuote> quotesBySymbol)
+        {
+            double[] values = new double[OwnedStock.Count];
+            string[] labels = new string[OwnedStock.Count];
+            int index = 0;
+
+            foreach (var stock in OwnedStock)
+            {
+                double value = 0;
+                if (quotesBySymbol.TryGetValue(stock.Symbol, out var quote))
+                {
+                    value = Convert.ToDouble(quote.Price * stock.AmountOwned);
+                }
+                values[index] = value;
+                labels[index] = $"{stock.Symbol}";
+
+                index++;
+            }
+
+            var plt = new Plot();
+            plt.Style(Style.Gray1);
+            plt.Title("Portfolio Breakdown");
+
+            var pie = plt.AddPie(values);
+            pie.GroupNames = labels;
+            pie.ShowPercentages = true;
+            pie.ShowLabels = true;
+            pie.Explode = true;
+            pie.DonutSize = 0.6;
+            plt.Legend();
+
+            return plt;
         }
     }
 }

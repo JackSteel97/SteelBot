@@ -6,6 +6,7 @@ using SteelBot.Helpers;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,13 +102,37 @@ namespace SteelBot.DiscordModules.Stocks
                     }
 
                     // Generate new embed.
-                    var newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol, lastSnapshotValue, exchangeRateFromDollars, out _);
+                    var newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol, lastSnapshotValue, exchangeRateFromDollars, out bool anyStillLoading);
 
-                    await originalMessage.ModifyAsync(newEmbed.Build());
+                    DiscordMessageBuilder newMessage = new DiscordMessageBuilder();
+
+                    newMessage = newMessage.WithEmbed(newEmbed.Build());
+
+                    await originalMessage.ModifyAsync(newMessage);
                 }
             }
 
             _ = TakePortfolioSnapshot(userId);
+        }
+
+        public async Task SendBreakdownChart(ulong replyToMessageId, StockPortfolio portfolio, Dictionary<string, GlobalQuote> quotesBySymbol, DiscordChannel sendToChannel)
+        {
+            string breakdownFileName = $"portfolio_breakdown_{portfolio.RowId}.png";
+
+            DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(replyToMessageId, true);
+
+            var breakdownChart = portfolio.GeneratePortfolioBreakdownChart(quotesBySymbol);
+            breakdownChart.SaveFig(breakdownFileName);
+            using (var imageStream = File.OpenRead(breakdownFileName))
+            {
+                var embed = new DiscordEmbedBuilder()
+                    .WithImageUrl($"attachment://{breakdownFileName}")
+                    .WithTitle("Portfolio Breakdown")
+                    .WithColor(EmbedGenerator.InfoColour);
+                message = message.WithFile(breakdownFileName, imageStream).WithEmbed(embed);
+
+                await sendToChannel.SendMessageAsync(message);
+            }
         }
 
         public bool UserHasPortfolio(ulong userId)
