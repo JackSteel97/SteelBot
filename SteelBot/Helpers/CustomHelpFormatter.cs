@@ -5,14 +5,11 @@ using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
 using Humanizer;
 using Microsoft.Extensions.Logging;
-using SteelBot.Attributes;
 using SteelBot.DiscordModules;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers
 {
@@ -71,12 +68,12 @@ namespace SteelBot.Helpers
                 HasSubCommands = true;
             }
 
-            foreach (var overload in command.Overloads)
+            foreach (CommandOverload overload in command.Overloads)
             {
                 if (overload.Arguments.Count > 0)
                 {
                     usageBuilder.Append($"`{BotPrefix}{command.QualifiedName.Transform(To.TitleCase)} ");
-                    foreach (var argument in overload.Arguments)
+                    foreach (CommandArgument argument in overload.Arguments)
                     {
                         string argumentStarter = "<";
                         string argumentEnder = ">";
@@ -108,7 +105,7 @@ namespace SteelBot.Helpers
         public override BaseHelpFormatter WithSubcommands(IEnumerable<Command> cmds)
         {
             StringBuilder childCommands = new StringBuilder();
-            foreach (var cmd in cmds)
+            foreach (Command cmd in cmds)
             {
                 if (cmd.Name.Equals("help", StringComparison.OrdinalIgnoreCase))
                 {

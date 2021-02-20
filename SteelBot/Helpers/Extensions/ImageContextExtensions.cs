@@ -4,11 +4,6 @@ using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Extensions
 {
@@ -39,7 +34,7 @@ namespace SteelBot.Helpers.Extensions
 
             // mutating in here as we already have a cloned original
             // use any color (not Transparent), so the corners will be clipped
-            foreach (var c in corners)
+            foreach (IPath c in corners)
             {
                 ctx = ctx.Fill(Color.Red, c);
             }

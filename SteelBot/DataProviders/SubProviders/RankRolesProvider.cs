@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -29,11 +27,11 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation("Loading data from database: RankRoles");
             RankRole[] allRoles;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 allRoles = db.RankRoles.AsNoTracking().Include(rr => rr.Guild).ToArray();
             }
-            foreach (var role in allRoles)
+            foreach (RankRole role in allRoles)
             {
                 AddRoleToInternalCache(role.Guild.DiscordId, role);
             }
@@ -107,7 +105,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation($"Writing a new Rank Role [{role.RoleName}] for Guild [{guildId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.RankRoles.Add(role);
                 writtenCount = await db.SaveChangesAsync();
@@ -128,7 +126,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Deleting Rank Role [{role.RoleName}] for Guild [{guildId}] from the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.RankRoles.Remove(role);
                 writtenCount = await db.SaveChangesAsync();

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SteelBot.Helpers.Extensions
+﻿namespace SteelBot.Helpers.Extensions
 {
     public static class NumberExtensions
     {

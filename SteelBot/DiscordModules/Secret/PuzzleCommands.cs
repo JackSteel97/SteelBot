@@ -1,16 +1,16 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Humanizer;
 using SteelBot.Attributes;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Humanizer;
-using DSharpPlus.Entities;
-using SteelBot.Services.Configuration;
-using System.IO;
-using SteelBot.Helpers.Extensions;
 
 namespace SteelBot.DiscordModules.Secret
 {
@@ -388,98 +388,39 @@ namespace SteelBot.DiscordModules.Secret
 
         private static string GetAnswer(int puzzleNumber)
         {
-            switch (puzzleNumber)
+            return puzzleNumber switch
             {
-                case 1:
-                    return "TheAnswer";
-
-                case 2:
-                    return "Localhost";
-
-                case 3:
-                    return "15";
-
-                case 4:
-                    return "Timbuktu";
-
-                case 5:
-                    return "BEYOND GODLIKE";
-
-                case 6:
-                    return "Want";
-
-                case 7:
-                    return "Armstrong";
-
-                case 8:
-                    return "Eggs";
-
-                case 9:
-                    return "Bond";
-
-                case 10:
-                    return "Hold Up!";
-
-                case 11:
-                    return "uWu";
-
-                case 12:
-                    return "Yummy";
-
-                case 13:
-                    return "Deep";
-
-                case 14:
-                    return "Angkor Wat";
-
-                case 15:
-                    return "Apples";
-
-                case 16:
-                    return "unsecure";
-
-                case 17:
-                    return "Ender's Game";
-
-                case 18:
-                    return "Newcastle";
-
-                case 19:
-                    return "Drab";
-
-                case 20:
-                    return "Sea Caves";
-
-                case 21:
-                    return "Kerplunk";
-
-                case 22:
-                    return "SELF DESTRUCT";
-
-                case 23:
-                    return "Absent Mind";
-
-                case 24:
-                    return "Ankle Biters";
-
-                case 25:
-                    return "Electric Eel Embrace";
-
-                case 26:
-                    return "Boop";
-
-                case 27:
-                    return DateTime.UtcNow.ToString("HH:mm");
-
-                case 28:
-                    return "Eight";
-
-                case 29:
-                    return "Two";
-
-                default:
-                    return null;
-            }
+                1 => "TheAnswer",
+                2 => "Localhost",
+                3 => "15",
+                4 => "Timbuktu",
+                5 => "BEYOND GODLIKE",
+                6 => "Want",
+                7 => "Armstrong",
+                8 => "Eggs",
+                9 => "Bond",
+                10 => "Hold Up!",
+                11 => "uWu",
+                12 => "Yummy",
+                13 => "Deep",
+                14 => "Angkor Wat",
+                15 => "Apples",
+                16 => "unsecure",
+                17 => "Ender's Game",
+                18 => "Newcastle",
+                19 => "Drab",
+                20 => "Sea Caves",
+                21 => "Kerplunk",
+                22 => "SELF DESTRUCT",
+                23 => "Absent Mind",
+                24 => "Ankle Biters",
+                25 => "Electric Eel Embrace",
+                26 => "Boop",
+                27 => DateTime.UtcNow.ToString("HH:mm"),
+                28 => "Eight",
+                29 => "Two",
+                _ => null,
+            };
         }
     }
 }

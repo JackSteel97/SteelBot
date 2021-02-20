@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Fun.Models
 {
@@ -11,15 +7,16 @@ namespace SteelBot.DiscordModules.Fun.Models
     {
         [JsonProperty("joke")]
         public Joke Joke { get; set; }
-
     }
 
     public class Joke
     {
         [JsonProperty("title")]
         public string Title { get; set; }
+
         [JsonProperty("text")]
         public string Text { get; set; }
+
         [JsonProperty("date")]
         public DateTime Date { get; set; }
     }

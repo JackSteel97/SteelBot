@@ -8,7 +8,6 @@ using SteelBot.DataProviders;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -47,11 +46,11 @@ namespace SteelBot.Services
 
         public async Task<ForexExchangeRate> GetGbpUsdExchangeRate()
         {
-            var timeSinceLastUpdate = DateTime.UtcNow - CachedFxRate.lastUpdated;
+            TimeSpan timeSinceLastUpdate = DateTime.UtcNow - CachedFxRate.lastUpdated;
             if (timeSinceLastUpdate >= CacheTime)
             {
                 // Get new rate.
-                var rate = await FxClient.GetExchangeRateAsync(AlphaVantage.Net.Common.Currencies.PhysicalCurrency.USD, AlphaVantage.Net.Common.Currencies.PhysicalCurrency.GBP);
+                ForexExchangeRate rate = await FxClient.GetExchangeRateAsync(AlphaVantage.Net.Common.Currencies.PhysicalCurrency.USD, AlphaVantage.Net.Common.Currencies.PhysicalCurrency.GBP);
                 CachedFxRate.exchangeRate = rate;
                 CachedFxRate.lastUpdated = DateTime.UtcNow;
             }
@@ -60,7 +59,7 @@ namespace SteelBot.Services
 
         public async Task<GlobalQuote> SearchStock(string keywords)
         {
-            var matches = await StocksClient.SearchSymbolAsync(keywords);
+            System.Collections.Generic.ICollection<SymbolSearchMatch> matches = await StocksClient.SearchSymbolAsync(keywords);
 
             if (matches.Count > 0)
             {
@@ -72,7 +71,7 @@ namespace SteelBot.Services
         public async Task<GlobalQuote> GetStock(string stockSymbol)
         {
             string upperStockSymbol = stockSymbol.ToUpper();
-            var stockFromCache = GetStockFromInternalCache(upperStockSymbol);
+            GlobalQuote stockFromCache = GetStockFromInternalCache(upperStockSymbol);
             if (stockFromCache != null)
             {
                 return stockFromCache;
@@ -84,7 +83,7 @@ namespace SteelBot.Services
 
         private async Task<GlobalQuote> GetAndCacheStock(string stockSymbol)
         {
-            var stock = await GetStockFromApi(stockSymbol);
+            GlobalQuote stock = await GetStockFromApi(stockSymbol);
             var newCachedStock = new CachedStock()
             {
                 lastUpdated = DateTime.UtcNow,
@@ -108,7 +107,7 @@ namespace SteelBot.Services
             if (StockCache.TryGetValue(stockSymbol, out CachedStock cachedStock))
             {
                 // Cache hit.
-                var timeSinceLastUpdate = DateTime.UtcNow - cachedStock.lastUpdated;
+                TimeSpan timeSinceLastUpdate = DateTime.UtcNow - cachedStock.lastUpdated;
                 if (timeSinceLastUpdate < CacheTime)
                 {
                     // Still valid.
@@ -180,7 +179,7 @@ namespace SteelBot.Services
             TimeSpan? delayInterval = null;
             lock (_lockObject)
             {
-                var timeSinceLastRequest = DateTime.Now - _previousRequestStartTime;
+                TimeSpan timeSinceLastRequest = DateTime.Now - _previousRequestStartTime;
                 if (timeSinceLastRequest < _minRequestInterval)
                 {
                     delayInterval = _minRequestInterval - timeSinceLastRequest;

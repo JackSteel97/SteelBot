@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Database.Models
@@ -46,7 +45,7 @@ namespace SteelBot.Database.Models
             decimal totalValue = 0;
             foreach (OwnedStock stock in OwnedStock)
             {
-                var quote = await stockPriceService.GetStock(stock.Symbol);
+                GlobalQuote quote = await stockPriceService.GetStock(stock.Symbol);
                 if (quote != null)
                 {
                     totalValue += quote.Price * stock.AmountOwned;
@@ -98,10 +97,10 @@ namespace SteelBot.Database.Models
             string[] labels = new string[OwnedStock.Count];
             int index = 0;
 
-            foreach (var stock in OwnedStock)
+            foreach (OwnedStock stock in OwnedStock)
             {
                 double value = 0;
-                if (quotesBySymbol.TryGetValue(stock.Symbol, out var quote))
+                if (quotesBySymbol.TryGetValue(stock.Symbol, out GlobalQuote quote))
                 {
                     value = Convert.ToDouble(quote.Price * stock.AmountOwned);
                 }
@@ -115,7 +114,7 @@ namespace SteelBot.Database.Models
             plt.Style(Style.Gray1);
             plt.Title("Portfolio Breakdown");
 
-            var pie = plt.AddPie(values);
+            ScottPlot.Plottable.PiePlot pie = plt.AddPie(values);
             pie.GroupNames = labels;
             pie.ShowPercentages = true;
             pie.ShowLabels = true;

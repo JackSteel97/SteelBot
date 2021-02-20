@@ -9,11 +9,9 @@ using SteelBot.Database.Models;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services.Configuration;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Helpers
@@ -59,8 +57,8 @@ namespace SteelBot.Helpers
 
             double progressToNextLevel = (((double)xpIntoThisLevel / (double)xpToAchieveNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
 
-            using (var avatar = await GetAvatar(member.GetAvatarUrl(DSharpPlus.ImageFormat.Auto, 256)))
-            using (var image = new Image<Rgba32>(Width, Height))
+            using (Image avatar = await GetAvatar(member.GetAvatarUrl(DSharpPlus.ImageFormat.Auto, 256)))
+            using (Image<Rgba32> image = new Image<Rgba32>(Width, Height))
             {
                 image.Mutate(imageContext =>
                 {
@@ -79,7 +77,7 @@ namespace SteelBot.Helpers
                     }
 
                     // Avatar Image.
-                    using (var avatarRound = avatar.Clone(x => x.ConvertToAvatar(new Size(AvatarHeight, AvatarHeight), AvatarHeight / 2)))
+                    using (Image avatarRound = avatar.Clone(x => x.ConvertToAvatar(new Size(AvatarHeight, AvatarHeight), AvatarHeight / 2)))
                     {
                         imageContext.DrawImage(avatarRound, new Point(XPadding, YPadding), 1);
                     }
@@ -103,24 +101,24 @@ namespace SteelBot.Helpers
                         xpBarMidpointY);
 
                     // Current Level text.
-                    var levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
+                    TextGraphicsOptions levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
                     string levelText = $"Level {user.CurrentLevel}";
-                    var levelFont = Fonts.CreateFont(FontName, 48);
-                    var levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
+                    Font levelFont = Fonts.CreateFont(FontName, 48);
+                    FontRectangle levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
                     imageContext.DrawText(levelTextOpts, levelText, levelFont, Color.WhiteSmoke, new PointF(Width - XPadding, YPadding));
 
                     // Username Text.
-                    var usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
-                    var usernameFont = Fonts.CreateFont(FontName, 44);
-                    var tagFont = Fonts.CreateFont(FontName, 28);
-                    var usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
+                    TextGraphicsOptions usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
+                    Font usernameFont = Fonts.CreateFont(FontName, 44);
+                    Font tagFont = Fonts.CreateFont(FontName, 28);
+                    FontRectangle usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
                     imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(AvatarHeight + (XPadding * 2), Y1 - (XPadding * 2)));
                     imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray, new PointF(AvatarHeight + (XPadding * 2) + usernameMeasurements.Width, Y1 - (XPadding * 2)));
 
-                    var topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
+                    DiscordRole topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
                     if (topRole != default)
                     {
-                        var serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
+                        TextGraphicsOptions serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
                         imageContext.DrawSimpleText(serverRoleOptions,
                             topRole.Name,
                             Fonts.CreateFont(FontName, 28),
@@ -164,7 +162,7 @@ namespace SteelBot.Helpers
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    using (var bytes = await client.GetStreamAsync(avatarUrl))
+                    using (Stream bytes = await client.GetStreamAsync(avatarUrl))
                     {
                         avatar = Image.Load(bytes);
                     }

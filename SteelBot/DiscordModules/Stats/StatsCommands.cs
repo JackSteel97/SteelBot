@@ -2,23 +2,21 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
+using ScottPlot;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DSharpPlus.Interactivity;
-using ScottPlot;
-using System.IO;
-using ScottPlot.Drawing;
-using System.Drawing;
 
 namespace SteelBot.DiscordModules.Stats
 {
@@ -44,7 +42,7 @@ namespace SteelBot.DiscordModules.Stats
         public async Task CommandStatistics(CommandContext context)
         {
             const string imageName = "commandstats.png";
-            var allStats = DataHelper.Stats.GetCommandStatistics();
+            List<CommandStatistic> allStats = DataHelper.Stats.GetCommandStatistics();
 
             // Sort descending.
             allStats.Sort((cs1, cs2) => cs2.UsageCount.CompareTo(cs1.UsageCount));
@@ -57,7 +55,7 @@ namespace SteelBot.DiscordModules.Stats
             string[] labels = allStats.ConvertAll(s => s.CommandName).ToArray();
             double[] yData = allStats.ConvertAll(s => (double)s.UsageCount).ToArray();
 
-            var bar = plt.AddBar(yData);
+            ScottPlot.Plottable.BarPlot bar = plt.AddBar(yData);
             bar.ShowValuesAboveBars = true;
             plt.SetAxisLimits(yMin: 0);
             plt.XTicks(labels);
@@ -89,7 +87,7 @@ namespace SteelBot.DiscordModules.Stats
             }
 
             DiscordEmbedBuilder embedBuilder = DataHelper.Stats.GetStatsEmbed(user, discordUser.Username);
-            using (var imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
+            using (MemoryStream imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
             {
                 string fileName = $"{user.DiscordId}_stats.png";
                 DiscordMessageBuilder message = new DiscordMessageBuilder()
@@ -112,7 +110,7 @@ namespace SteelBot.DiscordModules.Stats
 
             DiscordEmbedBuilder embedBuilder = DataHelper.Stats.GetStatsEmbed(user, context.Member.Username);
 
-            using (var imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
+            using (MemoryStream imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
             {
                 string fileName = $"{user.DiscordId}_stats.png";
                 DiscordMessageBuilder message = new DiscordMessageBuilder()
@@ -227,8 +225,8 @@ namespace SteelBot.DiscordModules.Stats
                 }
             }
 
-            var interactivity = context.Client.GetInteractivity();
-            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
+            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
@@ -273,8 +271,8 @@ namespace SteelBot.DiscordModules.Stats
                 }
             }
 
-            var interactivity = context.Client.GetInteractivity();
-            var leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
+            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
@@ -353,7 +351,7 @@ namespace SteelBot.DiscordModules.Stats
                 }
             }
 
-            var interactivity = context.Client.GetInteractivity();
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
 
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }

@@ -4,9 +4,6 @@ using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.NonGroupedCommands

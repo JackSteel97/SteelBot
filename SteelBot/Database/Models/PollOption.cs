@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SteelBot.Database.Models
 {
@@ -13,6 +9,7 @@ namespace SteelBot.Database.Models
 
         [MaxLength(255)]
         public string OptionText { get; set; }
+
         public int OptionNumber { get; set; }
 
         public Poll Poll { get; set; }
@@ -31,7 +28,7 @@ namespace SteelBot.Database.Models
 
         public PollOption Clone()
         {
-            PollOption optionCopy = (PollOption)this.MemberwiseClone();
+            PollOption optionCopy = (PollOption)MemberwiseClone();
             return optionCopy;
         }
     }

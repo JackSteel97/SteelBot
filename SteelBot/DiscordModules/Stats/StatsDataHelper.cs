@@ -6,22 +6,17 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
-using SteelBot.Services;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Stats
 {
     public class StatsDataHelper
     {
-        private readonly ILogger<StatsDataHelper> Logger;
         private readonly DataCache Cache;
 
-        public StatsDataHelper(ILogger<StatsDataHelper> logger, DataCache cache)
+        public StatsDataHelper(DataCache cache)
         {
-            Logger = logger;
             Cache = cache;
         }
 

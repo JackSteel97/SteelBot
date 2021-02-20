@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace SteelBot.Database.Models
 {
@@ -41,7 +40,7 @@ namespace SteelBot.Database.Models
 
         public Guild Clone()
         {
-            Guild guildCopy = (Guild)this.MemberwiseClone();
+            Guild guildCopy = (Guild)MemberwiseClone();
             return guildCopy;
         }
     }

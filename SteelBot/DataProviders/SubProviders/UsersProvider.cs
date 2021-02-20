@@ -1,15 +1,11 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -37,7 +33,7 @@ namespace SteelBot.DataProviders.SubProviders
         private void LoadUserData()
         {
             Logger.LogInformation("Loading data from database: Users");
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 UsersByDiscordIdAndServer = db.Users
                     .Include(u => u.Guild)
@@ -77,7 +73,7 @@ namespace SteelBot.DataProviders.SubProviders
                 Logger.LogInformation($"Writing a new User [{user.DiscordId}] in Guild [{guildId}]");
 
                 int writtenCount;
-                using (var db = DbContextFactory.CreateDbContext())
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
                 {
                     db.Users.Add(user);
                     writtenCount = await db.SaveChangesAsync();
@@ -158,9 +154,9 @@ namespace SteelBot.DataProviders.SubProviders
             DateTime updateTimestamp = DateTime.UtcNow;
             var allUsers = UsersByDiscordIdAndServer.Values.ToList();
 
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
-                foreach (var user in allUsers)
+                foreach (User user in allUsers)
                 {
                     bool changed = false;
                     if (user.VoiceStartTime.HasValue)
@@ -289,7 +285,7 @@ namespace SteelBot.DataProviders.SubProviders
         private async Task UpdateUser(ulong guildId, User newUser)
         {
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To prevent EF tracking issue, grab and alter existing value.
                 User original = db.Users.First(u => u.RowId == newUser.RowId);

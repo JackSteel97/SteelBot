@@ -1,10 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RestSharp;
-using SteelBot.Database;
-using SteelBot.Database.Models;
 using SteelBot.DiscordModules.Fun.Models;
-using SteelBot.Services.Configuration;
 using System;
 using System.Threading.Tasks;
 
@@ -14,7 +10,9 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private JokeWrapper CachedJoke;
 
-        public FunProvider() {}
+        public FunProvider()
+        {
+        }
 
         private async Task UpdateJoke()
         {

@@ -4,7 +4,6 @@ using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
-using SteelBot.Services;
 
 namespace SteelBot.DiscordModules
 {

@@ -4,11 +4,7 @@ using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Polls
@@ -51,9 +47,9 @@ namespace SteelBot.DiscordModules.Polls
 
             DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(title, options, context.User, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions);
 
-            var sentMessage = await context.RespondAsync(embed: builder.Build());
+            DiscordMessage sentMessage = await context.RespondAsync(embed: builder.Build());
 
-            foreach (var reaction in reactions)
+            foreach (DiscordEmoji reaction in reactions)
             {
                 await sentMessage.CreateReactionAsync(reaction);
             }
@@ -164,12 +160,12 @@ namespace SteelBot.DiscordModules.Polls
 
             Poll updatedPoll = await DataHelper.Polls.AddOptionToPoll(poll, newOption);
 
-            var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
+            DiscordUser pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
             DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
                 pollAuthor, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions, pollId.ToString());
 
-            var channel = await context.Client.GetChannelAsync(updatedPoll.ChannelId);
-            var message = await channel.GetMessageAsync(updatedPoll.MessageId);
+            DiscordChannel channel = await context.Client.GetChannelAsync(updatedPoll.ChannelId);
+            DiscordMessage message = await channel.GetMessageAsync(updatedPoll.MessageId);
 
             await message.ModifyAsync(embed: builder.Build());
 
@@ -208,7 +204,7 @@ namespace SteelBot.DiscordModules.Polls
                 return;
             }
 
-            var pollOption = poll.Options.Find(opt => opt.OptionText.Equals(optionToRemove, StringComparison.OrdinalIgnoreCase));
+            PollOption pollOption = poll.Options.Find(opt => opt.OptionText.Equals(optionToRemove, StringComparison.OrdinalIgnoreCase));
             if (pollOption == null)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"Poll **{pollId}** does not have an option **{optionToRemove}**."));
@@ -219,12 +215,12 @@ namespace SteelBot.DiscordModules.Polls
 
             Poll updatedPoll = await DataHelper.Polls.RemoveOptionFromPoll(poll, optionToRemove);
 
-            var pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
+            DiscordUser pollAuthor = await context.Client.GetUserAsync(updatedPoll.PollCreator.DiscordId);
             DiscordEmbedBuilder builder = PollsDataHelper.GeneratePollEmbedBuilder(updatedPoll.Title, updatedPoll.Options.ConvertAll(opt => opt.OptionText).ToArray(),
                 pollAuthor, DataHelper.Config.GetPrefix(context.Guild.Id), out DiscordEmoji[] reactions, pollId.ToString());
 
-            var channel = context.Guild.GetChannel(updatedPoll.ChannelId);
-            var message = await channel.GetMessageAsync(updatedPoll.MessageId);
+            DiscordChannel channel = context.Guild.GetChannel(updatedPoll.ChannelId);
+            DiscordMessage message = await channel.GetMessageAsync(updatedPoll.MessageId);
 
             await message.ModifyAsync(embed: builder.Build());
 

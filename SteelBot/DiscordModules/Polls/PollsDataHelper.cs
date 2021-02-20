@@ -1,17 +1,12 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
-using SteelBot.Services;
-using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -148,18 +143,18 @@ namespace SteelBot.DiscordModules.Polls
 
         public async Task ClosePoll(Poll poll, DiscordChannel channel, DiscordUser closer)
         {
-            var pollMessage = await channel.GetMessageAsync(poll.MessageId);
+            DiscordMessage pollMessage = await channel.GetMessageAsync(poll.MessageId);
 
             Dictionary<string, PollOption> validReactionOptions = new Dictionary<string, PollOption>();
 
-            foreach (var option in poll.Options)
+            foreach (PollOption option in poll.Options)
             {
                 validReactionOptions.Add(EmojiHelper.GetNumberEmoji(option.OptionNumber), option);
             }
 
             List<(int votes, PollOption option)> results = new List<(int, PollOption)>();
             int totalVotes = 0;
-            foreach (var reaction in pollMessage.Reactions)
+            foreach (DiscordReaction reaction in pollMessage.Reactions)
             {
                 if (validReactionOptions.TryGetValue(reaction.Emoji.Name, out PollOption option))
                 {
@@ -181,7 +176,7 @@ namespace SteelBot.DiscordModules.Polls
             StringBuilder resultsBuilder = new StringBuilder();
             resultsBuilder.AppendLine($"**{poll.Title}**\n");
             int place = 1;
-            foreach (var (votes, option) in results)
+            foreach ((int votes, PollOption option) in results)
             {
                 if (votes == 0)
                 {

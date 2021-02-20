@@ -5,7 +5,6 @@ using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +48,7 @@ namespace SteelBot.DiscordModules.Roles
             {
                 if (!role.Hidden)
                 {
-                    var discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
+                    DiscordRole discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
                     string roleMention = role.RoleName;
                     if (discordRole != default && discordRole.IsMentionable)
                     {

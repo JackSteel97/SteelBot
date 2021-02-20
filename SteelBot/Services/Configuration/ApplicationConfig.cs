@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SteelBot.Services.Configuration
+﻿namespace SteelBot.Services.Configuration
 {
     public class ApplicationConfig
     {

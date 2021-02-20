@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
-using SteelBot.Services.Configuration;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

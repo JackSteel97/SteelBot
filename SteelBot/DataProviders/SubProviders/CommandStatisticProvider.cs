@@ -6,7 +6,6 @@ using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -15,15 +14,13 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private readonly ILogger<CommandStatisticProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly AppConfigurationService AppConfigurationService;
 
         private Dictionary<string, CommandStatistic> StatisticsByCommandName;
 
-        public CommandStatisticProvider(ILogger<CommandStatisticProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService)
+        public CommandStatisticProvider(ILogger<CommandStatisticProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
-            AppConfigurationService = appConfigurationService;
 
             StatisticsByCommandName = new Dictionary<string, CommandStatistic>();
             LoadCommandStatisticData();
@@ -32,7 +29,7 @@ namespace SteelBot.DataProviders.SubProviders
         private void LoadCommandStatisticData()
         {
             Logger.LogInformation("Loading data from database: Command Statistics");
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 StatisticsByCommandName = db.CommandStatistics.AsNoTracking().ToDictionary(cs => cs.CommandName);
             }
@@ -43,7 +40,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Writing a new CommandStatistic [{commandName}] to the database.");
             CommandStatistic cStat = new CommandStatistic(commandName);
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.CommandStatistics.Add(cStat);
                 writtenCount = await db.SaveChangesAsync();
@@ -62,7 +59,7 @@ namespace SteelBot.DataProviders.SubProviders
         private async Task UpdateStatistic(CommandStatistic commandStatistic)
         {
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.CommandStatistics.Update(commandStatistic);
                 writtenCount = await db.SaveChangesAsync();

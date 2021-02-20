@@ -4,11 +4,6 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Config

@@ -16,7 +16,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         public async Task InsertException(ExceptionLog ex)
         {
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.LoggedErrors.Add(ex);
                 await db.SaveChangesAsync();

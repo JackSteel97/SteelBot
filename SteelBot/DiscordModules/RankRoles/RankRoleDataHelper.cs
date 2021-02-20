@@ -1,5 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
@@ -7,7 +6,6 @@ using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles
@@ -190,7 +188,7 @@ namespace SteelBot.DiscordModules.RankRoles
             }
         }
 
-        private RankRole FindHighestRankRoleForLevel(List<RankRole> roles, User user, HashSet<string> excludedRoles = null, bool currentRoleIsBeingRemoved = false)
+        private static RankRole FindHighestRankRoleForLevel(List<RankRole> roles, User user, HashSet<string> excludedRoles = null, bool currentRoleIsBeingRemoved = false)
         {
             roles.Sort((r1, r2) => r2.LevelRequired.CompareTo(r1.LevelRequired));
             foreach (RankRole rankRole in roles)

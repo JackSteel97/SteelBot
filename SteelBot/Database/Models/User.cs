@@ -1,8 +1,6 @@
 ﻿using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace SteelBot.Database.Models
 {
@@ -130,7 +128,7 @@ namespace SteelBot.Database.Models
 
         public User Clone()
         {
-            User userCopy = (User)this.MemberwiseClone();
+            User userCopy = (User)MemberwiseClone();
             return userCopy;
         }
 

@@ -2,11 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using SteelBot.Services.Configuration;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -32,7 +29,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation("Loading data from database: SelfRoles");
 
             SelfRole[] allRoles;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 allRoles = db.SelfRoles.AsNoTracking().Include(sr => sr.Guild).ToArray();
             }
@@ -112,7 +109,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Writing a new Self Role [{role.RoleName}] for Guild [{guildId}] to the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.SelfRoles.Add(role);
                 writtenCount = await db.SaveChangesAsync();
@@ -133,7 +130,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Deleting Self Role [{role.RoleName}] for Guild [{guildId}] from the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.SelfRoles.Remove(role);
                 writtenCount = await db.SaveChangesAsync();

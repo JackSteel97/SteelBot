@@ -27,9 +27,6 @@ using SteelBot.Helpers;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -245,7 +242,7 @@ namespace SteelBot
         {
             if (args.Exception is ChecksFailedException ex)
             {
-                foreach (var failedCheck in ex.FailedChecks)
+                foreach (CheckBaseAttribute failedCheck in ex.FailedChecks)
                 {
                     if (failedCheck is CooldownAttribute cooldown)
                     {

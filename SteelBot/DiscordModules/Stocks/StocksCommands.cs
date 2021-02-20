@@ -5,10 +5,6 @@ using DSharpPlus.Entities;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Stocks
@@ -53,12 +49,12 @@ namespace SteelBot.DiscordModules.Stocks
                 await context.RespondAsync(EmbedGenerator.Warning("No search keywords provided."));
                 return;
             }
-            var initialEmbed = new DiscordEmbedBuilder()
+            DiscordEmbedBuilder initialEmbed = new DiscordEmbedBuilder()
                 .WithTitle($"Searching for `{keywords}`")
                 .WithDescription($"{EmojiConstants.CustomDiscordEmojis.LoadingSpinner} Please wait {EmojiConstants.CustomDiscordEmojis.LoadingSpinner}");
-            var initialMessage = await context.RespondAsync(initialEmbed.Build());
+            DiscordMessage initialMessage = await context.RespondAsync(initialEmbed.Build());
 
-            var quote = await StockPriceService.SearchStock(keywords);
+            GlobalQuote quote = await StockPriceService.SearchStock(keywords);
             DiscordMessageBuilder finalMessage = new DiscordMessageBuilder().WithContent(context.User.Mention);
             if (quote == null)
             {
@@ -81,10 +77,10 @@ namespace SteelBot.DiscordModules.Stocks
                 return;
             }
             string upperSymbol = stockSymbol.ToUpper();
-            var initialResponse = GenerateStockDataEmbed(upperSymbol, detailed);
-            var initialResponseMsg = await context.RespondAsync(initialResponse);
+            DiscordEmbed initialResponse = GenerateStockDataEmbed(upperSymbol, detailed);
+            DiscordMessage initialResponseMsg = await context.RespondAsync(initialResponse);
 
-            var stockQuote = await StockPriceService.GetStock(stockSymbol);
+            GlobalQuote stockQuote = await StockPriceService.GetStock(stockSymbol);
 
             DiscordEmbed finalResponse;
             if (stockQuote == null)
@@ -101,7 +97,7 @@ namespace SteelBot.DiscordModules.Stocks
             await initialResponseMsg.ModifyAsync(finalMessage);
         }
 
-        private DiscordEmbed GenerateStockDataEmbed(string symbol, bool detailed = false, GlobalQuote quote = null)
+        private static DiscordEmbed GenerateStockDataEmbed(string symbol, bool detailed = false, GlobalQuote quote = null)
         {
             bool quoteAvailable = quote != null;
             const string loading = EmojiConstants.CustomDiscordEmojis.LoadingSpinner;

@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -29,7 +27,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation("Loading data from database: Triggers");
             Trigger[] allTriggers;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 allTriggers = db.Triggers.AsNoTracking().Include(t => t.Guild).Include(t => t.Creator).ToArray();
             }
@@ -118,7 +116,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation($"Writing a new Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.Triggers.Add(trigger);
                 writtenCount = await db.SaveChangesAsync();
@@ -139,10 +137,10 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Updating Trigger [{newTrigger.TriggerText}] for Guild [{guildId}] in the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To prevent EF tracking issue, grab and alter existing value.
-                var original = db.Triggers.First(u => u.RowId == newTrigger.RowId);
+                Trigger original = db.Triggers.First(u => u.RowId == newTrigger.RowId);
                 db.Entry(original).CurrentValues.SetValues(newTrigger);
                 db.Triggers.Update(original);
                 writtenCount = await db.SaveChangesAsync();
@@ -163,7 +161,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Deleting Trigger [{trigger.TriggerText}] for Guild [{guildId}] from the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // Remove creator to prevent EF trying to deleting things.
                 trigger.Creator = null;

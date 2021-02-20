@@ -3,10 +3,8 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.Services.Configuration;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders
@@ -32,7 +30,7 @@ namespace SteelBot.DataProviders.SubProviders
         private void LoadGuildData()
         {
             Logger.LogInformation("Loading data from database: Guilds");
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 GuildsByDiscordId = db.Guilds.AsNoTracking().ToDictionary(g => g.DiscordId);
             }
@@ -87,7 +85,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         public async Task IncrementGoodVote(ulong guildId)
         {
-            if(TryGetGuild(guildId, out Guild guild))
+            if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Incrementing good bot vote for Guild [{guildId}]");
                 Guild copyOfGuild = guild.Clone();
@@ -125,7 +123,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation($"Writing a new Guild [{guild.DiscordId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.Guilds.Add(guild);
                 writtenCount = await db.SaveChangesAsync();
@@ -145,7 +143,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Updating the Guild [{guild.DiscordId}] in the database.");
             guild.RowId = GuildsByDiscordId[guild.DiscordId].RowId;
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To avoid EF tracking issue, grab and alter existing entity.
                 Guild original = db.Guilds.First(u => u.RowId == guild.RowId);
