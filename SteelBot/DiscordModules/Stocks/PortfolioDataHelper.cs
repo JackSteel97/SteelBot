@@ -283,7 +283,7 @@ namespace SteelBot.DiscordModules.Stocks
             ForexExchangeRate exchangeRate = await StockPriceService.GetGbpUsdExchangeRate();
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
-                .WithTitle($"{context.Guild.Name} Stock Portfolio Leaderboard")
+                .WithTitle($"{context.Guild.Name} Stock Portfolio Value Leaderboard")
                 .WithTimestamp(DateTime.UtcNow);
 
             StringBuilder leaderboard = GeneratePortfolioLeaderboard(portfolios, exchangeRate.ExchangeRate);
