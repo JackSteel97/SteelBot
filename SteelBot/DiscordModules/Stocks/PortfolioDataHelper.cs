@@ -1,9 +1,15 @@
-﻿using AlphaVantage.Net.Stocks;
+﻿using AlphaVantage.Net.Forex;
+using AlphaVantage.Net.Stocks;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Services;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,11 +23,13 @@ namespace SteelBot.DiscordModules.Stocks
     {
         private readonly DataCache Cache;
         private readonly StockPriceService StockPriceService;
+        private readonly AppConfigurationService AppConfigurationService;
 
-        public PortfolioDataHelper(DataCache cache, StockPriceService stockPriceService)
+        public PortfolioDataHelper(DataCache cache, StockPriceService stockPriceService, AppConfigurationService appConfigurationService)
         {
             Cache = cache;
             StockPriceService = stockPriceService;
+            AppConfigurationService = appConfigurationService;
         }
 
         public Dictionary<string, GlobalQuote> GetQuotesFromCache(List<OwnedStock> stocks)
@@ -224,6 +232,94 @@ namespace SteelBot.DiscordModules.Stocks
             {
                 await Cache.Portfolios.CreatePortfolio(user);
             }
+        }
+
+        public List<StockPortfolio> GetPortfoliosInGuild(ulong guildId)
+        {
+            var allUsersIds = Cache.Users.GetUsersInGuild(guildId).ConvertAll(u => u.DiscordId);
+
+            return Cache.Portfolios.TryGetPortfolios(allUsersIds);
+        }
+
+        public bool AnyPortfolioSnapshotsOutOfDate(List<StockPortfolio> portfolios)
+        {
+            foreach (StockPortfolio portfolio in portfolios)
+            {
+                if (portfolio.Snapshots.Count == 0)
+                {
+                    return true;
+                }
+                // Get the latest snapshot.
+                StockPortfolioSnapshot snapshot = portfolio.Snapshots[^1];
+                TimeSpan timeSinceSnapshot = (DateTime.UtcNow - snapshot.SnapshotTaken);
+
+                // Check if it is out of date.
+                if (timeSinceSnapshot.TotalMinutes >= AppConfigurationService.Application.StockCacheTimeMinutes)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public async Task GenerateSnapshots(List<StockPortfolio> portfolios)
+        {
+            foreach (StockPortfolio portfolio in portfolios)
+            {
+                StockPortfolioSnapshot snapshot = await portfolio.GenerateSnapshot(StockPriceService);
+                await Cache.Portfolios.AddPortfolioSnapshot(portfolio.Owner.DiscordId, snapshot);
+            }
+        }
+
+        public async Task SendPortfoliosLeaderboard(CommandContext context, List<StockPortfolio> portfolios)
+        {
+            // Check if any of them need updating.
+            DiscordMessage loadingMessage = null;
+            if (AnyPortfolioSnapshotsOutOfDate(portfolios))
+            {
+                loadingMessage = await context.RespondAsync(EmbedGenerator.Info($"Got it, I'll ping you when it's ready!\n\n{EmojiConstants.CustomDiscordEmojis.LoadingSpinner} Crunching the numbers...", "Processing"));
+                await GenerateSnapshots(portfolios);
+            }
+            ForexExchangeRate exchangeRate = await StockPriceService.GetGbpUsdExchangeRate();
+
+            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+                .WithTitle($"{context.Guild.Name} Stock Portfolio Leaderboard")
+                .WithTimestamp(DateTime.UtcNow);
+
+            StringBuilder leaderboard = GeneratePortfolioLeaderboard(portfolios, exchangeRate.ExchangeRate);
+
+            InteractivityExtension interactivity = context.Client.GetInteractivity();
+            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), DSharpPlus.Interactivity.Enums.SplitType.Line, embedBuilder);
+
+            // Delete the loading message if it was sent.
+            if (loadingMessage != null)
+            {
+                _ = loadingMessage.DeleteAsync("Finished processing");
+            }
+
+            await context.RespondAsync(context.User.Mention);
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
+        }
+
+        public StringBuilder GeneratePortfolioLeaderboard(List<StockPortfolio> portfolios, decimal exchangeRate)
+        {
+            StockPortfolio[] orderedPortfolios = portfolios.OrderByDescending(pf => pf.Snapshots[^1].TotalValueDollars).ToArray();
+
+            StringBuilder leaderboard = new StringBuilder();
+            for (int i = 0; i < orderedPortfolios.Length; i++)
+            {
+                var portfolio = orderedPortfolios[i];
+                var valueInDollars = portfolio.Snapshots[^1].TotalValueDollars;
+                leaderboard
+                    .AppendLine($"**{(i + 1).Ordinalize()}** - <@{portfolio.Owner.DiscordId}>")
+                    .Append($"`${valueInDollars:N2}`").AppendLine($" ≈ `£{(valueInDollars * exchangeRate):N2}`");
+
+                if (i != orderedPortfolios.Length - 1)
+                {
+                    leaderboard.AppendLine();
+                }
+            }
+            return leaderboard;
         }
     }
 }

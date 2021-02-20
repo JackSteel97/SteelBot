@@ -29,6 +29,19 @@ namespace SteelBot.DiscordModules.Stocks
             StockPriceService = stockPriceService;
         }
 
+        [Command("leaderboard")]
+        [Aliases("l")]
+        [Description("View the leaderboard for portolfio values in this server.")]
+        [Cooldown(1, 60, CooldownBucketType.Channel)]
+        public Task ViewLeaderboard(CommandContext context)
+        {
+            // Get all user portfolios in this server.
+            List<StockPortfolio> allPortfolios = DataHelpers.Portfolios.GetPortfoliosInGuild(context.Guild.Id);
+
+            _ = DataHelpers.Portfolios.SendPortfoliosLeaderboard(context, allPortfolios);
+            return Task.CompletedTask;
+        }
+
         [Command("history")]
         [Aliases("h", "value")]
         [Description("View a chart showing the value of your portfolio over time.")]
@@ -47,22 +60,25 @@ namespace SteelBot.DiscordModules.Stocks
                 return;
             }
 
-            string historyFileName = $"portfolio_history_{portfolio.RowId}.png";
-
-            DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(context.Message.Id, true);
-
-            var historyChart = portfolio.GenerateValueHistoryChart();
-            historyChart.SaveFig(historyFileName);
-            using (var imageStream = File.OpenRead(historyFileName))
+            _ = Task.Run(async () =>
             {
-                var embed = new DiscordEmbedBuilder()
-                    .WithImageUrl($"attachment://{historyFileName}")
-                    .WithTitle($"{context.Member.Username} Portfolio Value History")
-                    .WithColor(EmbedGenerator.InfoColour);
-                message = message.WithFile(historyFileName, imageStream).WithEmbed(embed);
+                string historyFileName = $"portfolio_history_{portfolio.RowId}.png";
 
-                await context.RespondAsync(message);
-            }
+                DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(context.Message.Id, true);
+
+                var historyChart = portfolio.GenerateValueHistoryChart();
+                historyChart.SaveFig(historyFileName);
+                using (var imageStream = File.OpenRead(historyFileName))
+                {
+                    var embed = new DiscordEmbedBuilder()
+                        .WithImageUrl($"attachment://{historyFileName}")
+                        .WithTitle($"{context.Member.Username} Portfolio Value History")
+                        .WithColor(EmbedGenerator.InfoColour);
+                    message = message.WithFile(historyFileName, imageStream).WithEmbed(embed);
+
+                    await context.RespondAsync(message);
+                }
+            });
         }
 
         [GroupCommand]

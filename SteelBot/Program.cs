@@ -68,7 +68,8 @@ namespace SteelBot
                 MinimumLogLevel = discordLogLevel,
                 MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
                 Token = appConfigurationService.Application.Discord.LoginToken,
-                TokenType = TokenType.Bot
+                TokenType = TokenType.Bot,
+                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers
             });
 
             serviceProvider.AddSingleton(client);

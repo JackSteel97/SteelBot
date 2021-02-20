@@ -46,6 +46,19 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public List<StockPortfolio> TryGetPortfolios(IEnumerable<ulong> userIds)
+        {
+            List<StockPortfolio> result = new List<StockPortfolio>();
+            foreach (ulong userId in userIds)
+            {
+                if (TryGetPortfolio(userId, out StockPortfolio portfolio))
+                {
+                    result.Add(portfolio);
+                }
+            }
+            return result;
+        }
+
         public bool TryGetPortfolio(ulong userId, out StockPortfolio portfolio)
         {
             return PortfoliosByUserDiscordId.TryGetValue(userId, out portfolio);
