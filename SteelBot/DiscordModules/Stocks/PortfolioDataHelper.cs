@@ -35,9 +35,9 @@ namespace SteelBot.DiscordModules.Stocks
         public Dictionary<string, GlobalQuote> GetQuotesFromCache(List<OwnedStock> stocks)
         {
             Dictionary<string, GlobalQuote> quotesBySymbol = new Dictionary<string, GlobalQuote>();
-            foreach (var stock in stocks)
+            foreach (OwnedStock stock in stocks)
             {
-                var quote = StockPriceService.GetStockFromInternalCache(stock.Symbol);
+                GlobalQuote quote = StockPriceService.GetStockFromInternalCache(stock.Symbol);
                 quotesBySymbol.Add(stock.Symbol, quote);
             }
             return quotesBySymbol;
@@ -51,7 +51,7 @@ namespace SteelBot.DiscordModules.Stocks
 
             anyStillLoading = false;
             decimal grandTotal = 0;
-            foreach (var stock in stocks)
+            foreach (OwnedStock stock in stocks)
             {
                 quotesBySymbol.TryGetValue(stock.Symbol, out GlobalQuote quote);
                 string value = loading;
@@ -93,7 +93,7 @@ namespace SteelBot.DiscordModules.Stocks
 
         public async Task RunUpdateValuesTask(DiscordMessage originalMessage, string username, List<OwnedStock> stocks, Dictionary<string, GlobalQuote> quotesBySymbol, ulong userId, decimal lastSnapshotValue, decimal exchangeRateFromDollars)
         {
-            foreach (var quote in quotesBySymbol)
+            foreach (KeyValuePair<string, GlobalQuote> quote in quotesBySymbol)
             {
                 if (quote.Value == null)
                 {
@@ -101,7 +101,7 @@ namespace SteelBot.DiscordModules.Stocks
                     for (int i = 0; i < 2; i++)
                     {
                         // Retry up to 2 times to get around API blips.
-                        var newQuote = await StockPriceService.GetStock(quote.Key);
+                        GlobalQuote newQuote = await StockPriceService.GetStock(quote.Key);
                         if (newQuote != null)
                         {
                             quotesBySymbol[quote.Key] = newQuote;
@@ -110,7 +110,7 @@ namespace SteelBot.DiscordModules.Stocks
                     }
 
                     // Generate new embed.
-                    var newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol, lastSnapshotValue, exchangeRateFromDollars, out bool anyStillLoading);
+                    DiscordEmbedBuilder newEmbed = GetPortfolioStocksDisplay(username, stocks, quotesBySymbol, lastSnapshotValue, exchangeRateFromDollars, out _);
 
                     DiscordMessageBuilder newMessage = new DiscordMessageBuilder();
 
@@ -129,11 +129,11 @@ namespace SteelBot.DiscordModules.Stocks
 
             DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(replyToMessageId, true);
 
-            var breakdownChart = portfolio.GeneratePortfolioBreakdownChart(quotesBySymbol);
+            ScottPlot.Plot breakdownChart = portfolio.GeneratePortfolioBreakdownChart(quotesBySymbol);
             breakdownChart.SaveFig(breakdownFileName);
-            using (var imageStream = File.OpenRead(breakdownFileName))
+            using (FileStream imageStream = File.OpenRead(breakdownFileName))
             {
-                var embed = new DiscordEmbedBuilder()
+                DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                     .WithImageUrl($"attachment://{breakdownFileName}")
                     .WithTitle("Portfolio Breakdown")
                     .WithColor(EmbedGenerator.InfoColour);
@@ -157,7 +157,7 @@ namespace SteelBot.DiscordModules.Stocks
         {
             if (TryGetPortfolio(userId, out StockPortfolio portfolio))
             {
-                var snapshot = await portfolio.GenerateSnapshot(StockPriceService);
+                StockPortfolioSnapshot snapshot = await portfolio.GenerateSnapshot(StockPriceService);
                 await Cache.Portfolios.AddPortfolioSnapshot(userId, snapshot);
             }
         }
@@ -178,7 +178,7 @@ namespace SteelBot.DiscordModules.Stocks
                 {
                     // Get from portfolio.
                     portfolio.OwnedStockBySymbol.TryGetValue(stockSymbol.ToUpper(), out OwnedStock ownedStock);
-                    var newStock = ownedStock.Clone();
+                    OwnedStock newStock = ownedStock.Clone();
                     newStock.AmountOwned += amount;
                     // Add to the amount.
                     await Cache.Portfolios.UpdateOwnedStock(userId, newStock);
@@ -219,7 +219,7 @@ namespace SteelBot.DiscordModules.Stocks
                 amountToRemove = stock.AmountOwned;
             }
 
-            var newStock = stock.Clone();
+            OwnedStock newStock = stock.Clone();
             newStock.AmountOwned -= amountToRemove;
             // Remove the stock amount.
             await Cache.Portfolios.UpdateOwnedStock(userId, newStock);
@@ -236,7 +236,7 @@ namespace SteelBot.DiscordModules.Stocks
 
         public List<StockPortfolio> GetPortfoliosInGuild(ulong guildId)
         {
-            var allUsersIds = Cache.Users.GetUsersInGuild(guildId).ConvertAll(u => u.DiscordId);
+            List<ulong> allUsersIds = Cache.Users.GetUsersInGuild(guildId).ConvertAll(u => u.DiscordId);
 
             return Cache.Portfolios.TryGetPortfolios(allUsersIds);
         }
@@ -301,15 +301,15 @@ namespace SteelBot.DiscordModules.Stocks
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
         }
 
-        public StringBuilder GeneratePortfolioLeaderboard(List<StockPortfolio> portfolios, decimal exchangeRate)
+        private static StringBuilder GeneratePortfolioLeaderboard(List<StockPortfolio> portfolios, decimal exchangeRate)
         {
             StockPortfolio[] orderedPortfolios = portfolios.OrderByDescending(pf => pf.Snapshots[^1].TotalValueDollars).ToArray();
 
             StringBuilder leaderboard = new StringBuilder();
             for (int i = 0; i < orderedPortfolios.Length; i++)
             {
-                var portfolio = orderedPortfolios[i];
-                var valueInDollars = portfolio.Snapshots[^1].TotalValueDollars;
+                StockPortfolio portfolio = orderedPortfolios[i];
+                decimal valueInDollars = portfolio.Snapshots[^1].TotalValueDollars;
                 leaderboard
                     .AppendLine($"**{(i + 1).Ordinalize()}** - <@{portfolio.Owner.DiscordId}>")
                     .Append($"`${valueInDollars:N2}`").AppendLine($" ≈ `£{(valueInDollars * exchangeRate):N2}`");

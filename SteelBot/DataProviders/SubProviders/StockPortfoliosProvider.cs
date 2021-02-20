@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
@@ -29,9 +30,9 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation("Loading data from database: Portfolios");
 
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
-                var allPortfolios = db.StockPortfolios.AsNoTracking()
+                IIncludableQueryable<StockPortfolio, List<OwnedStock>> allPortfolios = db.StockPortfolios.AsNoTracking()
                     .Include(pf => pf.Owner)
                     .Include(pf => pf.Snapshots)
                     .Include(pf => pf.OwnedStock);
@@ -146,7 +147,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation($"Writing a new stock portfolio for user [{portfolio.OwnerRowId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 portfolio.Owner = null;
                 db.StockPortfolios.Add(portfolio);
@@ -193,7 +194,7 @@ namespace SteelBot.DataProviders.SubProviders
             stock.LastUpdated = updateTime;
             Logger.LogInformation($"Writing a new owned stock for portfolio [{stock.ParentPortfolioRowId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.OwnedStocks.Add(stock);
                 writtenCount = await db.SaveChangesAsync();
@@ -212,7 +213,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             Logger.LogInformation($"Writing a new snapshot for portfolio [{snapshot.ParentPortfolioRowId}] to the database.");
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 db.StockPortfolioSnapshots.Add(snapshot);
                 writtenCount = await db.SaveChangesAsync();
@@ -233,7 +234,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Updating an owned stock [{stockToUpdate.Symbol}] for portfolio [{stockToUpdate.ParentPortfolioRowId}] in the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To prevent EF tracking issue, grab and alter existing value.
                 OwnedStock original = db.OwnedStocks.First(u => u.RowId == stockToUpdate.RowId);
@@ -258,7 +259,7 @@ namespace SteelBot.DataProviders.SubProviders
             Logger.LogInformation($"Deleting an owned stock [{stockToUpdate.Symbol}] for user [{stockToUpdate.ParentPortfolioRowId}] from the database.");
 
             int writtenCount;
-            using (var db = DbContextFactory.CreateDbContext())
+            using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To prevent EF tracking issue, grab and alter existing value.
                 OwnedStock original = db.OwnedStocks.First(u => u.RowId == stockToUpdate.RowId);

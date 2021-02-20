@@ -1,4 +1,5 @@
-﻿using AlphaVantage.Net.Stocks;
+﻿using AlphaVantage.Net.Forex;
+using AlphaVantage.Net.Stocks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
@@ -66,11 +67,11 @@ namespace SteelBot.DiscordModules.Stocks
 
                 DiscordMessageBuilder message = new DiscordMessageBuilder().WithReply(context.Message.Id, true);
 
-                var historyChart = portfolio.GenerateValueHistoryChart();
+                ScottPlot.Plot historyChart = portfolio.GenerateValueHistoryChart();
                 historyChart.SaveFig(historyFileName);
-                using (var imageStream = File.OpenRead(historyFileName))
+                using (FileStream imageStream = File.OpenRead(historyFileName))
                 {
-                    var embed = new DiscordEmbedBuilder()
+                    DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                         .WithImageUrl($"attachment://{historyFileName}")
                         .WithTitle($"{context.Member.Username} Portfolio Value History")
                         .WithColor(EmbedGenerator.InfoColour);
@@ -98,24 +99,24 @@ namespace SteelBot.DiscordModules.Stocks
                 return;
             }
 
-            var ownedStocks = portfolio.OwnedStock.OrderBy(os => os.Symbol).ToList();
+            List<OwnedStock> ownedStocks = portfolio.OwnedStock.OrderBy(os => os.Symbol).ToList();
             // Get all the prices we can.
-            var quotesBySymbol = DataHelpers.Portfolios.GetQuotesFromCache(ownedStocks);
+            Dictionary<string, GlobalQuote> quotesBySymbol = DataHelpers.Portfolios.GetQuotesFromCache(ownedStocks);
 
             // Get the last snapshot value in dollars.
-            var lastSnapshotValue = portfolio.GetLastSnapshotValue();
+            decimal lastSnapshotValue = portfolio.GetLastSnapshotValue();
 
             // Get the exchange rate for secondary prices.
-            var exchangeRate = await StockPriceService.GetGbpUsdExchangeRate();
+            ForexExchangeRate exchangeRate = await StockPriceService.GetGbpUsdExchangeRate();
 
             // Generate embed.
-            var initialEmbed = DataHelpers.Portfolios.GetPortfolioStocksDisplay(context.Member.Username, ownedStocks, quotesBySymbol, lastSnapshotValue, exchangeRate.ExchangeRate, out bool stillLoading);
+            DiscordEmbedBuilder initialEmbed = DataHelpers.Portfolios.GetPortfolioStocksDisplay(context.Member.Username, ownedStocks, quotesBySymbol, lastSnapshotValue, exchangeRate.ExchangeRate, out bool stillLoading);
 
             DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder();
 
             messageBuilder = messageBuilder.WithEmbed(initialEmbed.Build());
 
-            var originalMessage = await context.RespondAsync(messageBuilder);
+            DiscordMessage originalMessage = await context.RespondAsync(messageBuilder);
 
             if (stillLoading)
             {
@@ -146,7 +147,7 @@ namespace SteelBot.DiscordModules.Stocks
                 await context.RespondAsync(embed: EmbedGenerator.Error("Amount must be greater than zero."));
                 return;
             }
-            var stockResult = await StockPriceService.GetStock(stockSymbol);
+            GlobalQuote stockResult = await StockPriceService.GetStock(stockSymbol);
             if (stockResult == null)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"It looks like **{stockSymbol.ToUpper()}** might not be available"));
