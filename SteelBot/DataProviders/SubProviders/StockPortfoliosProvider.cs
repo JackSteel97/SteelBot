@@ -155,6 +155,8 @@ namespace SteelBot.DataProviders.SubProviders
             if (writtenCount > 0)
             {
                 portfolio.Owner = owner;
+                portfolio.OwnedStock = new List<OwnedStock>();
+                portfolio.Snapshots = new List<StockPortfolioSnapshot>();
                 portfolio.BuildOwnedStockCache();
                 PortfoliosByUserDiscordId.Add(portfolio.Owner.DiscordId, portfolio);
             }

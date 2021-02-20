@@ -132,7 +132,7 @@ namespace SteelBot.DiscordModules.Stocks
         [Command("add")]
         [Aliases("buy")]
         [Description("Add an amount of this stock to your portfolio tracker.")]
-        [Cooldown(5, 60, CooldownBucketType.User)]
+        [Cooldown(1, 10, CooldownBucketType.User)]
         public async Task AddToPortfolio(CommandContext context, string stockSymbol, decimal amount)
         {
             if (string.IsNullOrWhiteSpace(stockSymbol))
@@ -166,7 +166,7 @@ namespace SteelBot.DiscordModules.Stocks
         [Command("remove")]
         [Aliases("sell")]
         [Description("Remove an amount of this stock from your portfolio tracker.\nIf no amount is specified the maximum amount will be removed.")]
-        [Cooldown(10, 30, CooldownBucketType.User)]
+        [Cooldown(1, 10, CooldownBucketType.User)]
         public async Task RemoveFromPortfolio(CommandContext context, string stockSymbol, decimal? amount = null)
         {
             if (string.IsNullOrWhiteSpace(stockSymbol))
