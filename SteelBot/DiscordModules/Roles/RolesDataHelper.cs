@@ -1,7 +1,9 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,12 +22,50 @@ namespace SteelBot.DiscordModules.Roles
             Cache = cache;
         }
 
+        public async Task JoinRole(CommandContext context, DiscordRole role)
+        {
+            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+
+            // Check role is a self role.
+            if (!IsSelfRole(context.Guild.Id, role.Name))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleMention}** is not a valid self role"));
+                return;
+            }
+
+            if (context.Member.Roles.Any(userRole => userRole.Id == role.Id))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Warning($"You already have the {roleMention} role."));
+                return;
+            }
+
+            // Add to user.
+            await context.Member.GrantRoleAsync(role, "Requested to join Self Role.");
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined {roleMention}"));
+        }
+
+        public async Task LeaveRole(CommandContext context, DiscordRole role)
+        {
+            string roleMention = role.IsMentionable ? role.Mention : role.Name;
+
+            // Check role is a self role.
+            if (!IsSelfRole(context.Guild.Id, role.Name))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleMention}** is not a valid self role"));
+                return;
+            }
+
+            // Remove from user.
+            await context.Member.RevokeRoleAsync(role, "Requested to leave Self Role.");
+            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left {roleMention}"));
+        }
+
         public async Task<string> JoinAllAvailableRoles(DiscordMember member, DiscordGuild guild)
         {
             StringBuilder builder = new StringBuilder();
             Dictionary<string, DiscordRole> discordRolesByName = guild.Roles.Values.ToDictionary(x => x.Name.ToLower());
-            var allRoles = GetSelfRoles(guild.Id);
-            foreach (var role in allRoles)
+            List<SelfRole> allRoles = GetSelfRoles(guild.Id);
+            foreach (SelfRole role in allRoles)
             {
                 if (discordRolesByName.TryGetValue(role.RoleName.ToLower(), out DiscordRole discordRole))
                 {

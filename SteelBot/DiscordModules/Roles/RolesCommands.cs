@@ -83,31 +83,22 @@ namespace SteelBot.DiscordModules.Roles
                 return;
             }
 
-            // Check role is a self role.
-            if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid self role"));
-                return;
-            }
-
             // Get discord role variable.
             DiscordRole role = context.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (role == default)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid role on this server. Make sure your administrator has added the role."));
-            }
-
-            string roleMention = role.IsMentionable ? role.Mention : role.Name;
-
-            if (context.Member.Roles.Any(userRole => userRole.Id == role.Id))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Warning($"You already have the {roleMention} role."));
                 return;
             }
 
-            // Add to user.
-            await context.Member.GrantRoleAsync(role, "Requested to join Self Role.");
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.Member.Mention} joined {roleMention}"));
+            await DataHelpers.Roles.JoinRole(context, role);
+        }
+
+        [Command("Join")]
+        [Priority(10)]
+        public async Task JoinRole(CommandContext context, DiscordRole role)
+        {
+            await DataHelpers.Roles.JoinRole(context, role);
         }
 
         [Command("Leave")]
@@ -116,24 +107,20 @@ namespace SteelBot.DiscordModules.Roles
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task LeaveRole(CommandContext context, [RemainingText] string roleName)
         {
-            // Check role is a self role.
-            if (!DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid self role"));
-                return;
-            }
-
             // Get discord role variable.
             DiscordRole role = context.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (role == default)
             {
                 await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid role on this server. Make sure your administrator has added the role."));
+                return;
             }
+            await DataHelpers.Roles.LeaveRole(context, role);
+        }
 
-            // Remove from user.
-            await context.Member.RevokeRoleAsync(role, "Requested to leave Self Role.");
-            string roleMention = role.IsMentionable ? role.Mention : role.Name;
-            await context.RespondAsync(embed: EmbedGenerator.Success($"{context.User.Mention} left {roleMention}"));
+        [Command("Leave")]
+        public async Task LeaveRole(CommandContext context, DiscordRole role)
+        {
+            await DataHelpers.Roles.LeaveRole(context, role);
         }
 
         [Command("Set")]
