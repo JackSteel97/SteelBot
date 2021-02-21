@@ -96,12 +96,13 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        private void AddStockToInternalCache(ulong userId, string stockSymbol, decimal amount, DateTime updateTime)
+        private void AddStockToInternalCache(ulong userId, string stockSymbol, decimal amount, DateTime updateTime, long rowId)
         {
             if (PortfoliosByUserDiscordId.TryGetValue(userId, out StockPortfolio portfolio))
             {
                 string upperSymbol = stockSymbol.ToUpper();
                 OwnedStock stock = new OwnedStock(portfolio, upperSymbol, amount, updateTime);
+                stock.RowId = rowId;
                 portfolio.OwnedStock.Add(stock);
                 portfolio.OwnedStockBySymbol.Add(upperSymbol, stock);
             }
@@ -202,7 +203,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
             if (writtenCount > 0)
             {
-                AddStockToInternalCache(userId, stock.Symbol, stock.AmountOwned, updateTime);
+                AddStockToInternalCache(userId, stock.Symbol, stock.AmountOwned, updateTime, stock.RowId);
             }
             else
             {

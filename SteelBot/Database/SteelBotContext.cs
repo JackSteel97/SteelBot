@@ -107,11 +107,13 @@ namespace SteelBot.Database
             {
                 entity.HasKey(os => os.RowId);
                 entity.Property(os => os.Symbol).HasMaxLength(100);
+                entity.Property(os => os.AmountOwned).HasColumnType("decimal(38, 20)");
             });
 
             modelBuilder.Entity<StockPortfolioSnapshot>(entity =>
             {
-                entity.HasKey(os => os.RowId);
+                entity.HasKey(ss => ss.RowId);
+                entity.Property(ss => ss.TotalValueDollars).HasColumnType("decimal(24, 4)");
             });
         }
     }
