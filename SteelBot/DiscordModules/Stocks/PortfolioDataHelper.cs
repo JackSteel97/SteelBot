@@ -286,10 +286,16 @@ namespace SteelBot.DiscordModules.Stocks
                 .WithTitle($"{context.Guild.Name} Stock Portfolio Value Leaderboard")
                 .WithTimestamp(DateTime.UtcNow);
 
-            StringBuilder leaderboard = GeneratePortfolioLeaderboard(portfolios, exchangeRate.ExchangeRate);
+            IOrderedEnumerable<StockPortfolio> orderedPortfolios = portfolios.OrderByDescending(pf => pf.Snapshots[^1].TotalValueDollars);
+            List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedPortfolios, 5, (builder, portfolio, index) =>
+            {
+                decimal valueInDollars = portfolio.Snapshots[^1].TotalValueDollars;
+                return builder
+                    .AppendLine($"**{(index + 1).Ordinalize()}** - <@{portfolio.Owner.DiscordId}>")
+                    .Append($"`${valueInDollars:N2}`").AppendLine($" ≈ `£{(valueInDollars * exchangeRate.ExchangeRate):N2}`");
+            });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
-            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), DSharpPlus.Interactivity.Enums.SplitType.Line, embedBuilder);
 
             // Delete the loading message if it was sent.
             if (loadingMessage != null)
@@ -298,28 +304,7 @@ namespace SteelBot.DiscordModules.Stocks
             }
 
             await context.RespondAsync(context.User.Mention);
-            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
-        }
-
-        private static StringBuilder GeneratePortfolioLeaderboard(List<StockPortfolio> portfolios, decimal exchangeRate)
-        {
-            StockPortfolio[] orderedPortfolios = portfolios.OrderByDescending(pf => pf.Snapshots[^1].TotalValueDollars).ToArray();
-
-            StringBuilder leaderboard = new StringBuilder();
-            for (int i = 0; i < orderedPortfolios.Length; i++)
-            {
-                StockPortfolio portfolio = orderedPortfolios[i];
-                decimal valueInDollars = portfolio.Snapshots[^1].TotalValueDollars;
-                leaderboard
-                    .AppendLine($"**{(i + 1).Ordinalize()}** - <@{portfolio.Owner.DiscordId}>")
-                    .Append($"`${valueInDollars:N2}`").AppendLine($" ≈ `£{(valueInDollars * exchangeRate):N2}`");
-
-                if (i != orderedPortfolios.Length - 1)
-                {
-                    leaderboard.AppendLine();
-                }
-            }
-            return leaderboard;
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }
     }
 }

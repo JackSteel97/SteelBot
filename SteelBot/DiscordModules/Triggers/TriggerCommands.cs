@@ -2,11 +2,16 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles
@@ -32,25 +37,31 @@ namespace SteelBot.DiscordModules.RankRoles
             if (DataHelpers.Triggers.GetGuildTriggers(context.Guild.Id, out Dictionary<string, Trigger> triggers))
             {
                 DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
-                    .WithTitle("The following triggers are active here.");
+                    .WithTitle("The following triggers are active here.")
+                    .WithTimestamp(DateTime.UtcNow);
 
-                bool triggersExistHere = false;
-                foreach (Trigger trigger in triggers.Values)
+                IOrderedEnumerable<Trigger> triggersAvailable = triggers.Values
+                    .Where(trigger => !trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == context.Channel.Id)
+                    .OrderByDescending(t => t.TimesActivated);
+                if (triggersAvailable.Any())
                 {
-                    if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == context.Channel.Id)
+                    List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, triggersAvailable, 5, (builder, trigger, _) =>
                     {
-                        embedBuilder.AddField(trigger.TriggerText, $"Response: {trigger.Response}\nBy: <@{trigger.Creator.DiscordId}>\nUsed {"time".ToQuantity(trigger.TimesActivated)}");
-                        triggersExistHere = true;
-                    }
-                }
+                        return builder.AppendLine(Formatter.Bold(trigger.TriggerText))
+                           .Append("Response: ").AppendLine(trigger.Response)
+                           .Append("By: <@").Append(trigger.Creator.DiscordId).AppendLine(">")
+                           .Append("Used: ").AppendLine("time".ToQuantity(trigger.TimesActivated));
+                    });
 
-                if (triggersExistHere)
+                    InteractivityExtension interactivity = context.Client.GetInteractivity();
+
+                    await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+                }
+                else
                 {
-                    await context.RespondAsync(embed: embedBuilder.Build());
-                    return;
+                    await context.RespondAsync(embed: EmbedGenerator.Warning("There are no triggers here."));
                 }
             }
-            await context.RespondAsync(embed: EmbedGenerator.Warning("There are no triggers here."));
         }
 
         [Command("SetGlobal")]

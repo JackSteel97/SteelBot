@@ -211,24 +211,16 @@ namespace SteelBot.DiscordModules.Stats
                 .WithTitle($"{context.Guild.Name} {metric.Transform(To.TitleCase)} Leaderboard")
                 .WithTimestamp(DateTime.UtcNow);
 
-            StringBuilder leaderboard = new StringBuilder();
-            for (int i = 0; i < orderedUsers.Length; i++)
+            List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedUsers, 5, (builder, user, index) =>
             {
-                User user = orderedUsers[i];
-                leaderboard
-                    .AppendLine($"**{(i + 1).Ordinalize()}** - <@{user.DiscordId}>")
-                    .AppendLine(metricValues[i]);
-
-                if (i != orderedUsers.Length - 1)
-                {
-                    leaderboard.AppendLine();
-                }
-            }
+                return builder
+                    .AppendLine($"**{(index + 1).Ordinalize()}** - <@{user.DiscordId}>")
+                    .AppendLine(metricValues[index]);
+            });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
-            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
-            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }
 
         [Command("Leaderboard")]
@@ -256,25 +248,17 @@ namespace SteelBot.DiscordModules.Stats
                 .WithTitle($"{context.Guild.Name} Leaderboard")
                 .WithTimestamp(DateTime.UtcNow);
 
-            StringBuilder leaderboard = new StringBuilder();
-            for (int i = 0; i < orderedByXp.Length; i++)
+            List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 5, (builder, user, index) =>
             {
-                User user = orderedByXp[i];
-                leaderboard
-                    .AppendLine($"**{(i + 1).Ordinalize()}** - <@{user.DiscordId}>")
+                return builder
+                    .AppendLine($"**{(index + 1).Ordinalize()}** - <@{user.DiscordId}>")
                     .AppendLine($"Level `{user.CurrentLevel}`")
                     .AppendLine($"XP `{$"{user.TotalXp:n0}"}`");
-
-                if (i != orderedByXp.Length - 1)
-                {
-                    leaderboard.AppendLine();
-                }
-            }
+            });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
-            IEnumerable<Page> leaderboardPages = interactivity.GeneratePagesInEmbed(leaderboard.ToString(), SplitType.Line, embedBuilder);
 
-            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, leaderboardPages);
+            await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }
 
         [Command("All")]
@@ -312,15 +296,10 @@ namespace SteelBot.DiscordModules.Stats
                .WithTitle($"{context.Guild.Name} Leaderboard")
                .WithTimestamp(DateTime.UtcNow);
 
-            StringBuilder leaderboard = new StringBuilder();
-            int requiredPages = (int)Math.Ceiling((double)orderedByXp.Count / 2);
-
-            List<Page> pages = new List<Page>(requiredPages);
-            for (int i = 0; i < orderedByXp.Count; i++)
+            List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 2, (builder, user, index) =>
             {
-                User user = orderedByXp[i];
-                leaderboard
-                    .AppendLine($"**__{(i + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
+                return builder
+                    .AppendLine($"**__{(index + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
                     .AppendLine($"**__Messages__**")
                     .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount}`")
                     .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
@@ -331,25 +310,7 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"{EmojiConstants.Objects.Camera} - **Video** `{user.TimeSpentOnVideo.Humanize(3)}`")
                     .AppendLine($"{EmojiConstants.Objects.MutedSpeaker} - **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
                     .AppendLine($"{EmojiConstants.Objects.BellWithSlash} - **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`");
-
-                if (i != orderedByXp.Count - 1)
-                {
-                    leaderboard.AppendLine();
-                }
-
-                if (i % 2 == 1 || i == orderedByXp.Count - 1)
-                {
-                    // Manually start a new page every 2 users.
-                    int currentPage = (i / 2) + 1;
-
-                    DiscordEmbedBuilder embedPage = embedBuilder
-                        .WithDescription(leaderboard.ToString())
-                        .WithFooter($"Page {currentPage}/{requiredPages}");
-
-                    pages.Add(new Page(embed: embedBuilder));
-                    leaderboard.Clear();
-                }
-            }
+            });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
 
