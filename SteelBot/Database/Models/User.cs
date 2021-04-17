@@ -182,11 +182,11 @@ namespace SteelBot.Database.Models
         private ulong CalculateCurrentActivityXp()
         {
             ulong currentXp = 0;
-            double totalNegativeXp = TimeSpentMuted.TotalMinutes + (TimeSpentDeafened.TotalMinutes * 0.5);
-            currentXp += (ulong)Math.Floor(TimeSpentInVoice.TotalMinutes);
+            double totalNegativeXp = TimeSpentMuted.TotalMinutes + (TimeSpentDeafened.TotalMinutes * 0.5 * MathsHelper.GetMultiplier(TimeSpentInVoice));
+            currentXp += (ulong)Math.Floor(TimeSpentInVoice.TotalMinutes * MathsHelper.GetMultiplier(TimeSpentInVoice));
 
-            currentXp += (ulong)Math.Floor(TimeSpentStreaming.TotalMinutes * 5);
-            currentXp += (ulong)Math.Floor(TimeSpentOnVideo.TotalMinutes * 10);
+            currentXp += (ulong)Math.Floor(TimeSpentStreaming.TotalMinutes * 5 * MathsHelper.GetMultiplier(TimeSpentStreaming));
+            currentXp += (ulong)Math.Floor(TimeSpentOnVideo.TotalMinutes * 10 * MathsHelper.GetMultiplier(TimeSpentOnVideo));
 
             if (totalNegativeXp < currentXp)
             {
