@@ -46,11 +46,11 @@ namespace SteelBot.DiscordModules.RankRoles
 
             // Sort ascending.
             allRoles.Sort((r1, r2) => r1.LevelRequired.CompareTo(r2.LevelRequired));
-            var serverRoles = context.Guild.Roles.Values;
+            IEnumerable<DiscordRole> serverRoles = context.Guild.Roles.Values;
             StringBuilder allRolesBuilder = new StringBuilder();
-            foreach (var role in allRoles)
+            foreach (RankRole role in allRoles)
             {
-                var serverRole = serverRoles.FirstOrDefault(serverRole => serverRole.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
+                DiscordRole serverRole = serverRoles.FirstOrDefault(serverRole => serverRole.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
                 if (serverRole != default)
                 {
                     string roleMention = serverRole.IsMentionable ? serverRole.Mention : serverRole.Name;
