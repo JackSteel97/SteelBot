@@ -134,7 +134,7 @@ namespace SteelBot
 
         private Task<int> ResolvePrefix(DiscordMessage msg)
         {
-            string guildsPrefix = DataHelpers.Config.GetPrefix(msg.Channel.GuildId);
+            string guildsPrefix = DataHelpers.Config.GetPrefix(msg.Channel.GuildId.Value);
 
             int prefixFound = CommandsNextUtilities.GetStringPrefixLength(msg, guildsPrefix);
             if (prefixFound == -1)

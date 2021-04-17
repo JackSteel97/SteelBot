@@ -238,6 +238,8 @@ namespace SteelBot.DiscordModules.Secret
         private async Task PostPuzzle(CommandContext context, int puzzleNumber)
         {
             DiscordMessageBuilder message = new DiscordMessageBuilder();
+            FileStream reader = null;
+            Dictionary<string, Stream> fileStreams = new Dictionary<string, Stream>();
             switch (puzzleNumber)
             {
                 case 1:
@@ -262,19 +264,19 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 6:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Jumbled.jpg"));
+                    reader = AddFile(message, "Jumbled.jpg");
                     break;
 
                 case 7:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Hugh.jpg"));
+                    reader = AddFile(message, "Hugh.jpg");
                     break;
 
                 case 8:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Outside.wav"));
+                    reader = AddFile(message, "Outside.wav");
                     break;
 
                 case 9:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Double.mp3"));
+                    reader = AddFile(message, "Double.mp3");
                     break;
 
                 case 10:
@@ -288,16 +290,13 @@ namespace SteelBot.DiscordModules.Secret
                 case 12:
                     FileStream imageStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Cow.jpg"));
                     FileStream zipStream = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inside.zip"));
-                    Dictionary<string, Stream> streams = new Dictionary<string, Stream>
-                    {
-                        { "Cow.jpg", imageStream },
-                        { "Inside.zip", zipStream }
-                    };
-                    message.WithFiles(streams).WithEmbed(EmbedGenerator.Primary("It's what's on the inside that counts."));
+                    fileStreams.Add("Cow.jpg", imageStream);
+                    fileStreams.Add("Inside.zip", zipStream);
+                    message.WithFiles(fileStreams).WithEmbed(EmbedGenerator.Primary("It's what's on the inside that counts."));
                     break;
 
                 case 13:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Inception.jpg"));
+                    reader = AddFile(message, "Jumbled.jpg");
                     break;
 
                 case 14:
@@ -305,46 +304,43 @@ namespace SteelBot.DiscordModules.Secret
                     break;
 
                 case 15:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Seven.jpg"));
+                    reader = AddFile(message, "Seven.jpg");
                     break;
 
                 case 16:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ATastyTreat.txt"));
+                    reader = AddFile(message, "ATastyTreat.txt");
                     break;
 
                 case 17:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ThatDoesNotGoThere.png"));
+                    reader = AddFile(message, "ThatDoesNotGoThere.png");
                     break;
 
                 case 18:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Goodbye.png"));
+                    reader = AddFile(message, "Goodbye.png");
                     break;
 
                 case 19:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "PrintMe.png"));
+                    reader = AddFile(message, "PrintMe.png");
                     break;
 
                 case 20:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "West.jpg"));
+                    reader = AddFile(message, "West.jpg");
                     break;
 
                 case 21:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Vietnam.png"));
+                    reader = AddFile(message, "Vietnam.png");
                     break;
 
                 case 22:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Trippy.jpg"));
+                    reader = AddFile(message, "Trippy.jpg");
                     break;
 
                 case 23:
                     FileStream imageStream23 = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "LookUp.jpg"));
                     FileStream excelStream23 = File.OpenRead(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "OhNo.xlsx"));
-                    Dictionary<string, Stream> streams23 = new Dictionary<string, Stream>
-                    {
-                        { "LookUp.jpg", imageStream23 },
-                        { "OhNo.xlsx", excelStream23 }
-                    };
-                    message.WithFiles(streams23);
+                    fileStreams.Add("LookUp.jpg", imageStream23);
+                    fileStreams.Add("OhNo.xlsx", excelStream23);
+                    message.WithFiles(fileStreams);
                     break;
 
                 case 24:
@@ -355,28 +351,28 @@ namespace SteelBot.DiscordModules.Secret
                         .AddField("Fourth", "Catalan Number Two")
                         .AddField("Fifth", "Fibonacci Number Six");
 
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "DidYouTakeNotes.zip"))
-                        .WithEmbed(embedBuilder.Build());
+                    reader = AddFile(message, "DidYouTakeNotes.zip");
+                    message.WithEmbed(embedBuilder.Build());
                     break;
 
                 case 25:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ItsAllThere.mp3"));
+                    reader = AddFile(message, "ItsAllThere.mp3");
                     break;
 
                 case 26:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Spook.wav"));
+                    reader = AddFile(message, "Spook.wav");
                     break;
 
                 case 27:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "ISO8601.mp3"));
+                    reader = AddFile(message, "ISO8601.mp3");
                     break;
 
                 case 28:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "25.jpg"));
+                    reader = AddFile(message, "25.jpg");
                     break;
 
                 case 29:
-                    message.WithFile(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", "Ooer.png"));
+                    reader = AddFile(message, "Ooer.png");
                     break;
 
                 default:
@@ -384,6 +380,19 @@ namespace SteelBot.DiscordModules.Secret
                     break;
             }
             await context.RespondAsync(message);
+
+            // Dispose streams.
+            if (reader != null)
+            {
+                reader.Dispose();
+            }
+            foreach (Stream stream in fileStreams.Values)
+            {
+                if (stream != null)
+                {
+                    stream.Dispose();
+                }
+            }
         }
 
         private static string GetAnswer(int puzzleNumber)
@@ -421,6 +430,13 @@ namespace SteelBot.DiscordModules.Secret
                 29 => "Two",
                 _ => null,
             };
+        }
+
+        private FileStream AddFile(DiscordMessageBuilder message, string fileName)
+        {
+            var fs = new FileStream(Path.Combine(AppConfigurationService.BasePath, "Resources", "Puzzle", fileName), FileMode.Open, FileAccess.Read);
+            message.WithFile(fileName, fs);
+            return fs;
         }
     }
 }

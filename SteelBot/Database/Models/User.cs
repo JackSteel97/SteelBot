@@ -183,7 +183,7 @@ namespace SteelBot.Database.Models
         {
             ulong currentXp = 0;
             double totalNegativeXp = TimeSpentMuted.TotalMinutes + (TimeSpentDeafened.TotalMinutes * 0.5 * MathsHelper.GetMultiplier(TimeSpentInVoice));
-            currentXp += (ulong)Math.Floor(TimeSpentInVoice.TotalMinutes * MathsHelper.GetMultiplier(TimeSpentInVoice));
+            currentXp += (ulong)Math.Floor(GetDurationXp(TimeSpentInVoice, 1));
 
             currentXp += (ulong)Math.Floor(TimeSpentStreaming.TotalMinutes * 5 * MathsHelper.GetMultiplier(TimeSpentStreaming));
             currentXp += (ulong)Math.Floor(TimeSpentOnVideo.TotalMinutes * 10 * MathsHelper.GetMultiplier(TimeSpentOnVideo));
@@ -198,6 +198,29 @@ namespace SteelBot.Database.Models
             }
 
             return currentXp;
+        }
+
+        private double GetDurationXp(TimeSpan duration, double baseXp)
+        {
+            TimeSpan AWeek = TimeSpan.FromDays(7);
+
+            int weeks = (int)Math.Ceiling(duration.TotalDays / 7);
+
+            double totalXp = 0;
+            TimeSpan remainingTime = duration;
+            for (int week = 1; week <= weeks; week++)
+            {
+                if (remainingTime.TotalMinutes < AWeek.TotalMinutes)
+                {
+                    totalXp += remainingTime.TotalMinutes * baseXp * week;
+                }
+                else
+                {
+                    totalXp += AWeek.TotalMinutes * baseXp * week;
+                    remainingTime = remainingTime.Subtract(AWeek);
+                }
+            }
+            return totalXp;
         }
     }
 }
