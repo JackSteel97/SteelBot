@@ -16,6 +16,7 @@ namespace SteelBot.Test.Helpers
         [InlineData(1, 1, 60)]
         [InlineData(168, 1, 10080)] // 1 week
         [InlineData(170, 10, 103200)] // 1 week, 2 hours
+        [InlineData(992, 1, 205920)] // 5 weeks, 152 hours
         public void GetDurationXp(double durationHours, double baseXp, double expectedXp)
         {
             TimeSpan duration = TimeSpan.FromHours(durationHours);
