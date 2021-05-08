@@ -1,4 +1,6 @@
-﻿namespace SteelBot.Helpers.Extensions
+﻿using System;
+
+namespace SteelBot.Helpers.Extensions
 {
     public static class NumberExtensions
     {
@@ -17,6 +19,17 @@
             if (value >= 10000)
                 return (value / 1000D).ToString("0.##") + " K";
             return value.ToString("##,0");
+        }
+
+        public static string KiloFormat(this long value)
+        {
+            ulong magnitude = (ulong)Math.Abs(value);
+            string formatted = KiloFormat(magnitude);
+            if (value < 0)
+            {
+                return $"-{formatted}";
+            }
+            return formatted;
         }
     }
 }

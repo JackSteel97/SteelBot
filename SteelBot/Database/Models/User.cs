@@ -179,7 +179,7 @@ namespace SteelBot.Database.Models
             return levelIncreased;
         }
 
-        private ulong CalculateCurrentActivityXp()
+        public ulong CalculateCurrentActivityXp()
         {
             ulong currentXp = 0;
             double totalNegativeXp = LevellingMaths.GetDurationXp(TimeSpentMuted) + LevellingMaths.GetDurationXp(TimeSpentDeafened, 0.5);

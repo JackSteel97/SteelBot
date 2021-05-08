@@ -141,11 +141,14 @@ namespace SteelBot.DiscordModules.Stats
             DiscordMember memberUser = await context.Guild.GetMemberAsync(userId);
 
             StringBuilder builder = new StringBuilder()
-                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().ToString()))
-                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().ToString()))
-                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().ToString()))
-                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().ToString()))
-                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().ToString()));
+                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().KiloFormat()))
+                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().KiloFormat()))
+                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().KiloFormat()))
+                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().KiloFormat()))
+                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().KiloFormat()))
+                .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.KiloFormat()))
+                .AppendLine()
+                .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.KiloFormat()));
 
             DiscordEmbed embed = EmbedGenerator.Info(builder.ToString(), $"{memberUser.DisplayName} XP Breakdown");
             DiscordMessageBuilder message = new DiscordMessageBuilder().WithEmbed(embed).WithReply(context.Message.Id, mention: true);
