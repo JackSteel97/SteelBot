@@ -120,6 +120,39 @@ namespace SteelBot.DiscordModules.Stats
             }
         }
 
+        [Command("breakdown")]
+        [Description("Displays a breakdown of the given user (or your own) XP values.")]
+        [RequireUserPermissions(Permissions.Administrator)]
+        [Cooldown(2, 30, CooldownBucketType.User)]
+        public async Task StatsBreakdown(CommandContext context, DiscordMember discordUser = null)
+        {
+            ulong userId = context.User.Id;
+            if (discordUser != null)
+            {
+                userId = discordUser.Id;
+            }
+
+            if (!DataHelper.Stats.TryGetUser(context.Guild.Id, userId, out User user))
+            {
+                await context.RespondAsync(embed: EmbedGenerator.Error("I could not find their stats, are they new here?"));
+                return;
+            }
+
+            DiscordMember memberUser = await context.Guild.GetMemberAsync(userId);
+
+            StringBuilder builder = new StringBuilder()
+                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().ToString()))
+                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().ToString()))
+                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().ToString()))
+                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().ToString()))
+                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().ToString()));
+
+            DiscordEmbed embed = EmbedGenerator.Info(builder.ToString(), $"{memberUser.DisplayName} XP Breakdown");
+            DiscordMessageBuilder message = new DiscordMessageBuilder().WithEmbed(embed).WithReply(context.Message.Id, mention: true);
+
+            await context.RespondAsync(message);
+        }
+
         [GroupCommand]
         [Description("Displays the Top 50 leaderboard sorted by the given metric.")]
         [Cooldown(2, 60, CooldownBucketType.Channel)]
