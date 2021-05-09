@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,10 +16,12 @@ namespace SteelBot.DiscordModules.Stats
     public class StatsDataHelper
     {
         private readonly DataCache Cache;
+        private readonly AppConfigurationService AppConfigurationService;
 
-        public StatsDataHelper(DataCache cache)
+        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService)
         {
             Cache = cache;
+            AppConfigurationService = appConfigurationService;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
@@ -39,7 +42,7 @@ namespace SteelBot.DiscordModules.Stats
                 .WithTitle($"{username} Stats")
                 .AddField("Message Count", $"`{user.MessageCount} Messages`", true)
                 .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
-                .AddField("Message Efficiency", Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2")), true)
+                .AddField("Message Efficiency", Formatter.InlineCode(user.GetMessageEfficiency(AppConfigurationService.Application.Levelling).ToString("P2")), true)
                 .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)} (100%)`", true)
                 .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentStreaming, user.TimeSpentInVoice):P2})`", true)
                 .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentOnVideo, user.TimeSpentInVoice):P2})`", true)

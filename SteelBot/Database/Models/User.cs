@@ -1,4 +1,5 @@
 ﻿using SteelBot.Helpers;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 
@@ -141,21 +142,21 @@ namespace SteelBot.Database.Models
             return 0;
         }
 
-        public float GetMessageEfficiency()
+        public float GetMessageEfficiency(LevellingConfig config)
         {
-            float minimumMessageCount = (MessageXpEarned / 15f);
+            float minimumMessageCount = (MessageXpEarned / (float)config.MessageXp);
             float efficiency = minimumMessageCount / MessageCount;
 
             return efficiency;
         }
 
-        public bool UpdateLevel(bool addMessageXp = false)
+        public bool UpdateLevel(LevellingConfig levellingConfig, bool addMessageXp = false)
         {
-            ActivityXpEarned = CalculateCurrentActivityXp();
+            ActivityXpEarned = CalculateCurrentActivityXp(levellingConfig);
             if (addMessageXp)
             {
                 LastXpEarningMessage = DateTime.UtcNow;
-                MessageXpEarned += 15;
+                MessageXpEarned += levellingConfig.MessageXp;
             }
 
             int newLevel = CurrentLevel;
@@ -179,14 +180,14 @@ namespace SteelBot.Database.Models
             return levelIncreased;
         }
 
-        public ulong CalculateCurrentActivityXp()
+        private ulong CalculateCurrentActivityXp(LevellingConfig config)
         {
             ulong currentXp = 0;
-            double totalNegativeXp = LevellingMaths.GetDurationXp(TimeSpentMuted) + LevellingMaths.GetDurationXp(TimeSpentDeafened, 0.5);
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentInVoice));
+            double totalNegativeXp = LevellingMaths.GetDurationXp(TimeSpentMuted, config.MutedXpPerMin) + LevellingMaths.GetDurationXp(TimeSpentDeafened, config.DeafenedXpPerMin);
+            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentInVoice, config.VoiceXpPerMin));
 
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentStreaming, 5));
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentOnVideo, 10));
+            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentStreaming, config.StreamingXpPerMin));
+            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentOnVideo, config.VideoXpPerMin));
 
             if (totalNegativeXp < currentXp)
             {

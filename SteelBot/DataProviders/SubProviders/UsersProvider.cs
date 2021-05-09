@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private readonly ILogger<UsersProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
+        private readonly AppConfigurationService AppConfigurationService;
 
         /// <summary>
         /// Indexed on the user's discord id & guild id
@@ -21,10 +23,11 @@ namespace SteelBot.DataProviders.SubProviders
         /// </summary>
         private Dictionary<(ulong guildId, ulong userId), User> UsersByDiscordIdAndServer;
 
-        public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
+        public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
+            AppConfigurationService = appConfigurationService;
 
             UsersByDiscordIdAndServer = new Dictionary<(ulong, ulong), User>();
             LoadUserData();
@@ -134,7 +137,7 @@ namespace SteelBot.DataProviders.SubProviders
 
                 // Check the last message that earned xp was more than a minute ago.
                 bool lastMessageWasMoreThanAMinuteAgo = (messageReceivedAt - copyOfUser.LastXpEarningMessage.GetValueOrDefault()).TotalSeconds >= 60;
-                levelIncreased = copyOfUser.UpdateLevel(lastMessageWasMoreThanAMinuteAgo);
+                levelIncreased = copyOfUser.UpdateLevel(AppConfigurationService.Application.Levelling, lastMessageWasMoreThanAMinuteAgo);
 
                 copyOfUser.LastActivity = messageReceivedAt;
                 copyOfUser.LastMessageSent = messageReceivedAt;
@@ -177,7 +180,7 @@ namespace SteelBot.DataProviders.SubProviders
                         user.MutedStartTime = null;
                         changed = true;
                     }
-                    bool levelledUp = user.UpdateLevel();
+                    bool levelledUp = user.UpdateLevel(AppConfigurationService.Application.Levelling);
 
                     if (changed || levelledUp)
                     {
@@ -223,7 +226,7 @@ namespace SteelBot.DataProviders.SubProviders
                 {
                     copyOfUser.TimeSpentOnVideo += updateTimestamp - copyOfUser.VideoStartTime.Value;
                 }
-                levelIncreased = copyOfUser.UpdateLevel();
+                levelIncreased = copyOfUser.UpdateLevel(AppConfigurationService.Application.Levelling);
 
                 // Update times.
                 if (newState == null || newState.Channel == null)

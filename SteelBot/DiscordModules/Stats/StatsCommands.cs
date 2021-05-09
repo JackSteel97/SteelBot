@@ -10,6 +10,7 @@ using ScottPlot;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -28,11 +29,13 @@ namespace SteelBot.DiscordModules.Stats
         private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened", "last active", "stream", "video" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
+        private readonly AppConfigurationService AppConfigurationService;
 
-        public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator)
+        public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator, AppConfigurationService appConfigurationService)
         {
             DataHelper = dataHelpers;
             LevelCardGenerator = levelCardGenerator;
+            AppConfigurationService = appConfigurationService;
         }
 
         [Command("commands")]
@@ -203,8 +206,8 @@ namespace SteelBot.DiscordModules.Stats
                     break;
 
                 case "efficiency":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency()).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency():P2}`");
+                    orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency(AppConfigurationService.Application.Levelling)).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency(AppConfigurationService.Application.Levelling):P2}`");
                     break;
 
                 case "voice":
@@ -338,7 +341,7 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"**__{(index + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
                     .AppendLine($"**__Messages__**")
                     .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount}`")
-                    .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency().ToString("P2"))}")
+                    .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency(AppConfigurationService.Application.Levelling).ToString("P2"))}")
                     .AppendLine($"{EmojiConstants.Objects.Ruler} - **Average Length** `{user.GetAverageMessageLength()} Characters`")
                     .AppendLine("**__Durations__**")
                     .AppendLine($"{EmojiConstants.Objects.Microphone} - **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")
