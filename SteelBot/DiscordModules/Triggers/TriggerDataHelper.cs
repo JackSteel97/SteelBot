@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.Helpers.Algorithms;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -82,16 +83,25 @@ namespace SteelBot.DiscordModules.RankRoles
             return Cache.Triggers.TryGetGuildTriggers(guildId, out triggers);
         }
 
-        public async Task HandleNewMessage(ulong guildId, DiscordChannel channelId, string messageContent)
+        public async Task CheckForDadJoke(DiscordChannel channel, string messageContent)
+        {
+            string jokeResult = DadJokeExtractor.Extract(messageContent);
+            if (!string.IsNullOrWhiteSpace(jokeResult))
+            {
+                string response = $"Hi {Formatter.Italic(jokeResult)}, I'm Dad!";
+                await channel.SendMessageAsync(response);
+            }
+        }
+
+        public async Task HandleNewMessage(ulong guildId, DiscordChannel channel, string messageContent)
         {
             if (Cache.Triggers.TryGetGuildTriggers(guildId, out Dictionary<string, Trigger> triggers))
             {
-                foreach (var trigger in triggers.Values)
+                foreach (Trigger trigger in triggers.Values)
                 {
-                    if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == channelId.Id)
+                    if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == channel.Id)
                     {
                         // Can activate this trigger in this channel.
-
                         bool activateTrigger;
                         if (trigger.ExactMatch)
                         {
@@ -104,12 +114,14 @@ namespace SteelBot.DiscordModules.RankRoles
 
                         if (activateTrigger)
                         {
-                            await channelId.SendMessageAsync(trigger.Response);
+                            await channel.SendMessageAsync(trigger.Response);
                             await Cache.Triggers.IncrementActivations(guildId, trigger);
                         }
                     }
                 }
             }
+
+            await CheckForDadJoke(channel, messageContent);
         }
     }
 }
