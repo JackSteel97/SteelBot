@@ -4,10 +4,12 @@ namespace SteelBot.Helpers.Algorithms
 {
     public static class DadJokeExtractor
     {
+        private static string[] possibilities = new string[] { "i'm", "i’m", "i‘m" };
+
         public static string Extract(string input)
         {
             const string searchString = "i'm";
-            int startIndex = input.IndexOf(searchString, StringComparison.OrdinalIgnoreCase);
+            int startIndex = FindFirstIndexOfPossibilities(input, possibilities);
             if (startIndex < 0)
             {
                 return string.Empty;
@@ -24,6 +26,19 @@ namespace SteelBot.Helpers.Algorithms
             }
             string result = input[startIndex..endIndex].Trim();
             return result;
+        }
+
+        private static int FindFirstIndexOfPossibilities(string input, params string[] possibilities)
+        {
+            foreach (string possibility in possibilities)
+            {
+                int index = input.IndexOf(possibility, StringComparison.OrdinalIgnoreCase);
+                if (index >= 0)
+                {
+                    return index;
+                }
+            }
+            return -1;
         }
     }
 }
