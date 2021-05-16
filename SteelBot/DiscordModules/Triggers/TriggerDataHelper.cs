@@ -14,6 +14,7 @@ namespace SteelBot.DiscordModules.RankRoles
     {
         private readonly ILogger<TriggerDataHelper> Logger;
         private readonly DataCache Cache;
+        private readonly Random Random = new Random();
 
         public TriggerDataHelper(DataCache cache, ILogger<TriggerDataHelper> logger)
         {
@@ -89,6 +90,10 @@ namespace SteelBot.DiscordModules.RankRoles
             if (!string.IsNullOrWhiteSpace(jokeResult))
             {
                 string response = $"Hi {Formatter.Italic(jokeResult)}, I'm Dad!";
+                if (Random.Next(10) == 1)
+                {
+                    response = Uwuifyer.Uwuify(response);
+                }
                 await channel.SendMessageAsync(response);
             }
         }
