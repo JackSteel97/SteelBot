@@ -29,6 +29,12 @@ namespace SteelBot.Test.Helpers.Algorithms
         [InlineData("this is it i’m not here   ", "not here")]
         [InlineData("this is it i‘m not here   ", "not here")]
         [InlineData("this is it", "")]
+        [InlineData("That's it I'm not doing anything it's silly", "not doing anything it's silly")]
+        [InlineData("That's it I'm \"not doing anything it's silly\"", "\"not doing anything it's silly\"")]
+        [InlineData("That's it I'm giving you $500, go away", "giving you $500")]
+        [InlineData("That's it I'm giving you £500, go away", "giving you £500")]
+        [InlineData("That's it I'm giving it 100%, go away", "giving it 100%")]
+        [InlineData("That's it I'm <@1234556> a test, go away", "<@1234556> a test")]
         public void Extract(string input, string expectedOutput)
         {
             string actualOutput = DadJokeExtractor.Extract(input);

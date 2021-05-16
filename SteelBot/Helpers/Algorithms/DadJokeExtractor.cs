@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SteelBot.Helpers.Algorithms
 {
     public static class DadJokeExtractor
     {
-        private static string[] possibilities = new string[] { "i'm", "i’m", "i‘m" };
+        private static string[] Possibilities = new string[] { "i'm", "i’m", "i‘m" };
+        private static HashSet<char> StopCharacters = new HashSet<char> { '.', ',', '?', '!' };
 
         public static string Extract(string input)
         {
             const string searchString = "i'm";
-            int startIndex = FindFirstIndexOfPossibilities(input, possibilities);
+            int startIndex = FindFirstIndexOfPossibilities(input, Possibilities);
             if (startIndex < 0)
             {
                 return string.Empty;
@@ -19,7 +21,7 @@ namespace SteelBot.Helpers.Algorithms
             for (endIndex = startIndex; endIndex < input.Length; endIndex++)
             {
                 char currentChar = input[endIndex];
-                if (!char.IsLetterOrDigit(currentChar) && !char.IsWhiteSpace(currentChar))
+                if (StopCharacters.Contains(currentChar))
                 {
                     break;
                 }
