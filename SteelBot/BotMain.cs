@@ -128,6 +128,9 @@ namespace SteelBot
                 // Default pagination behaviour to just ignore the reactions.
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
 
+                AckPaginationButtons = true,
+                ButtonBehavior = ButtonPaginationBehavior.DeleteButtons,
+
                 // Default timeout for other actions to 2 minutes.
                 Timeout = TimeSpan.FromMinutes(2)
             });

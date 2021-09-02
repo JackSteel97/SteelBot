@@ -115,7 +115,7 @@ namespace SteelBot.Database.Models
             plt.Title("Portfolio Breakdown");
 
             ScottPlot.Plottable.PiePlot pie = plt.AddPie(values);
-            pie.GroupNames = labels;
+            pie.SliceLabels = labels;
             pie.ShowPercentages = true;
             pie.ShowLabels = true;
             pie.Explode = true;

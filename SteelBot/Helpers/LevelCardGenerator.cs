@@ -101,14 +101,14 @@ namespace SteelBot.Helpers
                         xpBarMidpointY);
 
                     // Current Level text.
-                    TextGraphicsOptions levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
+                    DrawingOptions levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
                     string levelText = $"Level {user.CurrentLevel}";
                     Font levelFont = Fonts.CreateFont(FontName, 48);
                     FontRectangle levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
                     imageContext.DrawText(levelTextOpts, levelText, levelFont, Color.WhiteSmoke, new PointF(Width - XPadding, YPadding));
 
                     // Username Text.
-                    TextGraphicsOptions usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
+                    DrawingOptions usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
                     Font usernameFont = Fonts.CreateFont(FontName, 44);
                     Font tagFont = Fonts.CreateFont(FontName, 28);
                     FontRectangle usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
@@ -118,7 +118,7 @@ namespace SteelBot.Helpers
                     DiscordRole topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
                     if (topRole != default)
                     {
-                        TextGraphicsOptions serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
+                        DrawingOptions serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
                         imageContext.DrawSimpleText(serverRoleOptions,
                             topRole.Name,
                             Fonts.CreateFont(FontName, 28),
@@ -138,9 +138,9 @@ namespace SteelBot.Helpers
             }
         }
 
-        private static TextGraphicsOptions GetOptions(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
+        private static DrawingOptions GetOptions(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
         {
-            TextGraphicsOptions opts = new TextGraphicsOptions()
+            DrawingOptions opts = new DrawingOptions()
             {
                 TextOptions = new TextOptions()
                 {

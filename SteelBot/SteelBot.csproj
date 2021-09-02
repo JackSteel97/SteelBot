@@ -8,8 +8,8 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<AssemblyVersion>0.6.52.7806</AssemblyVersion>
-		<FileVersion>0.6.52.7806</FileVersion>
+		<AssemblyVersion>0.6.59.7915</AssemblyVersion>
+		<FileVersion>0.6.59.7915</FileVersion>
 		<Version>0.6</Version>
 	</PropertyGroup>
 
@@ -20,12 +20,12 @@
 	<ItemGroup>
 		<PackageReference Include="AlphaVantage.Net.Forex" Version="2.0.2" />
 		<PackageReference Include="AlphaVantage.Net.Stocks" Version="2.0.2" />
-		<PackageReference Include="DSharpPlus" Version="4.0.1" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.1" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.0.1" />
-		<PackageReference Include="Humanizer.Core" Version="2.10.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.5">
+		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-00973" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-00973" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-00973" />
+		<PackageReference Include="Humanizer.Core" Version="2.11.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.9" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.9">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -34,10 +34,10 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
-		<PackageReference Include="RestSharp" Version="106.11.7" />
-		<PackageReference Include="ScottPlot" Version="4.1.4-beta" />
+		<PackageReference Include="RestSharp" Version="106.12.0" />
+		<PackageReference Include="ScottPlot" Version="4.1.17" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta11" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
 	</ItemGroup>
 
 	<ItemGroup>

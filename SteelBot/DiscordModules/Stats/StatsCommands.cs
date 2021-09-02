@@ -101,6 +101,7 @@ namespace SteelBot.DiscordModules.Stats
         }
 
         [Command("me")]
+        [Aliases("mine")]
         [Description("Displays your user statistics for this server.")]
         [Cooldown(3, 30, CooldownBucketType.User)]
         public async Task MyStats(CommandContext context)
@@ -352,7 +353,6 @@ namespace SteelBot.DiscordModules.Stats
             });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
-
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
         }
     }

@@ -22,7 +22,7 @@ namespace SteelBot.Helpers.Algorithms
             "x3"
         };
 
-        private static Random Random = new Random();
+        private static readonly Random Random = new Random();
 
         public static string Uwuify(string input, bool addFaces = true)
         {

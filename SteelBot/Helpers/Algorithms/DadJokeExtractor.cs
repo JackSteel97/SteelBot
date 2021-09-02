@@ -5,8 +5,8 @@ namespace SteelBot.Helpers.Algorithms
 {
     public static class DadJokeExtractor
     {
-        private static string[] Possibilities = new string[] { "i'm", "i’m", "i‘m" };
-        private static HashSet<char> StopCharacters = new HashSet<char> { '.', ',', '?', '!' };
+        private static readonly string[] Possibilities = new string[] { "i'm", "i’m", "i‘m" };
+        private static readonly HashSet<char> StopCharacters = new HashSet<char> { '.', ',', '?', '!' };
 
         public static string Extract(string input)
         {
