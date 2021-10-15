@@ -22,7 +22,7 @@ namespace SteelBot.DiscordModules.Secret
     public class PuzzleCommands : TypingCommandModule
     {
         private const string PuzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.";
-        private const int NumberOfQuestions = 29;
+        private const int NumberOfQuestions = 30;
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
@@ -228,6 +228,10 @@ namespace SteelBot.DiscordModules.Secret
                     message.WithEmbed(EmbedGenerator.Info("`2020-11-22` - `2020-12-12`", "Clue", "Give your answer in words."));
                     break;
 
+                case 30:
+                    message.WithEmbed(EmbedGenerator.Info("Seymour?!? The door is on fire! How much for a new one??"));
+                    break;
+
                 default:
                     message.WithEmbed(EmbedGenerator.Info("There is no extra clue available for this one.", "Good Luck"));
                     break;
@@ -375,6 +379,10 @@ namespace SteelBot.DiscordModules.Secret
                     reader = AddFile(message, "Ooer.png");
                     break;
 
+                case 30:
+                    reader = AddFile(message, "door.png");
+                    break;
+
                 default:
                     message.WithEmbed(EmbedGenerator.Info("There is no question available for this yet.", "Under Construction"));
                     break;
@@ -428,6 +436,7 @@ namespace SteelBot.DiscordModules.Secret
                 27 => DateTime.UtcNow.ToString("HH:mm"),
                 28 => "Eight",
                 29 => "Two",
+                30 => "2 Duff Beers and a Crusty Burger",
                 _ => null,
             };
         }

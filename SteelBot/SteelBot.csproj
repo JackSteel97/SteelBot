@@ -8,8 +8,8 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<AssemblyVersion>0.6.59.7915</AssemblyVersion>
-		<FileVersion>0.6.59.7915</FileVersion>
+		<AssemblyVersion>0.6.63.7958</AssemblyVersion>
+		<FileVersion>0.6.63.7958</FileVersion>
 		<Version>0.6</Version>
 	</PropertyGroup>
 
@@ -61,6 +61,9 @@
 		</None>
 		<None Update="Resources\Puzzle\DidYouTakeNotes.zip">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\Puzzle\door.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Resources\Puzzle\Double.mp3">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
