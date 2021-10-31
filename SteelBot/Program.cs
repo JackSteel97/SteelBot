@@ -25,7 +25,7 @@ namespace SteelBot
 {
     public class Program
     {
-        private const string Environment = "Development";
+        private const string Environment = "Test";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
@@ -52,9 +52,11 @@ namespace SteelBot
             });
 
             // Database DI.
-            serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseSqlServer(appConfigurationService.Database.ConnectionString)
-            .EnableSensitiveDataLogging(Environment.Equals("Development"))
-            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
+            serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseNpgsql(appConfigurationService.Database.ConnectionString,
+                                                                                                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                                                                                                        .EnableRetryOnFailure(10))
+                .EnableSensitiveDataLogging(Environment.Equals("Development"))
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
 
             ConfigureCustomServices(serviceProvider);
             ConfigureDataProviders(serviceProvider);

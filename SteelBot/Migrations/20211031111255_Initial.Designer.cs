@@ -2,37 +2,37 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SteelBot.Database;
 
 namespace SteelBot.Migrations
 {
     [DbContext(typeof(SteelBotContext))]
-    [Migration("20210110215847_FixRankRoleDeletion")]
-    partial class FixRankRoleDeletion
+    [Migration("20211031111255_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.1");
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.11")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("SteelBot.Database.Models.CommandStatistic", b =>
                 {
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("CommandName")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("LastUsed")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<long>("UsageCount")
                         .HasColumnType("bigint");
@@ -40,8 +40,7 @@ namespace SteelBot.Migrations
                     b.HasKey("RowId");
 
                     b.HasIndex("CommandName")
-                        .IsUnique()
-                        .HasFilter("[CommandName] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("CommandStatistics");
                 });
@@ -51,22 +50,22 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("FullDetail")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SourceMethod")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("StackTrace")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("RowId");
 
@@ -78,28 +77,28 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("BadBotVotes")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("BotAddedTo")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CommandPrefix")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("+");
 
                     b.Property<decimal>("DiscordId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("GoodBotVotes")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("LevelAnnouncementChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.HasKey("RowId");
 
@@ -109,28 +108,55 @@ namespace SteelBot.Migrations
                     b.ToTable("Guilds");
                 });
 
+            modelBuilder.Entity("SteelBot.Database.Models.OwnedStock", b =>
+                {
+                    b.Property<long>("RowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<decimal>("AmountOwned")
+                        .HasColumnType("numeric(38,20)");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<long>("ParentPortfolioRowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Symbol")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("RowId");
+
+                    b.HasIndex("ParentPortfolioRowId");
+
+                    b.ToTable("OwnedStocks");
+                });
+
             modelBuilder.Entity("SteelBot.Database.Models.Poll", b =>
                 {
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<decimal>("ChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsLockedPoll")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<decimal>("MessageId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<long>("UserRowId")
                         .HasColumnType("bigint");
@@ -147,14 +173,14 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("OptionNumber")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("OptionText")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<long>("PollRowId")
                         .HasColumnType("bigint");
@@ -171,20 +197,20 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<long>("GuildRowId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("LevelRequired")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("RoleName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RowId");
 
@@ -198,24 +224,24 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<long>("GuildRowId")
                         .HasColumnType("bigint");
 
                     b.Property<bool>("Hidden")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RoleName")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RowId");
 
@@ -224,35 +250,85 @@ namespace SteelBot.Migrations
                     b.ToTable("SelfRoles");
                 });
 
+            modelBuilder.Entity("SteelBot.Database.Models.StockPortfolio", b =>
+                {
+                    b.Property<long>("RowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<long>("OwnerRowId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("RowId");
+
+                    b.HasIndex("OwnerRowId")
+                        .IsUnique();
+
+                    b.ToTable("StockPortfolios");
+                });
+
+            modelBuilder.Entity("SteelBot.Database.Models.StockPortfolioSnapshot", b =>
+                {
+                    b.Property<long>("RowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<long>("ParentPortfolioRowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("SnapshotTaken")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("TotalValueDollars")
+                        .HasColumnType("numeric(24,4)");
+
+                    b.HasKey("RowId");
+
+                    b.HasIndex("ParentPortfolioRowId");
+
+                    b.ToTable("StockPortfolioSnapshots");
+                });
+
             modelBuilder.Entity("SteelBot.Database.Models.Trigger", b =>
                 {
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<decimal?>("ChannelDiscordId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<long>("CreatorRowId")
                         .HasColumnType("bigint");
 
                     b.Property<bool>("ExactMatch")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<long>("GuildRowId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Response")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("TimesActivated")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("TriggerText")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RowId");
 
@@ -268,67 +344,73 @@ namespace SteelBot.Migrations
                     b.Property<long>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<decimal>("ActivityXpEarned")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("CurrentLevel")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long?>("CurrentRankRoleRowId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("DeafenedStartTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<decimal>("DiscordId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<long>("GuildRowId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("LastActivity")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("LastMessageSent")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("LastXpEarningMessage")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<long>("MessageCount")
                         .HasColumnType("bigint");
 
                     b.Property<decimal>("MessageXpEarned")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTime?>("MutedStartTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("StreamingStartTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<decimal>("TimeSpentDeafenedSeconds")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("TimeSpentInVoiceSeconds")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("TimeSpentMutedSeconds")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("TimeSpentOnVideoSeconds")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("TimeSpentStreamingSeconds")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("TotalMessageLength")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTime>("UserFirstSeen")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("VideoStartTime")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("VoiceStartTime")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("RowId");
 
@@ -337,6 +419,17 @@ namespace SteelBot.Migrations
                     b.HasIndex("GuildRowId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("SteelBot.Database.Models.OwnedStock", b =>
+                {
+                    b.HasOne("SteelBot.Database.Models.StockPortfolio", "ParentPortfolio")
+                        .WithMany("OwnedStock")
+                        .HasForeignKey("ParentPortfolioRowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentPortfolio");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Poll", b =>
@@ -381,6 +474,28 @@ namespace SteelBot.Migrations
                         .IsRequired();
 
                     b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("SteelBot.Database.Models.StockPortfolio", b =>
+                {
+                    b.HasOne("SteelBot.Database.Models.User", "Owner")
+                        .WithOne("StockPortfolio")
+                        .HasForeignKey("SteelBot.Database.Models.StockPortfolio", "OwnerRowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("SteelBot.Database.Models.StockPortfolioSnapshot", b =>
+                {
+                    b.HasOne("SteelBot.Database.Models.StockPortfolio", "ParentPortfolio")
+                        .WithMany("Snapshots")
+                        .HasForeignKey("ParentPortfolioRowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentPortfolio");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Trigger", b =>
@@ -441,9 +556,18 @@ namespace SteelBot.Migrations
                     b.Navigation("UsersWithRole");
                 });
 
+            modelBuilder.Entity("SteelBot.Database.Models.StockPortfolio", b =>
+                {
+                    b.Navigation("OwnedStock");
+
+                    b.Navigation("Snapshots");
+                });
+
             modelBuilder.Entity("SteelBot.Database.Models.User", b =>
                 {
                     b.Navigation("CreatedTriggers");
+
+                    b.Navigation("StockPortfolio");
                 });
 #pragma warning restore 612, 618
         }
