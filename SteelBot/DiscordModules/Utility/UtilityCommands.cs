@@ -41,7 +41,8 @@ namespace SteelBot.DiscordModules.Utility
                 .WithTitle("Bot Status")
                 .AddField("Uptime", Formatter.InlineCode(uptime.Humanize(3)))
                 .AddField("Processed Commands", Formatter.InlineCode(AppConfigurationService.HandledCommands.ToString()))
-                .AddField("Ping", Formatter.InlineCode(ping.Humanize()))
+                .AddField("You -> Discord -> Bot Ping", Formatter.InlineCode(ping.Humanize()))
+                .AddField("Bot -> Discord Ping", Formatter.InlineCode(TimeSpan.FromMilliseconds(context.Client.Ping).Humanize()))
                 .AddField("Version", Formatter.InlineCode(AppConfigurationService.Version));
 
             return context.RespondAsync(embed: builder.Build());

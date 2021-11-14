@@ -148,89 +148,98 @@ namespace SteelBot
             return Task.FromResult(prefixFound);
         }
 
-        private async Task HandleReactionAdded(DiscordClient client, MessageReactionAddEventArgs args)
+        private Task HandleReactionAdded(DiscordClient client, MessageReactionAddEventArgs args)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                if (args.Guild != null)
+                try
                 {
-                    // Ignore bots and the current user.
-                    if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
+                    if (args.Guild != null)
                     {
-                        await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
-
-                        _ = Task.Run(async () =>
+                        // Ignore bots and the current user.
+                        if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
                         {
+                            await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
+
                             await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
-                        });
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                await Log(ex, nameof(HandleReactionAdded));
-            }
+                catch (Exception ex)
+                {
+                    await Log(ex, nameof(HandleReactionAdded));
+                }
+            });
+
+            return Task.CompletedTask;
         }
 
-        private async Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
+        private Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                // Only pay attention to guild messages.
-                if (args.Guild != null)
+                try
                 {
-                    // Ignore bots and the current user.
-                    if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
+                    // Only pay attention to guild messages.
+                    if (args.Guild != null)
                     {
-                        await UserTrackingService.TrackUser(args.Guild.Id, args.Author.Id, args.Guild);
-
-                        _ = Task.Run(async () =>
+                        // Ignore bots and the current user.
+                        if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
                         {
+                            await UserTrackingService.TrackUser(args.Guild.Id, args.Author.Id, args.Guild);
+
                             bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
                             if (levelUp)
                             {
                                 await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
                             }
                             await DataHelpers.Triggers.HandleNewMessage(args.Guild.Id, args.Channel, args.Message.Content);
-                        });
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                await Log(ex, nameof(HandleMessageCreated));
-            }
+                catch (Exception ex)
+                {
+                    await Log(ex, nameof(HandleMessageCreated));
+                }
+            });
+
+            return Task.CompletedTask;
+
         }
 
-        private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
+        private Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                if (args.Guild != null)
+                try
                 {
-                    // Ignore bots and the current user.
-                    if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
+                    if (args.Guild != null)
                     {
-                        await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
-                        _ = Task.Run(async () =>
+                        // Ignore bots and the current user.
+                        if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
                         {
+                            await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
+
                             bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);
                             if (levelUp)
                             {
                                 await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
                             }
-                        });
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                await Log(ex, nameof(HandleVoiceStateChange));
-            }
+                catch (Exception ex)
+                {
+                    await Log(ex, nameof(HandleVoiceStateChange));
+                }
+            });
+
+            return Task.CompletedTask;
         }
 
         private async Task HandleJoiningGuild(DiscordClient client, GuildCreateEventArgs args)
         {
+            // Don't offload to a Task.run because this happens rarely and needs to happen before any commands from a new guild can be processed.
             try
             {
                 Guild joinedGuild = new Guild(args.Guild.Id);
@@ -242,49 +251,58 @@ namespace SteelBot
             }
         }
 
-        private async Task HandleCommandErrored(CommandsNextExtension ext, CommandErrorEventArgs args)
+        private Task HandleCommandErrored(CommandsNextExtension ext, CommandErrorEventArgs args)
         {
-            if (args.Exception is ChecksFailedException ex)
+            _ = Task.Run(async () =>
             {
-                foreach (CheckBaseAttribute failedCheck in ex.FailedChecks)
+                if (args.Exception is ChecksFailedException ex)
                 {
-                    if (failedCheck is CooldownAttribute cooldown)
+                    foreach (CheckBaseAttribute failedCheck in ex.FailedChecks)
                     {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
-                        return;
-                    }
-                    if (failedCheck is RequireUserPermissionsAttribute userPerms)
-                    {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"The `{args.Command.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
-                        return;
+                        if (failedCheck is CooldownAttribute cooldown)
+                        {
+                            await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                                .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
+                            return;
+                        }
+                        if (failedCheck is RequireUserPermissionsAttribute userPerms)
+                        {
+                            await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                                .Warning($"The `{args.Command.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
+                            return;
+                        }
                     }
                 }
-            }
-            else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase)
-                || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))
-            {
-                Command helpCmd = Commands.FindCommand("help", out string _);
-                CommandContext helpCtx = Commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);
-                _ = Commands.ExecuteCommandAsync(helpCtx);
-            }
-            else if (args.Exception.Message.Equals("Specified command was not found.", StringComparison.OrdinalIgnoreCase))
-            {
-                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Primary(AppConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
-                return;
-            }
-            else
-            {
-                await Log(args.Exception, args.Context.Message.Content);
-                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
-            }
+                else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase)
+                    || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))
+                {
+                    Command helpCmd = Commands.FindCommand("help", out string _);
+                    CommandContext helpCtx = Commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);
+                    _ = Commands.ExecuteCommandAsync(helpCtx);
+                }
+                else if (args.Exception.Message.Equals("Specified command was not found.", StringComparison.OrdinalIgnoreCase))
+                {
+                    await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Primary(AppConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
+                    return;
+                }
+                else
+                {
+                    await Log(args.Exception, args.Context.Message.Content);
+                    await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
+                }
+            });
+            return Task.CompletedTask;
         }
 
-        private async Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
+        private Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
         {
-            Interlocked.Increment(ref AppConfigurationService.HandledCommands);
-            await Cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
+            _ = Task.Run(async () =>
+            {
+                Interlocked.Increment(ref AppConfigurationService.HandledCommands);
+                await Cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
+            });
+
+            return Task.CompletedTask;
         }
 
         private async Task Log(Exception e, string source)
