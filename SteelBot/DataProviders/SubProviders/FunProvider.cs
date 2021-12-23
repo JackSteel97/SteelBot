@@ -17,9 +17,9 @@ namespace SteelBot.DataProviders.SubProviders
         private async Task UpdateJoke()
         {
             RestClient client = new RestClient("https://api.jokes.one");
-            RestRequest request = new RestRequest("jod", Method.GET, DataFormat.Json);
+            RestRequest request = new RestRequest("jod", Method.Get, DataFormat.Json);
 
-            IRestResponse response = await client.ExecuteAsync(request);
+            RestResponse response = await client.ExecuteAsync(request);
 
             JokeResponse jokeData = JsonConvert.DeserializeObject<JokeResponse>(response.Content);
 
