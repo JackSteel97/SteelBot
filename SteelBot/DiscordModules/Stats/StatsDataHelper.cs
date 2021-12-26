@@ -73,7 +73,7 @@ namespace SteelBot.DiscordModules.Stats
                 if (guild.LevelAnnouncementChannelId.HasValue)
                 {
                     DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
-                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!"));
+                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
                 }
             }
         }
