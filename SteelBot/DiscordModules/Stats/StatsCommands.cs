@@ -145,14 +145,14 @@ namespace SteelBot.DiscordModules.Stats
             DiscordMember memberUser = await context.Guild.GetMemberAsync(userId);
 
             StringBuilder builder = new StringBuilder()
-                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().KiloFormat()))
-                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().KiloFormat()))
-                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().KiloFormat()))
-                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().KiloFormat()))
-                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().KiloFormat()))
-                .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.KiloFormat()))
+                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().ToString("N0")))
+                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().ToString("N0")))
+                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().ToString("N0")))
+                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().ToString("N0")))
+                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().ToString("N0")))
+                .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
                 .AppendLine()
-                .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.KiloFormat()));
+                .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.ToString("N0")));
 
             DiscordEmbed embed = EmbedGenerator.Info(builder.ToString(), $"{memberUser.DisplayName} XP Breakdown");
             DiscordMessageBuilder message = new DiscordMessageBuilder().WithEmbed(embed).WithReply(context.Message.Id, mention: true);
@@ -188,7 +188,7 @@ namespace SteelBot.DiscordModules.Stats
             {
                 case "xp":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp}`");
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp:N0}`");
                     break;
 
                 case "level":
@@ -198,7 +198,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 case "message count":
                     orderedUsers = guildUsers.OrderByDescending(u => u.MessageCount).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount}`");
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount:N0}`");
                     break;
 
                 case "message length":
@@ -341,7 +341,7 @@ namespace SteelBot.DiscordModules.Stats
                 return builder
                     .AppendLine($"**__{(index + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
                     .AppendLine($"**__Messages__**")
-                    .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount}`")
+                    .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount:N0}`")
                     .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency(AppConfigurationService.Application.Levelling).ToString("P2"))}")
                     .AppendLine($"{EmojiConstants.Objects.Ruler} - **Average Length** `{user.GetAverageMessageLength()} Characters`")
                     .AppendLine("**__Durations__**")
