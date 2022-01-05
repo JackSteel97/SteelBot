@@ -24,6 +24,7 @@ using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -60,6 +61,9 @@ namespace SteelBot
 
             Console.CancelKeyPress += async (s, a) => await ShutdownDiscordClient();
 
+
+            UserExtensions.LevelConfig = AppConfigurationService.Application.Levelling;
+
             Logger.LogInformation("Initialising Command Modules");
             InitCommands();
             Logger.LogInformation("Initialising Interactivity");
@@ -74,7 +78,24 @@ namespace SteelBot
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await ShutdownDiscordClient();
-            await Cache.Users.DisconnectAllUsers();
+            await DataHelpers.Stats.DisconnectAllUsers();
+
+        }
+
+        private async Task BuildNewXpNumbers()
+        {
+            var allUsers = Cache.Users.GetAllUsers();
+            foreach(var user in allUsers)
+            {
+                User copyOfUser = user.Clone();
+                copyOfUser.VoiceXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentInVoice, AppConfigurationService.Application.Levelling.VoiceXpPerMin);
+                copyOfUser.MutedXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentMuted, AppConfigurationService.Application.Levelling.MutedXpPerMin);
+                copyOfUser.DeafenedXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentDeafened, AppConfigurationService.Application.Levelling.DeafenedXpPerMin);
+                copyOfUser.StreamingXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentStreaming, AppConfigurationService.Application.Levelling.StreamingXpPerMin);
+                copyOfUser.VideoXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentOnVideo, AppConfigurationService.Application.Levelling.VideoXpPerMin);
+                
+                await Cache.Users.UpdateUser(copyOfUser.Guild.DiscordId, copyOfUser);
+            }
         }
 
         private async Task ShutdownDiscordClient()

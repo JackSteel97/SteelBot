@@ -26,7 +26,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : TypingCommandModule
     {
-        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "efficiency", "voice", "muted", "deafened", "last active", "stream", "video" };
+        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "voice", "muted", "deafened", "last active", "stream", "video" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
         private readonly AppConfigurationService AppConfigurationService;
@@ -145,11 +145,11 @@ namespace SteelBot.DiscordModules.Stats
             DiscordMember memberUser = await context.Guild.GetMemberAsync(userId);
 
             StringBuilder builder = new StringBuilder()
-                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.GetVoiceXp().ToString("N0")))
-                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.GetStreamingXp().ToString("N0")))
-                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.GetVideoXp().ToString("N0")))
-                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode(user.GetMutedXp().ToString("N0")))
-                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode(user.GetDeafendedXp().ToString("N0")))
+                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.VoiceXpEarned.ToString("N0")))
+                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.StreamingXpEarned.ToString("N0")))
+                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.VideoXpEarned.ToString("N0")))
+                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode($"-{user.MutedXpEarned.ToString("N0")}"))
+                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned.ToString("N0")}"))
                 .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
                 .AppendLine()
                 .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.ToString("N0")));
@@ -204,11 +204,6 @@ namespace SteelBot.DiscordModules.Stats
                 case "message length":
                     orderedUsers = guildUsers.OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
-                    break;
-
-                case "efficiency":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.GetMessageEfficiency(AppConfigurationService.Application.Levelling)).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Efficiency: `{u.GetMessageEfficiency(AppConfigurationService.Application.Levelling):P2}`");
                     break;
 
                 case "voice":
@@ -342,7 +337,6 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"**__{(index + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
                     .AppendLine($"**__Messages__**")
                     .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount:N0}`")
-                    .AppendLine($"{EmojiConstants.Objects.LightBulb} - **Efficiency** {Formatter.InlineCode(user.GetMessageEfficiency(AppConfigurationService.Application.Levelling).ToString("P2"))}")
                     .AppendLine($"{EmojiConstants.Objects.Ruler} - **Average Length** `{user.GetAverageMessageLength()} Characters`")
                     .AppendLine("**__Durations__**")
                     .AppendLine($"{EmojiConstants.Objects.Microphone} - **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")

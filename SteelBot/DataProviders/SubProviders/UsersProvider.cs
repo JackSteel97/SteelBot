@@ -56,6 +56,11 @@ namespace SteelBot.DataProviders.SubProviders
             return UsersByDiscordIdAndServer.TryGetValue((guildId, userId), out user);
         }
 
+        public List<User> GetAllUsers()
+        {
+            return UsersByDiscordIdAndServer.Values.ToList();
+        }
+
         public List<User> GetUsersInGuild(ulong guildId)
         {
             ILookup<ulong, User> lookup = UsersByDiscordIdAndServer.ToLookup(u => u.Key.guildId, u => u.Value);
@@ -116,176 +121,7 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        /// <summary>
-        /// Update the message stats counters for a given user in a given guild.
-        /// </summary>
-        /// <param name="guildId">The user's guild discord id.</param>
-        /// <param name="userId">The user's discord id.</param>
-        /// <param name="messageLength">Length of the sent message.</param>
-        public async Task<bool> UpdateMessageCounters(ulong guildId, ulong userId, int messageLength)
-        {
-            bool levelIncreased = false;
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogInformation($"Updating message counters for User [{userId}] in Guild [{guildId}]");
-                DateTime messageReceivedAt = DateTime.UtcNow;
-
-                // Clone user to avoid making change to cache till db change confirmed.
-                User copyOfUser = user.Clone();
-                copyOfUser.MessageCount++;
-                copyOfUser.TotalMessageLength += Convert.ToUInt64(messageLength);
-
-                // Check the last message that earned xp was more than a minute ago.
-                bool lastMessageWasMoreThanAMinuteAgo = (messageReceivedAt - copyOfUser.LastXpEarningMessage.GetValueOrDefault()).TotalSeconds >= 60;
-                levelIncreased = copyOfUser.UpdateLevel(AppConfigurationService.Application.Levelling, lastMessageWasMoreThanAMinuteAgo);
-
-                copyOfUser.LastActivity = messageReceivedAt;
-                copyOfUser.LastMessageSent = messageReceivedAt;
-
-                await UpdateUser(guildId, copyOfUser);
-            }
-            return levelIncreased;
-        }
-
-        /// <summary>
-        /// Called during app shutdown to make sure no timings get carried too long during downtime.
-        /// </summary>
-        /// <returns></returns>
-        public async Task DisconnectAllUsers()
-        {
-            Logger.LogInformation("Disconnecting all users from voice stats.");
-            DateTime updateTimestamp = DateTime.UtcNow;
-            var allUsers = UsersByDiscordIdAndServer.Values.ToList();
-
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
-            {
-                foreach (User user in allUsers)
-                {
-                    bool changed = false;
-                    if (user.VoiceStartTime.HasValue)
-                    {
-                        user.TimeSpentInVoice += updateTimestamp - user.VoiceStartTime.Value;
-                        user.VoiceStartTime = null;
-                        changed = true;
-                    }
-                    if (user.MutedStartTime.HasValue)
-                    {
-                        user.TimeSpentMuted += updateTimestamp - user.MutedStartTime.Value;
-                        user.MutedStartTime = null;
-                        changed = true;
-                    }
-                    if (user.DeafenedStartTime.HasValue)
-                    {
-                        user.TimeSpentDeafened += updateTimestamp - user.DeafenedStartTime.Value;
-                        user.MutedStartTime = null;
-                        changed = true;
-                    }
-                    bool levelledUp = user.UpdateLevel(AppConfigurationService.Application.Levelling);
-
-                    if (changed || levelledUp)
-                    {
-                        // To prevent EF tracking issue, grab and alter existing value.
-                        User original = db.Users.First(u => u.RowId == user.RowId);
-                        db.Entry(original).CurrentValues.SetValues(user);
-                        db.Users.Update(original);
-                    }
-                }
-                await db.SaveChangesAsync();
-            }
-        }
-
-        public async Task<bool> UpdateVoiceStateCounters(ulong guildId, ulong userId, DiscordVoiceState newState)
-        {
-            DateTime updateTimestamp = DateTime.UtcNow;
-            bool levelIncreased = false;
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogDebug($"Updating voice state for User [{userId}] in Guild [{guildId}]");
-                // Clone user to avoid making changes to cache till db change completed.
-                User copyOfUser = user.Clone();
-                copyOfUser.LastActivity = updateTimestamp;
-
-                // Can we add to voice time counters?
-                if (copyOfUser.VoiceStartTime.HasValue)
-                {
-                    copyOfUser.TimeSpentInVoice += updateTimestamp - copyOfUser.VoiceStartTime.Value;
-                }
-                if (copyOfUser.MutedStartTime.HasValue)
-                {
-                    copyOfUser.TimeSpentMuted += updateTimestamp - copyOfUser.MutedStartTime.Value;
-                }
-                if (copyOfUser.DeafenedStartTime.HasValue)
-                {
-                    copyOfUser.TimeSpentDeafened += updateTimestamp - copyOfUser.DeafenedStartTime.Value;
-                }
-                if (copyOfUser.StreamingStartTime.HasValue)
-                {
-                    copyOfUser.TimeSpentStreaming += updateTimestamp - copyOfUser.StreamingStartTime.Value;
-                }
-                if (copyOfUser.VideoStartTime.HasValue)
-                {
-                    copyOfUser.TimeSpentOnVideo += updateTimestamp - copyOfUser.VideoStartTime.Value;
-                }
-                levelIncreased = copyOfUser.UpdateLevel(AppConfigurationService.Application.Levelling);
-
-                // Update times.
-                if (newState == null || newState.Channel == null)
-                {
-                    // User has left voice channel - reset all states.
-                    copyOfUser.VoiceStartTime = null;
-                    copyOfUser.MutedStartTime = null;
-                    copyOfUser.DeafenedStartTime = null;
-                    copyOfUser.StreamingStartTime = null;
-                    copyOfUser.VideoStartTime = null;
-                }
-                else
-                {
-                    // In voice channel.
-                    copyOfUser.VoiceStartTime = updateTimestamp;
-
-                    if (newState.IsSelfMuted)
-                    {
-                        copyOfUser.MutedStartTime = updateTimestamp;
-                    }
-                    else
-                    {
-                        copyOfUser.MutedStartTime = null;
-                    }
-
-                    if (newState.IsSelfDeafened)
-                    {
-                        copyOfUser.DeafenedStartTime = updateTimestamp;
-                    }
-                    else
-                    {
-                        copyOfUser.DeafenedStartTime = null;
-                    }
-
-                    if (newState.IsSelfStream)
-                    {
-                        copyOfUser.StreamingStartTime = updateTimestamp;
-                    }
-                    else
-                    {
-                        copyOfUser.StreamingStartTime = null;
-                    }
-
-                    if (newState.IsSelfVideo)
-                    {
-                        copyOfUser.VideoStartTime = updateTimestamp;
-                    }
-                    else
-                    {
-                        copyOfUser.VideoStartTime = null;
-                    }
-                }
-
-                await UpdateUser(guildId, copyOfUser);
-            }
-            return levelIncreased;
-        }
-
-        private async Task UpdateUser(ulong guildId, User newUser)
+        public async Task UpdateUser(ulong guildId, User newUser)
         {
             int writtenCount;
             using (SteelBotContext db = DbContextFactory.CreateDbContext())

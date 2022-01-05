@@ -25,7 +25,7 @@ namespace SteelBot
 {
     public class Program
     {
-        private const string Environment = "Development";
+        private const string Environment = "Test";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {

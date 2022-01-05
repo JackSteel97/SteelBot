@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Levelling;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -17,21 +18,36 @@ namespace SteelBot.DiscordModules.Stats
     {
         private readonly DataCache Cache;
         private readonly AppConfigurationService AppConfigurationService;
+        private readonly ILogger<StatsDataHelper> Logger;
 
-        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService)
+        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
+            Logger = logger;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
         {
-            // Update per-user message counters.
-            bool levelIncreased = await Cache.Users.UpdateMessageCounters(args.Guild.Id, args.Author.Id, args.Message.Content.Length);
-            if (levelIncreased)
+            bool levelIncreased = false;
+            if(TryGetUser(args.Guild.Id, args.Author.Id, out User user))
             {
-                await SendLevelUpMessage(args.Guild, args.Author);
+                Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
+                // Clone user to avoid making change to cache till db change confirmed.
+                User copyOfUser = user.Clone();
+                if (copyOfUser.NewMessage(args.Message.Content.Length))
+                {
+                    // Xp has changed.
+                    levelIncreased = copyOfUser.UpdateLevel();
+                }
+                await Cache.Users.UpdateUser(args.Guild.Id, copyOfUser);
+
+                if (levelIncreased)
+                {
+                    await SendLevelUpMessage(args.Guild, args.Author);
+                }
             }
+            
             return levelIncreased;
         }
 
@@ -42,7 +58,6 @@ namespace SteelBot.DiscordModules.Stats
                 .WithTitle($"{username} Stats")
                 .AddField("Message Count", $"`{user.MessageCount:N0} Messages`", true)
                 .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
-                .AddField("Message Efficiency", Formatter.InlineCode(user.GetMessageEfficiency(AppConfigurationService.Application.Levelling).ToString("P2")), true)
                 .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)} (100%)`", true)
                 .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentStreaming, user.TimeSpentInVoice):P2})`", true)
                 .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentOnVideo, user.TimeSpentInVoice):P2})`", true)
@@ -56,28 +71,45 @@ namespace SteelBot.DiscordModules.Stats
         {
             ulong guildId = args.Guild.Id;
             ulong userId = args.User.Id;
+            bool levelIncreased = false;
 
-            bool levelIncreased = await Cache.Users.UpdateVoiceStateCounters(guildId, userId, args.After);
-            if (levelIncreased)
+            if(TryGetUser(guildId, userId, out User user))
             {
-                await SendLevelUpMessage(args.Guild, args.User);
+                Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
+                User copyOfUser = user.Clone();
+                copyOfUser.VoiceStateChange(args.After);
+
+                levelIncreased = copyOfUser.UpdateLevel();
+                await Cache.Users.UpdateUser(guildId, copyOfUser);
+
+                if (levelIncreased)
+                {
+                    await SendLevelUpMessage(args.Guild, args.User);
+                }
             }
 
             return levelIncreased;
         }
 
-        private async Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
+        /// <summary>
+        /// Called during app shutdown to make sure no timings get carried too long during downtime.
+        /// </summary>
+        public async Task DisconnectAllUsers()
         {
-            if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild) && Cache.Users.TryGetUser(discordGuild.Id, discordUser.Id, out User user))
+            Logger.LogInformation("Disconnecting all users from voice stats");
+            var allUsers = Cache.Users.GetAllUsers();
+
+            foreach (var user in allUsers)
             {
-                if (guild.LevelAnnouncementChannelId.HasValue)
-                {
-                    DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
-                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
-                }
+                User copyOfUser = user.Clone();
+
+                // Pass null to reset all start times.
+                copyOfUser.VoiceStateChange(newState: null);
+                copyOfUser.UpdateLevel();
+                await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
             }
         }
-
+        
         public bool TryGetUser(ulong guildId, ulong discordId, out User user)
         {
             return Cache.Users.TryGetUser(guildId, discordId, out user);
@@ -91,6 +123,18 @@ namespace SteelBot.DiscordModules.Stats
         public List<CommandStatistic> GetCommandStatistics()
         {
             return Cache.CommandStatistics.GetAllCommandStatistics();
+        }
+
+        private async Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
+        {
+            if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild) && Cache.Users.TryGetUser(discordGuild.Id, discordUser.Id, out User user))
+            {
+                if (guild.LevelAnnouncementChannelId.HasValue)
+                {
+                    DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
+                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
+                }
+            }
         }
     }
 }

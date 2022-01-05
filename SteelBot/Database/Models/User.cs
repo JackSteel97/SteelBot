@@ -28,8 +28,11 @@ namespace SteelBot.Database.Models
         public Guild Guild { get; set; }
 
         public ulong MessageXpEarned { get; set; }
-
-        public ulong ActivityXpEarned { get; set; }
+        public ulong VoiceXpEarned { get; set; }
+        public ulong MutedXpEarned { get; set; }
+        public ulong DeafenedXpEarned { get; set; }
+        public ulong StreamingXpEarned { get; set; }
+        public ulong VideoXpEarned { get; set; }
 
         public int CurrentLevel { get; set; }
 
@@ -46,7 +49,16 @@ namespace SteelBot.Database.Models
         {
             get
             {
-                return MessageXpEarned + ActivityXpEarned;
+                var positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned;
+                var negativeXp = MutedXpEarned + DeafenedXpEarned;
+                if(positiveXp >= negativeXp)
+                {
+                    return positiveXp - negativeXp;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
 
@@ -140,65 +152,6 @@ namespace SteelBot.Database.Models
                 return Convert.ToInt64(TotalMessageLength) / MessageCount;
             }
             return 0;
-        }
-
-        public float GetMessageEfficiency(LevellingConfig config)
-        {
-            float minimumMessageCount = (MessageXpEarned / (float)config.MessageXp);
-            float efficiency = minimumMessageCount / MessageCount;
-
-            return efficiency;
-        }
-
-        public bool UpdateLevel(LevellingConfig levellingConfig, bool addMessageXp = false)
-        {
-            ActivityXpEarned = CalculateCurrentActivityXp(levellingConfig);
-            if (addMessageXp)
-            {
-                LastXpEarningMessage = DateTime.UtcNow;
-                MessageXpEarned += levellingConfig.MessageXp;
-            }
-
-            int newLevel = CurrentLevel;
-
-            bool hasEnoughXp;
-            do
-            {
-                ulong requiredXp = LevellingMaths.XpForLevel(newLevel + 1);
-                hasEnoughXp = TotalXp >= requiredXp;
-                if (hasEnoughXp)
-                {
-                    newLevel++;
-                }
-            } while (hasEnoughXp);
-
-            bool levelIncreased = newLevel > CurrentLevel;
-            if (levelIncreased)
-            {
-                CurrentLevel = newLevel;
-            }
-            return levelIncreased;
-        }
-
-        private ulong CalculateCurrentActivityXp(LevellingConfig config)
-        {
-            ulong currentXp = 0;
-            double totalNegativeXp = LevellingMaths.GetDurationXp(TimeSpentMuted, config.MutedXpPerMin) + LevellingMaths.GetDurationXp(TimeSpentDeafened, config.DeafenedXpPerMin);
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentInVoice, config.VoiceXpPerMin));
-
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentStreaming, config.StreamingXpPerMin));
-            currentXp += (ulong)Math.Floor(LevellingMaths.GetDurationXp(TimeSpentOnVideo, config.VideoXpPerMin));
-
-            if (totalNegativeXp < currentXp)
-            {
-                currentXp -= (ulong)Math.Floor(totalNegativeXp);
-            }
-            else
-            {
-                currentXp = 0;
-            }
-
-            return currentXp;
         }
     }
 }

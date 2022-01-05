@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SteelBot.Helpers
+namespace SteelBot.Helpers.Levelling
 {
     public static class LevellingMaths
     {
@@ -10,7 +10,7 @@ namespace SteelBot.Helpers
             return Convert.ToUInt64(Math.Round((Math.Pow(1.2, level) - 1) + (500 * level)));
         }
 
-        public static double GetDurationXp(TimeSpan duration, double baseXp = 1)
+        public static ulong GetDurationXp(TimeSpan duration, double baseXp = 1)
         {
             TimeSpan AWeek = TimeSpan.FromDays(7);
 
@@ -30,7 +30,7 @@ namespace SteelBot.Helpers
                     remainingTime = remainingTime.Subtract(AWeek);
                 }
             }
-            return totalXp;
+            return Convert.ToUInt64(Math.Round(totalXp));
         }
     }
 }
