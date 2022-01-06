@@ -7,16 +7,18 @@ namespace SteelBot.Test.Helpers
     public class LevellingMathsTests
     {
         [Theory]
-        [InlineData(0, 1, 0)]
-        [InlineData(1, 1, 60)]
-        [InlineData(168, 1, 10080)] // 1 week
-        [InlineData(170, 10, 103200)] // 1 week, 2 hours
-        [InlineData(992, 1, 205920)] // 5 weeks, 152 hours
-        public void GetDurationXp(double durationHours, double baseXp, double expectedXp)
+        [InlineData(0, 0, 1, 0)]
+        [InlineData(1, 0, 1, 60)]
+        [InlineData(168, 0, 1, 10080)] // 1 week, 0 hours
+        [InlineData(2, 168, 10, 2400)] // 2 hours, 1 week
+        [InlineData(2, 504, 10, 4800)] // 2 hours, 3 weeks
+        [InlineData(6, 840, 1, 2160)] // 6 hours, 5 weeks
+        public void GetDurationXp(double durationHours, double existingDurationHours, double baseXp, double expectedXp)
         {
             TimeSpan duration = TimeSpan.FromHours(durationHours);
+            TimeSpan existingDuration = TimeSpan.FromHours(existingDurationHours);
 
-            double actualXp = LevellingMaths.GetDurationXp(duration, baseXp);
+            double actualXp = LevellingMaths.GetDurationXp(duration, existingDuration, baseXp);
 
             Assert.Equal(expectedXp, actualXp);
         }

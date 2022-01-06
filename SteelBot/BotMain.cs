@@ -98,8 +98,6 @@ namespace SteelBot
             Commands.CommandExecuted += HandleCommandExecuted;
         }
 
-        
-
         private void InitCommands()
         {
             Commands = Client.UseCommandsNext(new CommandsNextConfiguration()

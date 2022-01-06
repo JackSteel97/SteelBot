@@ -126,27 +126,27 @@ namespace SteelBot.Helpers.Levelling
 
         private static void IncrementVoiceXp(User user, TimeSpan voiceDuration)
         {
-            user.VoiceXpEarned += LevellingMaths.GetDurationXp(voiceDuration, LevelConfig.VoiceXpPerMin);
+            user.VoiceXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentInVoice, LevelConfig.VoiceXpPerMin);
         }
 
         private static void IncrementMutedXp(User user, TimeSpan voiceDuration)
         {
-            user.MutedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, LevelConfig.MutedXpPerMin);
+            user.MutedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
         }
 
         private static void IncrementDeafenedXp(User user, TimeSpan voiceDuration)
         {
-            user.DeafenedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, LevelConfig.DeafenedXpPerMin);
+            user.DeafenedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
         }
 
         private static void IncrementStreamingXp(User user, TimeSpan voiceDuration)
         {
-            user.StreamingXpEarned += LevellingMaths.GetDurationXp(voiceDuration, LevelConfig.StreamingXpPerMin);
+            user.StreamingXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentStreaming, LevelConfig.StreamingXpPerMin);
         }
 
         private static void IncrementVideoXp(User user, TimeSpan voiceDuration)
         {
-            user.VideoXpEarned += LevellingMaths.GetDurationXp(voiceDuration, LevelConfig.VideoXpPerMin);
+            user.VideoXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
         }
     }
 }
