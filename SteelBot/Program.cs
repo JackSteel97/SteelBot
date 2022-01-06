@@ -15,6 +15,7 @@ using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -42,6 +43,9 @@ namespace SteelBot
             appConfigurationService.StartUpTime = DateTime.UtcNow;
 
             serviceProvider.AddSingleton(appConfigurationService);
+
+            // Set static dependency
+            UserExtensions.LevelConfig = appConfigurationService.Application.Levelling;
 
             // Logging setup.
             serviceProvider.AddLogging(opt =>

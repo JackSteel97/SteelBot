@@ -93,7 +93,31 @@ namespace SteelBot.DataProviders.SubProviders
                 }
                 else
                 {
-                    Logger.LogError($"Writing User [{user.DiscordId}] in Guild [{guildId}] to the datbase inserted no entities. The internal cache was not changed.");
+                    Logger.LogError($"Writing User [{user.DiscordId}] in Guild [{guildId}] to the database inserted no entities. The internal cache was not changed.");
+                }
+            }
+        }
+
+        public async Task RemoveUser(ulong guildId, ulong userId)
+        {
+            if(TryGetUser(guildId, userId, out User user))
+            {
+                Logger.LogInformation("Deleting a User [{UserId}] in Guild [{GuildId}]", userId, guildId);
+
+                int writtenCount;
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                {
+                    db.Users.Remove(user);
+                    writtenCount = await db.SaveChangesAsync();
+                }
+
+                if (writtenCount > 0)
+                {
+                    UsersByDiscordIdAndServer.Remove((guildId, userId));
+                }
+                else
+                {
+                    Logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", userId, guildId);
                 }
             }
         }

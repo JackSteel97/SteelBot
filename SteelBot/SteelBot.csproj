@@ -14,10 +14,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\.editorconfig" Link=".editorconfig" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="AlphaVantage.Net.Forex" Version="2.0.2" />
 		<PackageReference Include="AlphaVantage.Net.Stocks" Version="2.0.2" />
 		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01056" />

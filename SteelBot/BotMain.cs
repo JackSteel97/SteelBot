@@ -24,7 +24,6 @@ using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -61,9 +60,6 @@ namespace SteelBot
 
             Console.CancelKeyPress += async (s, a) => await ShutdownDiscordClient();
 
-
-            UserExtensions.LevelConfig = AppConfigurationService.Application.Levelling;
-
             Logger.LogInformation("Initialising Command Modules");
             InitCommands();
             Logger.LogInformation("Initialising Interactivity");
@@ -82,22 +78,6 @@ namespace SteelBot
 
         }
 
-        private async Task BuildNewXpNumbers()
-        {
-            var allUsers = Cache.Users.GetAllUsers();
-            foreach(var user in allUsers)
-            {
-                User copyOfUser = user.Clone();
-                copyOfUser.VoiceXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentInVoice, AppConfigurationService.Application.Levelling.VoiceXpPerMin);
-                copyOfUser.MutedXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentMuted, AppConfigurationService.Application.Levelling.MutedXpPerMin);
-                copyOfUser.DeafenedXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentDeafened, AppConfigurationService.Application.Levelling.DeafenedXpPerMin);
-                copyOfUser.StreamingXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentStreaming, AppConfigurationService.Application.Levelling.StreamingXpPerMin);
-                copyOfUser.VideoXpEarned = LevellingMaths.GetDurationXp(copyOfUser.TimeSpentOnVideo, AppConfigurationService.Application.Levelling.VideoXpPerMin);
-                
-                await Cache.Users.UpdateUser(copyOfUser.Guild.DiscordId, copyOfUser);
-            }
-        }
-
         private async Task ShutdownDiscordClient()
         {
             Logger.LogInformation("Disconnecting Client");
@@ -110,10 +90,15 @@ namespace SteelBot
             Client.MessageCreated += HandleMessageCreated;
             Client.VoiceStateUpdated += HandleVoiceStateChange;
             Client.GuildCreated += HandleJoiningGuild;
+            Client.GuildDeleted += HandleLeavingGuild;
+            Client.GuildMemberRemoved += HandleGuildMemberRemoved;
+            Client.GuildMemberAdded += HandleGuildMemberAdded;
 
             Commands.CommandErrored += HandleCommandErrored;
             Commands.CommandExecuted += HandleCommandExecuted;
         }
+
+        
 
         private void InitCommands()
         {
@@ -175,15 +160,10 @@ namespace SteelBot
             {
                 try
                 {
-                    if (args.Guild != null)
+                    if (args.Guild != null &&
+                        await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
                     {
-                        // Ignore bots and the current user.
-                        if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
-                        {
-                            await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
-
-                            await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
-                        }
+                        await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
                     }
                 }
                 catch (Exception ex)
@@ -202,20 +182,14 @@ namespace SteelBot
                 try
                 {
                     // Only pay attention to guild messages.
-                    if (args.Guild != null)
+                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.Author, args.Guild, client))
                     {
-                        // Ignore bots and the current user.
-                        if (!args.Author.IsBot && args.Author.Id != client.CurrentUser.Id)
+                        bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
+                        if (levelUp)
                         {
-                            await UserTrackingService.TrackUser(args.Guild.Id, args.Author.Id, args.Guild);
-
-                            bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
-                            if (levelUp)
-                            {
-                                await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
-                            }
-                            await DataHelpers.Triggers.HandleNewMessage(args.Guild.Id, args.Channel, args.Message.Content);
+                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
                         }
+                        await DataHelpers.Triggers.HandleNewMessage(args.Guild.Id, args.Channel, args.Message.Content);
                     }
                 }
                 catch (Exception ex)
@@ -234,18 +208,12 @@ namespace SteelBot
             {
                 try
                 {
-                    if (args.Guild != null)
+                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
                     {
-                        // Ignore bots and the current user.
-                        if (!args.User.IsBot && args.User.Id != client.CurrentUser.Id)
+                        bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);
+                        if (levelUp)
                         {
-                            await UserTrackingService.TrackUser(args.Guild.Id, args.User.Id, args.Guild);
-
-                            bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);
-                            if (levelUp)
-                            {
-                                await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
-                            }
+                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
                         }
                     }
                 }
@@ -269,6 +237,23 @@ namespace SteelBot
             catch (Exception ex)
             {
                 await Log(ex, nameof(HandleJoiningGuild));
+            }
+        }
+
+        private async Task HandleLeavingGuild(DiscordClient client, GuildDeleteEventArgs args)
+        {
+            try
+            {
+                var usersInGuild = Cache.Users.GetUsersInGuild(args.Guild.Id);
+                foreach (var user in usersInGuild)
+                {
+                    await Cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
+                }
+                await Cache.Guilds.RemoveGuild(args.Guild.Id);
+            }
+            catch (Exception ex)
+            {
+                await Log(ex, nameof(HandleLeavingGuild));
             }
         }
 
@@ -324,6 +309,35 @@ namespace SteelBot
             });
 
             return Task.CompletedTask;
+        }
+
+        private async Task HandleGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs args)
+        {
+            try
+            {
+                _ = Task.Run(async () =>
+                {
+                    var msg = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("This is a tester welcome message", $"Welcome to {args.Guild.Name}!", "Thanks for joining."));
+                    await args.Member.SendMessageAsync(msg);
+                });
+            }
+            catch (Exception ex)
+            {
+                await Log(ex, nameof(HandleGuildMemberAdded));
+            }
+        }
+
+        private async Task HandleGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs args)
+        {
+            try
+            {
+                // Delete user data.
+                await Cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
+            }
+            catch (Exception ex)
+            {
+                await Log(ex, nameof(HandleGuildMemberRemoved));
+            }
         }
 
         private async Task Log(Exception e, string source)

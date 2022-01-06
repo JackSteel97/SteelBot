@@ -119,6 +119,29 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public async Task RemoveGuild(ulong guildId)
+        {
+            if (TryGetGuild(guildId, out var guild))
+            {
+                Logger.LogInformation("Deleting a Guild [{GuildId}] from the database.", guildId);
+                int writtenCount;
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                {
+                    db.Guilds.Remove(guild);
+                    writtenCount = await db.SaveChangesAsync();
+                }
+
+                if (writtenCount > 0)
+                {
+                    GuildsByDiscordId.Remove(guild.DiscordId);
+                }
+                else
+                {
+                    Logger.LogError("Deleting Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", guildId);
+                }
+            }
+        }
+
         private async Task InsertGuild(Guild guild)
         {
             Logger.LogInformation($"Writing a new Guild [{guild.DiscordId}] to the database.");
@@ -137,6 +160,8 @@ namespace SteelBot.DataProviders.SubProviders
                 Logger.LogError($"Writing Guild [{guild.DiscordId}] to the database inserted no entities. The internal cache was not changed.");
             }
         }
+
+        
 
         private async Task UpdateGuild(Guild guild)
         {
