@@ -9,6 +9,7 @@ using SteelBot.DataProviders;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
+using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
@@ -97,6 +98,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<RankRoleDataHelper>();
             serviceProvider.AddSingleton<TriggerDataHelper>();
             serviceProvider.AddSingleton<PortfolioDataHelper>();
+            serviceProvider.AddSingleton<FunDataHelper>();
             // Add base provider.
             serviceProvider.AddSingleton<DataHelpers>();
         }

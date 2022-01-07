@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DSharpPlus.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -21,7 +22,7 @@ namespace SteelBot.Database.Models
         [MaxLength(20)]
         public string CommandPrefix { get; set; }
 
-        public ulong? LevelAnnouncementChannelId { get; set; }
+        public ulong? LevelAnnouncementChannelId { private get; set; }
 
         public int GoodBotVotes { get; set; }
         public int BadBotVotes { get; set; }
@@ -43,5 +44,15 @@ namespace SteelBot.Database.Models
             Guild guildCopy = (Guild)MemberwiseClone();
             return guildCopy;
         }
+
+        public DiscordChannel GetLevelAnnouncementChannel(DiscordGuild discordGuild)
+        {
+            if (LevelAnnouncementChannelId.HasValue)
+            {
+                return discordGuild.GetChannel(LevelAnnouncementChannelId.Value);
+            }
+            return discordGuild?.SystemChannel;
+        }
+
     }
 }

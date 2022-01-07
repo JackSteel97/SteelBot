@@ -61,6 +61,7 @@ namespace SteelBot.DiscordModules.Config
         }
 
         [Command("SetLevelChannel")]
+        [Aliases("SetAnnouncementChannel", "SetChannel", "SetLC", "SetAC")]
         [Description("Set the channel to use to notify users of level-ups")]
         [RequireUserPermissions(Permissions.Administrator)]
         [Cooldown(1, 300, CooldownBucketType.Guild)]

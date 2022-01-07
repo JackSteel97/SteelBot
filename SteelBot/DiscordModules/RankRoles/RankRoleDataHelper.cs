@@ -164,9 +164,9 @@ namespace SteelBot.DiscordModules.RankRoles
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild))
             {
-                if (guild.LevelAnnouncementChannelId.HasValue)
+                DiscordChannel channel = guild.GetLevelAnnouncementChannel(discordGuild);
+                if (channel != null)
                 {
-                    DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
                     await channel.SendMessageAsync(discordUser.Mention, embed: EmbedGenerator.Info($"You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"));
                 }
             }
@@ -176,13 +176,13 @@ namespace SteelBot.DiscordModules.RankRoles
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild))
             {
-                if (guild.LevelAnnouncementChannelId.HasValue)
+                DiscordChannel channel = guild.GetLevelAnnouncementChannel(discordGuild);
+
+                if (channel != null)
                 {
-                    DiscordChannel channel = discordGuild.GetChannel(guild.LevelAnnouncementChannelId.Value);
                     string newRoleText = string.IsNullOrWhiteSpace(newRoleMention)
                         ? "there are no rank roles eligible to replace it."
                         : $"your new role is **{newRoleMention}**";
-
                     await channel.SendMessageAsync(discordUser.Mention, embed: EmbedGenerator.Info($"Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"));
                 }
             }
