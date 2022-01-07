@@ -22,7 +22,7 @@ namespace SteelBot.Database.Models
         [MaxLength(20)]
         public string CommandPrefix { get; set; }
 
-        public ulong? LevelAnnouncementChannelId { private get; set; }
+        public ulong? LevelAnnouncementChannelId { get; set; }
 
         public int GoodBotVotes { get; set; }
         public int BadBotVotes { get; set; }
