@@ -58,6 +58,7 @@ namespace SteelBot.DiscordModules.Stats
                 .WithTitle($"{username} Stats")
                 .AddField("Message Count", $"`{user.MessageCount:N0} Messages`", true)
                 .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
+                .AddField("AFK Time", $"`{user.TimeSpentAfk.Humanize(2)}`", true)
                 .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)} (100%)`", true)
                 .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentStreaming, user.TimeSpentInVoice):P2})`", true)
                 .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentOnVideo, user.TimeSpentInVoice):P2})`", true)

@@ -33,6 +33,11 @@ namespace SteelBot.Helpers
             public const string Television = "\ud83d\udcfa";
         }
 
+        public static class Symbols
+        {
+            public const string Zzz = "💤";
+        }
+
         /// <summary>
         /// Discord emoji ids from my dev server.
         /// </summary>

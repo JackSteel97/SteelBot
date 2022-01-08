@@ -8,9 +8,10 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<AssemblyVersion>0.7.0.7981</AssemblyVersion>
-		<FileVersion>0.7.0.7981</FileVersion>
-		<Version>0.7.0</Version>
+		<Version>0.7.1</Version>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>portable</DebugType>
+		<ImplicitUsings>disable</ImplicitUsings>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -119,11 +120,4 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-
-	<ProjectExtensions>
-		<VisualStudio>
-			<UserProperties BuildVersion_StartDate="2000/1/1" BuildVersion_UseGlobalSettings="True" />
-		</VisualStudio>
-	</ProjectExtensions>
-
 </Project>

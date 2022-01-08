@@ -26,7 +26,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : TypingCommandModule
     {
-        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "voice", "muted", "deafened", "last active", "stream", "video" };
+        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "afk", "voice", "muted", "deafened", "last active", "stream", "video" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
         private readonly AppConfigurationService AppConfigurationService;
@@ -206,6 +206,11 @@ namespace SteelBot.DiscordModules.Stats
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
                     break;
 
+                case "afk":
+                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentAfk).Take(top).ToArray();
+                    metricValues = Array.ConvertAll(orderedUsers, u => $"AFK Time: `{u.TimeSpentAfk.Humanize(3)}`");
+                    break;
+
                 case "voice":
                     orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Voice Time: `{u.TimeSpentInVoice.Humanize(3)}`");
@@ -343,7 +348,8 @@ namespace SteelBot.DiscordModules.Stats
                     .AppendLine($"{EmojiConstants.Objects.Television} - **Streaming** `{user.TimeSpentStreaming.Humanize(3)}`")
                     .AppendLine($"{EmojiConstants.Objects.Camera} - **Video** `{user.TimeSpentOnVideo.Humanize(3)}`")
                     .AppendLine($"{EmojiConstants.Objects.MutedSpeaker} - **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Objects.BellWithSlash} - **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`");
+                    .AppendLine($"{EmojiConstants.Objects.BellWithSlash} - **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`")
+                    .AppendLine($"{EmojiConstants.Symbols.Zzz} - **AFK** `{user.TimeSpentAfk.Humanize(3)}`");
             });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();

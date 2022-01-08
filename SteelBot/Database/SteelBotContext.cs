@@ -53,6 +53,7 @@ namespace SteelBot.Database
                 entity.Ignore(u => u.TimeSpentMuted);
                 entity.Ignore(u => u.TimeSpentStreaming);
                 entity.Ignore(u => u.TimeSpentOnVideo);
+                entity.Ignore(u => u.TimeSpentAfk);
 
                 entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
                 entity.HasOne(u => u.CurrentRankRole).WithMany(rr => rr.UsersWithRole).HasForeignKey(u => u.CurrentRankRoleRowId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);

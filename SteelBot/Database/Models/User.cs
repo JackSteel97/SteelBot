@@ -16,12 +16,14 @@ namespace SteelBot.Database.Models
         public ulong TimeSpentDeafenedSeconds { get; set; }
         public ulong TimeSpentStreamingSeconds { get; set; }
         public ulong TimeSpentOnVideoSeconds { get; set; }
+        public ulong TimeSpentAfkSeconds { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
         public DateTime? DeafenedStartTime { get; set; }
         public DateTime? StreamingStartTime { get; set; }
         public DateTime? VideoStartTime { get; set; }
         public DateTime? VoiceStartTime { get; set; }
+        public DateTime? AfkStartTime { get; set; }
         public DateTime LastActivity { get; set; }
 
         public long GuildRowId { get; set; }
@@ -121,6 +123,18 @@ namespace SteelBot.Database.Models
             set
             {
                 TimeSpentOnVideoSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        public TimeSpan TimeSpentAfk
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentAfkSeconds);
+            }
+            set
+            {
+                TimeSpentAfkSeconds = (ulong)Math.Floor(value.TotalSeconds);
             }
         }
 

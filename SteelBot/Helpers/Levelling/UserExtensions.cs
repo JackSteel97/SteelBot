@@ -60,7 +60,7 @@ namespace SteelBot.Helpers.Levelling
         {
             DateTime now = DateTime.UtcNow;
             user.LastActivity = now;
-            UpdateVoiceXp(user, now);
+            UpdateVoiceCounters(user, now);
             UpdateStartTimes(user, newState, now);
         }
 
@@ -74,19 +74,31 @@ namespace SteelBot.Helpers.Levelling
                 user.DeafenedStartTime = null;
                 user.StreamingStartTime = null;
                 user.VideoStartTime = null;
+                user.AfkStartTime = null;
+            }
+            else if(newState.Channel == newState.Guild.AfkChannel)
+            {
+                // User has gone AFK, this doesn't count as being in a normal voice channel.
+                user.AfkStartTime = now;
+                user.VoiceStartTime = null;
+                user.MutedStartTime = null;
+                user.DeafenedStartTime = null;
+                user.StreamingStartTime = null;
+                user.VideoStartTime = null;
             }
             else
             {
-                // User is in voice channel.
+                // User is in a non-AFK voice channel.
                 user.VoiceStartTime = now;
                 user.MutedStartTime = newState.IsSelfMuted ? now : null;
                 user.DeafenedStartTime = newState.IsSelfDeafened ? now : null;
                 user.StreamingStartTime = newState.IsSelfStream ? now : null;
                 user.VideoStartTime = newState.IsSelfVideo ? now : null;
+                user.AfkStartTime = null;
             }
         }
 
-        private static void UpdateVoiceXp(User user, DateTime now)
+        private static void UpdateVoiceCounters(User user, DateTime now)
         {
             if (user.VoiceStartTime.HasValue)
             {
@@ -121,6 +133,12 @@ namespace SteelBot.Helpers.Levelling
                 var durationDifference = now - user.VideoStartTime.Value;
                 user.TimeSpentOnVideo += durationDifference;
                 IncrementVideoXp(user, durationDifference);
+            }
+
+            if (user.AfkStartTime.HasValue)
+            {
+                user.TimeSpentAfk += (now - user.AfkStartTime.Value);
+                // No XP earned or lost for AFK.
             }
         }
 
