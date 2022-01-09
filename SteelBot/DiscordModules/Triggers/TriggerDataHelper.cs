@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.RankRoles
+namespace SteelBot.DiscordModules.Triggers
 {
     public class TriggerDataHelper
     {

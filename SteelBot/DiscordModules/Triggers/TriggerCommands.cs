@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.RankRoles
+namespace SteelBot.DiscordModules.Triggers
 {
     [Group("Triggers")]
     [Aliases("trigger", "t")]

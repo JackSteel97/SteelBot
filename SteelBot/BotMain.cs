@@ -22,6 +22,7 @@ using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Secret;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
+using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.Helpers;
 using SteelBot.Services;

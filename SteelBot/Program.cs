@@ -15,6 +15,7 @@ using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
+using SteelBot.DiscordModules.Triggers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
