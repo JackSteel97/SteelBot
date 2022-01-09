@@ -235,7 +235,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Platypus => 5 * Year,
                 Species.Gorilla => 10 * Year,
                 Species.Manatee => 30 * Year,
-                _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
+                _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }
     }
