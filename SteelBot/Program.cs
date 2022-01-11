@@ -10,6 +10,7 @@ using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
+using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
@@ -128,6 +129,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<UserTrackingService>();
             serviceProvider.AddSingleton<LevelCardGenerator>();
             serviceProvider.AddSingleton<StockPriceService>();
+            serviceProvider.AddSingleton<PetFactory>();
         }
 
         public static void Main(string[] args)

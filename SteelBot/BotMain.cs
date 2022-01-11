@@ -16,6 +16,7 @@ using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.NonGroupedCommands;
+using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
@@ -44,7 +45,8 @@ namespace SteelBot
         private CommandsNextExtension Commands;
         private readonly UserTrackingService UserTrackingService;
 
-        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService)
+        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService,
+            PetFactory petFactory)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -53,6 +55,8 @@ namespace SteelBot
             DataHelpers = dataHelpers;
             Cache = cache;
             UserTrackingService = userTrackingService;
+
+            petFactory.Generate();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
