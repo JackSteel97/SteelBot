@@ -237,6 +237,213 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Manatee => 30 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
+
+
+        }
+
+        public static List<BodyPart> GetBodyParts(this Species species)
+        {
+            var bodyParts = new List<BodyPart>() { BodyPart.Head, BodyPart.Eyes, BodyPart.Body };
+            
+            // Get additional parts.
+            switch (species)
+            {
+                case Species.Dog:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Cat:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Rabbit:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Hamster:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Raccoon:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.GuineaPig:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Goldfish:
+                    bodyParts.Add(BodyPart.Fins);
+                    break;
+                case Species.Armadillo:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Horse:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Mane);
+                    break;
+                case Species.BearedDragon:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Turtle:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Chicken:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Budgie:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Parrot:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Hare:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Owl:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.FlyingSquirrel:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Chinchilla:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Ferret:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Pig:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Cow:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Sheep:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Goat:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    bodyParts.Add(BodyPart.Horns);
+                    break;
+                case Species.Bull:
+                    bodyParts.Add(BodyPart.Horns);
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Monkey:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Alligator:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Crocodile:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Skunk:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Dragon:
+                    bodyParts.Add(BodyPart.Wings);
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Spikes);
+                    bodyParts.Add(BodyPart.Teeth);
+                    break;
+                case Species.DikDik:
+                    bodyParts.Add(BodyPart.Horns);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Fly:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Sloth:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Snail:
+                    bodyParts.Add(BodyPart.Shell);
+                    break;
+                case Species.Peacock:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Pheasant:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Salamander:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Beaver:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.RedPanda:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.TRex:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Teeth);
+                    break;
+                case Species.Phoenix:
+                    bodyParts.Add(BodyPart.Wings);
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Pegasus:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Unicorn:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Horn);
+                    break;
+                case Species.Wyvern:
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Penguin:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Mosquito:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+                case Species.Giraffe:
+                    bodyParts.Add(BodyPart.Neck);
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Meerkat:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.PrairieDog:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.SeaLion:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Dolphin:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Yak:
+                    bodyParts.Add(BodyPart.Horns);
+                    break;
+                case Species.Bear:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.ManedWolf:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Platypus:
+                    bodyParts.Add(BodyPart.Bill);
+                    bodyParts.Add(BodyPart.Feet);
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Manatee:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+            };
+
+            return bodyParts;
+
         }
     }
 }

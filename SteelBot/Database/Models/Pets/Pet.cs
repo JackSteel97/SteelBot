@@ -1,4 +1,5 @@
-﻿using SteelBot.DiscordModules.Pets.Enums;
+﻿using Humanizer;
+using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,5 +25,13 @@ namespace SteelBot.Database.Models.Pets
         public Species Species { get; set; }
         public Size Size { get; set; }
         public Rarity Rarity { get; set; }
+        public List<PetAttribute> Attributes { get; set; }
+
+        public override string ToString()
+        {
+            TimeSpan age = DateTime.UtcNow - BornAt;
+
+            return $"A {Rarity} {age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year)} old, {Size} {Species.GetName()} with {string.Join("\n", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
+        }
     }
 }

@@ -56,7 +56,10 @@ namespace SteelBot
             Cache = cache;
             UserTrackingService = userTrackingService;
 
-            petFactory.Generate();
+            while (true)
+            {
+                petFactory.Generate();
+            }
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

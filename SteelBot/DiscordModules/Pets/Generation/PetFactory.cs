@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Humanizer;
+using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using System;
@@ -24,7 +25,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private void BuildSpeciesCache()
         {
-            var species = Enum.GetValues(typeof(Species)).Cast<Species>().ToList();
+            var species = Enum.GetValues(typeof(Species)).Cast<Species>().ToArray();
             foreach (var spec in species)
             {
                 var rarity = spec.GetRarity();
@@ -41,7 +42,19 @@ namespace SteelBot.DiscordModules.Pets.Generation
         {
             var baseRarity = GetBaseRarity();
             var species = GetSpecies(baseRarity);
-            var size = GetSize();
+            var size = GetRandomEnumValue<Size>();
+            var birthDate = GetBirthDate(species);
+
+            var pet = new Pet()
+            {
+                Rarity = baseRarity,
+                Species = species,
+                Size = size,
+                BornAt = birthDate,
+                FoundAt = DateTime.UtcNow
+            };
+
+            pet.Attributes = BuildAttributes(pet);
         }
 
         private static Rarity GetBaseRarity()
@@ -88,10 +101,62 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return possibleSpecies[index];
         }
 
-        private static Size GetSize()
+        private static DateTime GetBirthDate(Species species)
         {
-            var sizes = Enum.GetValues(typeof(Size)).Cast<Size>().ToList();
-            return sizes[RandomNumberGenerator.GetInt32(sizes.Count)];
+            int maxAgeMinutes = (int)Math.Floor(species.GetMaxStartingAge().TotalMinutes);
+            var minutesOld = RandomNumberGenerator.GetInt32(30, maxAgeMinutes);
+            return DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(minutesOld));
+        }
+
+        private static List<PetAttribute> BuildAttributes(Pet pet)
+        {
+            var bodyParts = pet.Species.GetBodyParts();
+
+            var attributes = new List<PetAttribute>(bodyParts.Count);
+            foreach (var part in bodyParts)
+            {
+                var attribute = new PetAttribute()
+                {
+                    Pet = pet,
+                    Name = part.Humanize(),
+                    Description = GenerateColourCombo()
+                };
+                attributes.Add(attribute);
+            }
+            return attributes;
+        }
+
+        private static string GenerateColourCombo()
+        {
+            if (OccurredWithProbability(0.1))
+            {
+                // Has two colours.
+                var primary = GetRandomEnumValue<Colour>();
+                var secondary = GetRandomEnumValue<Colour>();
+                var mixing = GetRandomEnumValue<ColourMixing>();
+
+                return $"{primary.Humanize()} and {secondary.Humanize()} {mixing.Humanize()}";
+            }
+            else
+            {
+                // Has one colour.
+                var colour = GetRandomEnumValue<Colour>();
+                return colour.Humanize();
+            }
+        }
+
+        private static bool OccurredWithProbability(double probability)
+        {
+            const int maxBound = 1000;
+            return RandomNumberGenerator.GetInt32(maxBound) < maxBound * probability;
+        }
+
+
+        private static T GetRandomEnumValue<T>()
+        {
+            var values = Enum.GetValues(typeof(T)).Cast<T>().ToArray();
+            return values[RandomNumberGenerator.GetInt32(values.Length)];
+
         }
     }
 }

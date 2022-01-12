@@ -18,6 +18,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Flippers,
         Wings,
         Horns,
+        Horn,
         Spikes,
         Claws,
         Shell,
