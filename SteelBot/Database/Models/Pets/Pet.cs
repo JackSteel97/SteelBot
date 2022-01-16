@@ -19,7 +19,7 @@ namespace SteelBot.Database.Models.Pets
 
         public int Priority { get; set; }
         public ulong EarnedXp { get; set; }
-        public int CurrentLevel { get; set; }
+        public int CurrentLevel { get; set; } = 1;
         public DateTime BornAt { get; set; }
         public DateTime FoundAt { get; set; }
         public Species Species { get; set; }
@@ -31,7 +31,7 @@ namespace SteelBot.Database.Models.Pets
         {
             TimeSpan age = DateTime.UtcNow - BornAt;
 
-            return $"A {Rarity} {age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year)} old, {Size} {Species.GetName()} with {string.Join("\n", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
+            return $"A {Rarity} {age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
         }
     }
 }

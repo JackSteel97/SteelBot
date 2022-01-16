@@ -31,5 +31,10 @@ namespace SteelBot.Helpers.Extensions
             }
             return formatted;
         }
+
+        public static string AsMention(this ulong id)
+        {
+            return $"<@{id}>";
+        }
     }
 }

@@ -38,7 +38,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             }
         }
 
-        public void Generate()
+        public Pet Generate()
         {
             var baseRarity = GetBaseRarity();
             var species = GetSpecies(baseRarity);
@@ -55,15 +55,16 @@ namespace SteelBot.DiscordModules.Pets.Generation
             };
 
             pet.Attributes = BuildAttributes(pet);
+            return pet;
         }
 
         private static Rarity GetBaseRarity()
         {
             const int maxBound = 1000;
             const double LegendaryChance = 0.01;
-            const double EpicChance = 0.03;
-            const double RareChance = 0.06;
-            const double UncommonChance = 0.3;
+            const double EpicChance = 0.04;
+            const double RareChance = 0.10;
+            const double UncommonChance = 0.4;
 
             const double LegendaryBound = maxBound * LegendaryChance;
             const double EpicBound = maxBound * EpicChance;
@@ -72,19 +73,19 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             int random = RandomNumberGenerator.GetInt32(maxBound);
 
-            if (random < LegendaryBound)
+            if (random <= LegendaryBound)
             {
                 return Rarity.Legendary;
             }
-            else if (random < EpicBound)
+            else if (random <= EpicBound)
             {
                 return Rarity.Epic;
             }
-            else if (random < RareBound)
+            else if (random <= RareBound)
             {
                 return Rarity.Rare;
             }
-            else if (random < UncommonBound)
+            else if (random <= UncommonBound)
             {
                 return Rarity.Uncommon;
             }
@@ -135,7 +136,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 var secondary = GetRandomEnumValue<Colour>();
                 var mixing = GetRandomEnumValue<ColourMixing>();
 
-                return $"{primary.Humanize()} and {secondary.Humanize()} {mixing.Humanize()}";
+                return $"{primary.Humanize()} and {secondary.Humanize()} {mixing.Humanize()} patterned";
             }
             else
             {
@@ -148,7 +149,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
         private static bool OccurredWithProbability(double probability)
         {
             const int maxBound = 1000;
-            return RandomNumberGenerator.GetInt32(maxBound) < maxBound * probability;
+            return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
         }
 
 

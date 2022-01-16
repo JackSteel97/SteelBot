@@ -1,5 +1,6 @@
 ﻿using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
+using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
@@ -27,6 +28,8 @@ namespace SteelBot.DiscordModules
 
         public FunDataHelper Fun { get; }
 
+        public PetsDataHelper Pets { get; }
+
         public DataHelpers(StatsDataHelper statsHelper,
             ConfigDataHelper configHelper,
             RolesDataHelper rolesHelper,
@@ -34,7 +37,8 @@ namespace SteelBot.DiscordModules
             RankRoleDataHelper rankRolesHelper,
             TriggerDataHelper triggersDataHelper,
             PortfolioDataHelper portfolioDataHelper,
-            FunDataHelper fun)
+            FunDataHelper fun,
+            PetsDataHelper pets)
         {
             Stats = statsHelper;
             Config = configHelper;
@@ -44,6 +48,7 @@ namespace SteelBot.DiscordModules
             Triggers = triggersDataHelper;
             Portfolios = portfolioDataHelper;
             Fun = fun;
+            Pets = pets;
         }
     }
 }

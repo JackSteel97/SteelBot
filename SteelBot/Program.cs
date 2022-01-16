@@ -10,6 +10,7 @@ using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
+using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
@@ -101,6 +102,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<TriggerDataHelper>();
             serviceProvider.AddSingleton<PortfolioDataHelper>();
             serviceProvider.AddSingleton<FunDataHelper>();
+            serviceProvider.AddSingleton<PetsDataHelper>();
             // Add base provider.
             serviceProvider.AddSingleton<DataHelpers>();
         }
