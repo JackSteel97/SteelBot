@@ -44,6 +44,19 @@ namespace SteelBot.DiscordModules.Pets
                 embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description), true);
             }
 
+            StringBuilder bonuses = new StringBuilder();
+            foreach(var bonus in pet.Bonuses)
+            {
+                bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(": ");
+                if (bonus.BonusType.IsNegative())
+                {
+                    bonuses.Append('-');
+                }
+                bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
+            }
+
+            embedBuilder.AddField("Bonuses", bonuses.ToString());
+
             return embedBuilder;
 
         }

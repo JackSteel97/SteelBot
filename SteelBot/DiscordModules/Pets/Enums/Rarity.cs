@@ -35,5 +35,18 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 _ => throw new ArgumentOutOfRangeException(nameof(rarity)),
             };
         }
+
+        public static int GetStartingBonusCount(this Rarity rarity)
+        {
+            return rarity switch
+            {
+                Rarity.Common => 1,
+                Rarity.Uncommon => 1,
+                Rarity.Rare => 2,
+                Rarity.Epic => 2,
+                Rarity.Legendary => 3,
+                _ => throw new ArgumentOutOfRangeException(nameof(rarity))
+            };
+        }
     }
 }

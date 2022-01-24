@@ -26,6 +26,7 @@ namespace SteelBot.Database.Models.Pets
         public Size Size { get; set; }
         public Rarity Rarity { get; set; }
         public List<PetAttribute> Attributes { get; set; }
+        public List<PetBonus> Bonuses { get; set; }
 
         public override string ToString()
         {
