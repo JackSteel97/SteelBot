@@ -4,21 +4,30 @@ namespace SteelBot.Helpers.Extensions
 {
     public static class NumberExtensions
     {
+        private const double Thousand = 1_000;
+        private const double Million = 1_000_000;
+        private const double Billion = 1_000_000_000;
+
         public static string KiloFormat(this ulong value)
         {
-            if (value >= 100000000000)
-                return (value / 1000000000).ToString("##,0") + " B";
-            if (value >= 10000000000)
-                return (value / 1000000000D).ToString("0.####") + " B";
-            if (value >= 100000000)
-                return (value / 1000000).ToString("##,0") + " M";
-            if (value >= 10000000)
-                return (value / 1000000D).ToString("0.###") + " M";
-            if (value >= 100000)
-                return (value / 1000).ToString("##,0") + " K";
-            if (value >= 10000)
-                return (value / 1000D).ToString("0.##") + " K";
-            return value.ToString("##,0");
+            if (value >= 100 * Billion)
+                return (value / Billion).ToString("0.#") + "B";
+            if (value >= 10 * Billion)
+                return (value / Billion).ToString("0.##") + "B";
+            if (value >= Billion)
+                return (value / Billion).ToString("0.###") + "B";
+            if (value >= 100 * Million)
+                return (value / Million).ToString("0.#") + "M";
+            if (value >= 10 * Million)
+                return (value / Million).ToString("0.##") + "M";
+            if (value >= Million)
+                return (value / Million).ToString("0.##") + "M";
+            if (value >= 100 * Thousand)
+                return (value / Thousand).ToString("N0") + "K";
+            if (value >= 10 * Thousand)
+                return (value / Thousand).ToString("0.##") + "K";
+
+            return value.ToString("N0");
         }
 
         public static string KiloFormat(this long value)

@@ -2,6 +2,7 @@
 
 namespace SteelBot.Helpers
 {
+    // From https://r12a.github.io/app-conversion/ Use "\n etc" checkbox on JS/Java/C style
     public static class EmojiConstants
     {
         public static class Numbers
@@ -31,11 +32,17 @@ namespace SteelBot.Helpers
             public const string MutedSpeaker = "\ud83d\udd07";
             public const string BellWithSlash = "\ud83d\udd15";
             public const string Television = "\ud83d\udcfa";
+            public const string WavingHand = "\uD83D\uDC4B";
         }
 
         public static class Symbols
         {
             public const string Zzz = "💤";
+        }
+
+        public static class Faces
+        {
+            public const string Hugging = "\uD83E\uDD17";
         }
 
         /// <summary>

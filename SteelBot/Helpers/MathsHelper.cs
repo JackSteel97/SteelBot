@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 
 namespace SteelBot.Helpers
 {
@@ -16,6 +17,12 @@ namespace SteelBot.Helpers
         public static double GetPercentageOfDuration(TimeSpan smallerDuration, TimeSpan largerDuration)
         {
             return smallerDuration.TotalSeconds / largerDuration.TotalSeconds;
+        }
+
+        public static bool TrueWithProbability(double probability)
+        {
+            const int maxBound = 1000;
+            return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
         }
     }
 }

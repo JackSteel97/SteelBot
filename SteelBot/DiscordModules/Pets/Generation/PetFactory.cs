@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,7 +149,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private static string GenerateColourCombo()
         {
-            if (OccurredWithProbability(0.1))
+            if (MathsHelper.TrueWithProbability(0.1))
             {
                 // Has two colours.
                 var primary = GetRandomEnumValue<Colour>();
@@ -164,13 +165,6 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 return colour.Humanize();
             }
         }
-
-        private static bool OccurredWithProbability(double probability)
-        {
-            const int maxBound = 1000;
-            return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
-        }
-
 
         private static T GetRandomEnumValue<T>()
         {

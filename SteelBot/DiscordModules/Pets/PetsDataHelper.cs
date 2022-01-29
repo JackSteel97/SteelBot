@@ -12,6 +12,7 @@ using SteelBot.DiscordModules.Pets.Enums;
 using DSharpPlus;
 using SteelBot.Helpers.Extensions;
 using Humanizer;
+using SteelBot.Helpers;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -28,11 +29,28 @@ namespace SteelBot.DiscordModules.Pets
             Logger = logger;
         }
 
-        public DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet)
+        public DiscordMessageBuilder GetPetRanAwayMessage(Pet pet)
         {
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(pet.Rarity.GetColour()))
-                .WithTitle($"{pet.Name ?? $"Unamed {pet.Species.GetName()} - Level {pet.CurrentLevel}"}")
+                .WithTitle("It got away!")
+                .WithDescription($"The {pet.Species.GetName()} ran away before you could befriend it.\nBetter luck next time!");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+        public DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true)
+        {
+            var name = "";
+            if (includeName)
+            {
+                name = $"{pet.Name ?? $"Unamed {pet.Species.GetName()}"} - ";
+            }
+            else
+            {
+                name = $"{pet.Species.GetName()} - ";
+            }
+            var embedBuilder = new DiscordEmbedBuilder()
+                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
+                .WithTitle($"{name}Level {pet.CurrentLevel}")
                 .AddField("Rarity", Formatter.InlineCode(pet.Rarity.ToString()), true)
                 .AddField("Species", Formatter.InlineCode(pet.Species.GetName()), true)
                 .AddField("Size", Formatter.InlineCode(pet.Size.ToString()), true)
@@ -47,10 +65,14 @@ namespace SteelBot.DiscordModules.Pets
             StringBuilder bonuses = new StringBuilder();
             foreach(var bonus in pet.Bonuses)
             {
-                bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(": ");
+                bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ");
                 if (bonus.BonusType.IsNegative())
                 {
                     bonuses.Append('-');
+                }
+                else
+                {
+                    bonuses.Append('+');
                 }
                 bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
             }
@@ -58,7 +80,18 @@ namespace SteelBot.DiscordModules.Pets
             embedBuilder.AddField("Bonuses", bonuses.ToString());
 
             return embedBuilder;
+        }
 
+        public bool SearchSuccess(DiscordMember userSearching)
+        {
+            var probability = GetSearchSuccessProbability(userSearching);
+            return MathsHelper.TrueWithProbability(probability);
+        }
+
+        public bool HasSpaceForAnotherPet(DiscordMember user)
+        {
+            // TODO: Implement check based on number of existing pets.
+            return true;
         }
 
         private static string GetAge(DateTime birthdate)
@@ -66,6 +99,12 @@ namespace SteelBot.DiscordModules.Pets
             var age = DateTime.UtcNow - birthdate;
             var ageStr = age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year);
             return string.Concat(ageStr, " old");
+        }
+
+        private double GetSearchSuccessProbability(DiscordMember userSearching)
+        {
+            // TODO: Implement dynamic probability based on number of existing pets etc.
+            return 1;
         }
     }
 }

@@ -17,9 +17,9 @@
 	<ItemGroup>
 		<PackageReference Include="AlphaVantage.Net.Forex" Version="2.0.2" />
 		<PackageReference Include="AlphaVantage.Net.Stocks" Version="2.0.2" />
-		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01056" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01056" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01056" />
+		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01063" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01063" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01063" />
 		<PackageReference Include="Humanizer.Core" Version="2.13.14" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">
 			<PrivateAssets>all</PrivateAssets>
@@ -30,9 +30,9 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.2" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
 		<PackageReference Include="RestSharp" Version="107.0.0-preview.19" />
-		<PackageReference Include="ScottPlot" Version="4.1.29" />
+		<PackageReference Include="ScottPlot" Version="4.1.32" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
 	</ItemGroup>
