@@ -14,6 +14,8 @@ namespace SteelBot.Helpers.Constants
         {
             public static readonly DiscordButtonComponent Befriend = new(ButtonStyle.Primary, InteractionIds.Pets.Befriend, "Befriend", emoji: new DiscordComponentEmoji(EmojiConstants.Faces.Hugging));
             public static readonly DiscordButtonComponent Leave = new(ButtonStyle.Secondary, InteractionIds.Pets.Leave, "Leave", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.WavingHand));
+            public static readonly DiscordButtonComponent NameConfirm = new(ButtonStyle.Success, InteractionIds.Pets.NameConfirm, "Yes", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.ThumbsUp));
+            public static readonly DiscordButtonComponent NameRetry = new(ButtonStyle.Danger, InteractionIds.Pets.NameRetry, "Pick a different name", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.ThumbsDown));
         }
     }
 
@@ -23,6 +25,8 @@ namespace SteelBot.Helpers.Constants
         {
             public const string Befriend = "befriend_pet";
             public const string Leave = "leave_pet";
+            public const string NameConfirm = "name_confirmed_pet";
+            public const string NameRetry = "name_retry_pet";
         }
     }
 }

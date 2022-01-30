@@ -33,11 +33,16 @@ namespace SteelBot.Helpers
             public const string BellWithSlash = "\ud83d\udd15";
             public const string Television = "\ud83d\udcfa";
             public const string WavingHand = "\uD83D\uDC4B";
+            public const string ThumbsUp = "\uD83D\uDC4D";
+            public const string ThumbsDown = "\uD83D\uDC4E";
         }
 
         public static class Symbols
         {
-            public const string Zzz = "💤";
+            public const string Zzz = "\uD83D\uDCA4";
+            public const string CheckMark = "\u2714\uFE0F";
+            public const string CheckMarkButton = "\u2705";
+            public const string CrossMark = "\u274C";
         }
 
         public static class Faces

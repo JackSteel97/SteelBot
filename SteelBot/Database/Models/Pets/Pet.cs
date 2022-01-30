@@ -34,5 +34,10 @@ namespace SteelBot.Database.Models.Pets
 
             return $"A {Rarity} {age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
         }
+
+        public string GetName()
+        {
+            return Name ?? $"Unnamed {Species.GetName()}";
+        }
     }
 }

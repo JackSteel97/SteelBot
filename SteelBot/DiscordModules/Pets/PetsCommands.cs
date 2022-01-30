@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
+using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
@@ -47,37 +48,16 @@ namespace SteelBot.DiscordModules.Pets
                 return;
             }
 
-            var hasSpace = DataHelpers.Pets.HasSpaceForAnotherPet(context.Member);
-            string noSpaceMessage = "";
-            if (!hasSpace)
+            (bool befriendAttempt, Pet pet) = await DataHelpers.Pets.HandleInitialSearchSuccess(context);
+            bool newPet = false;
+            if (befriendAttempt)
             {
-                noSpaceMessage = " But you don't have enough room for another pet!";
+                newPet = await DataHelpers.Pets.HandleBefriendAttempt(context, pet);
             }
 
-            var foundPet = PetFactory.Generate();
-            var initialPetDisplay = DataHelpers.Pets.GetPetDisplayEmbed(foundPet, includeName: false);
-
-            var initialResponseBuilder = new DiscordMessageBuilder()
-                .WithContent($"You found a new potential friend!{noSpaceMessage}")
-                .WithEmbed(initialPetDisplay)
-                .AddComponents(new DiscordComponent[] {
-                    Interactions.Pets.Befriend.Disable(!hasSpace),
-                    Interactions.Pets.Leave
-                });
-
-            var message = await context.RespondAsync(initialResponseBuilder);
-            var result = await message.WaitForButtonAsync(context.Member);
-
-            if (!result.TimedOut)
+            if (newPet)
             {
-                initialResponseBuilder.ClearComponents();
-                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
-                // TODO: Send next message in chain based on choice
-            }
-            else
-            {
-                await message.DeleteAsync();
-                await context.RespondAsync(DataHelpers.Pets.GetPetRanAwayMessage(foundPet));
+                await context.RespondAsync(DataHelpers.Pets.GetPetOwnedSuccessMessage(context.Member, pet));
             }
 
         }
