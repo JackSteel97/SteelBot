@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace SteelBot.Database.Models
 {
@@ -7,6 +8,8 @@ namespace SteelBot.Database.Models
         public long RowId { get; set; }
         public StockPortfolio ParentPortfolio { get; set; }
         public long ParentPortfolioRowId { get; set; }
+
+        [MaxLength(100)]
         public string Symbol { get; set; }
         public decimal AmountOwned { get; set; }
         public DateTime LastUpdated { get; set; }

@@ -21,7 +21,7 @@ namespace SteelBot.DataProviders.SubProviders
         /// Indexed on the user's discord id & guild id
         /// The same user has one entry per server they are in.
         /// </summary>
-        private Dictionary<(ulong guildId, ulong userId), User> UsersByDiscordIdAndServer;
+        private readonly Dictionary<(ulong guildId, ulong userId), User> UsersByDiscordIdAndServer;
 
         public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService)
         {
@@ -29,21 +29,22 @@ namespace SteelBot.DataProviders.SubProviders
             DbContextFactory = contextFactory;
             AppConfigurationService = appConfigurationService;
 
-            UsersByDiscordIdAndServer = new Dictionary<(ulong, ulong), User>();
-            LoadUserData();
+            UsersByDiscordIdAndServer = LoadUserData();
         }
 
-        private void LoadUserData()
+        private Dictionary<(ulong, ulong), User> LoadUserData()
         {
+            var result = new Dictionary<(ulong, ulong), User>();
             Logger.LogInformation("Loading data from database: Users");
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
-                UsersByDiscordIdAndServer = db.Users
+                result = db.Users
                     .Include(u => u.Guild)
                     .Include(u => u.CurrentRankRole)
                     .AsNoTracking()
                     .ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
             }
+            return result;
         }
 
         public bool BotKnowsUser(ulong guildId, ulong userId)

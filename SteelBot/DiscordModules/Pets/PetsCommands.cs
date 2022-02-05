@@ -24,7 +24,6 @@ namespace SteelBot.DiscordModules.Pets
     [Aliases("Pets")]
     [Description("Commands for interacting with user pets")]
     [RequireGuild]
-    [RequireOwner] // TODO: Remove
     public class PetsCommands : TypingCommandModule
     {
         private readonly ILogger<PetsCommands> Logger;
@@ -39,13 +38,14 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [Command("Search")]
+        [Description("WIP: Search for a new pet")]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
             if (!DataHelpers.Pets.SearchSuccess(context.Member))
             {
-                await context.RespondAsync(EmbedGenerator.Info("You didn't find anything this time!\nTry again later", "Nothing Found"));
+                await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"));
                 return;
             }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Pets;
 using System;
 
 namespace SteelBot.Database
@@ -24,6 +25,9 @@ namespace SteelBot.Database
 
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
         public DbSet<CommandStatistic> CommandStatistics { get; set; }
+        public DbSet<Pet> Pets { get; set; }
+        public DbSet<PetAttribute> PetAttributes { get; set; }
+        public DbSet<PetBonus> PetBonuses { get; set; }
 
         public SteelBotContext(DbContextOptions<SteelBotContext> options) : base(options)
         {
@@ -109,7 +113,6 @@ namespace SteelBot.Database
             modelBuilder.Entity<OwnedStock>(entity =>
             {
                 entity.HasKey(os => os.RowId);
-                entity.Property(os => os.Symbol).HasMaxLength(100);
                 entity.Property(os => os.AmountOwned).HasColumnType("decimal(38, 20)");
             });
 
@@ -117,6 +120,25 @@ namespace SteelBot.Database
             {
                 entity.HasKey(ss => ss.RowId);
                 entity.Property(ss => ss.TotalValueDollars).HasColumnType("decimal(24, 4)");
+            });
+
+            modelBuilder.Entity<Pet>(entity =>
+            {
+                entity.HasKey(p => p.RowId);
+                entity.HasIndex(p => p.OwnerDiscordId);
+
+                entity.HasMany(p => p.Attributes).WithOne(pa => pa.Pet).HasForeignKey(pa => pa.PetId);
+                entity.HasMany(p => p.Bonuses).WithOne(pb => pb.Pet).HasForeignKey(pb => pb.PetId);
+            });
+
+            modelBuilder.Entity<PetAttribute>(entity =>
+            {
+                entity.HasKey(pa => pa.RowId);
+            });
+
+            modelBuilder.Entity<PetBonus>(entity =>
+            {
+                entity.HasKey(pb => pb.RowId);
             });
 
             ApplyDateTimeConverters(modelBuilder);

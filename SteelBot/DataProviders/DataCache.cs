@@ -14,6 +14,7 @@ namespace SteelBot.DataProviders
         public CommandStatisticProvider CommandStatistics { get; set; }
         public FunProvider Fun { get; set; }
         public StockPortfoliosProvider Portfolios { get; set; }
+        public PetsProvider Pets { get; set; }
 
         public DataCache(GuildsProvider guildsProvider,
             UsersProvider usersProvider,
@@ -24,7 +25,8 @@ namespace SteelBot.DataProviders
             TriggersProvider triggersProvider,
             CommandStatisticProvider commandStatisticsProvider,
             FunProvider funProvider,
-            StockPortfoliosProvider portfoliosProvider)
+            StockPortfoliosProvider portfoliosProvider,
+            PetsProvider pets)
         {
             Guilds = guildsProvider;
             Users = usersProvider;
@@ -36,6 +38,7 @@ namespace SteelBot.DataProviders
             CommandStatistics = commandStatisticsProvider;
             Fun = funProvider;
             Portfolios = portfoliosProvider;
+            Pets = pets;
         }
     }
 }

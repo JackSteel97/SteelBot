@@ -41,7 +41,7 @@ namespace SteelBot.DiscordModules.Pets
             var embedBuilder = new DiscordEmbedBuilder()
                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
                .WithTitle("Congrats")
-               .WithDescription($"Congratulations {owner.Mention} on your new pet {nameInsert}");
+               .WithDescription($"{owner.Mention} Congratulations on your new pet {nameInsert}");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
@@ -50,7 +50,7 @@ namespace SteelBot.DiscordModules.Pets
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(pet.Rarity.GetColour()))
                 .WithTitle("It got away!")
-                .WithDescription($"The {pet.Species.GetName()} ran away before you could befriend it.\nBetter luck next time!");
+                .WithDescription($"The {pet.Species.GetName()} ran away before you could befriend it.{Environment.NewLine}Better luck next time!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
@@ -59,7 +59,7 @@ namespace SteelBot.DiscordModules.Pets
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(pet.Rarity.GetColour()))
                 .WithTitle("Failed to befriend!")
-                .WithDescription($"The {pet.Species.GetName()} ran away as soon as you moved closer.\nBetter luck next time!");
+                .WithDescription($"The {pet.Species.GetName()} ran away as soon as you moved closer.{Environment.NewLine}Better luck next time!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 

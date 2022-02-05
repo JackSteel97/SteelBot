@@ -237,14 +237,12 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Manatee => 30 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
-
-
         }
 
         public static List<BodyPart> GetBodyParts(this Species species)
         {
             var bodyParts = new List<BodyPart>() { BodyPart.Head, BodyPart.Eyes, BodyPart.Body };
-            
+
             // Get additional parts.
             switch (species)
             {
