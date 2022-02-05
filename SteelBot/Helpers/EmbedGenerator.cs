@@ -10,11 +10,11 @@ namespace SteelBot.Helpers
         public static readonly DiscordColor PrimaryColour = new DiscordColor(0x242424);
         public static readonly DiscordColor InfoColour = new DiscordColor(0x4A90E2);
 
-        public static DiscordEmbed Error(string errorMessage)
+        public static DiscordEmbed Error(string errorMessage, string title = "Error")
         {
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
                 .WithColor(ErrorColour)
-                .WithTitle("Error")
+                .WithTitle(title)
                 .WithDescription(errorMessage);
             return builder.Build();
         }

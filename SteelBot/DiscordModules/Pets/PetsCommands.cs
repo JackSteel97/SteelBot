@@ -24,6 +24,7 @@ namespace SteelBot.DiscordModules.Pets
     [Aliases("Pets")]
     [Description("Commands for interacting with user pets")]
     [RequireGuild]
+    [RequireOwner] // TODO: Remove
     public class PetsCommands : TypingCommandModule
     {
         private readonly ILogger<PetsCommands> Logger;

@@ -26,6 +26,7 @@ using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
+using SteelBot.DiscordModules.WordGuesser;
 using SteelBot.Helpers;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
@@ -124,6 +125,7 @@ namespace SteelBot
             Commands.RegisterCommands<PortfolioCommands>();
             Commands.RegisterCommands<MiscCommands>();
             Commands.RegisterCommands<PetsCommands>();
+            Commands.RegisterCommands<WordGuesserCommands>();
 
             Commands.SetHelpFormatter<CustomHelpFormatter>();
         }

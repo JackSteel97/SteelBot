@@ -63,7 +63,17 @@ namespace SteelBot.DiscordModules.Roles
         public async Task<string> JoinAllAvailableRoles(DiscordMember member, DiscordGuild guild)
         {
             StringBuilder builder = new StringBuilder();
-            Dictionary<string, DiscordRole> discordRolesByName = guild.Roles.Values.ToDictionary(x => x.Name.ToLower());
+            // TODO: Use discord ids to index these instead of names.
+            Dictionary<string, DiscordRole> discordRolesByName = new Dictionary<string, DiscordRole>(guild.Roles.Count);
+            foreach(var role in guild.Roles.Values)
+            {
+                string name = role.Name.ToLower();
+                if (!discordRolesByName.ContainsKey(name))
+                {
+                    discordRolesByName.Add(name, role);
+                }
+            }
+
             List<SelfRole> allRoles = GetSelfRoles(guild.Id);
             foreach (SelfRole role in allRoles)
             {

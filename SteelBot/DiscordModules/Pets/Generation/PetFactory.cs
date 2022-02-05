@@ -175,7 +175,9 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private static double GetRandomPercentageBonus()
         {
-            return RandomNumberGenerator.GetInt32(1, 101) / 100.0;
+            const int maxValue = 1001;
+            const double maxDoubleVal = maxValue;
+            return RandomNumberGenerator.GetInt32(1, maxValue) / maxDoubleVal;
         }
     }
 }
