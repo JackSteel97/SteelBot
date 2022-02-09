@@ -266,8 +266,10 @@ namespace SteelBot.DiscordModules.Pets
 
         public bool HasSpaceForAnotherPet(DiscordMember user)
         {
-            // TODO: Implement check based on number of existing pets.
-            return true;
+            var capacity = GetPetCapacity(user);
+            var ownedPets = GetNumberOfOwnedPets(user);
+
+            return ownedPets < capacity;
         }
 
         private static string GetAge(DateTime birthdate)
@@ -279,16 +281,41 @@ namespace SteelBot.DiscordModules.Pets
 
         private double GetSearchSuccessProbability(DiscordMember userSearching)
         {
-            // TODO: Implement dynamic probability based on number of existing pets etc.
-            return 1;
+            var ownedPets = (double)GetNumberOfOwnedPets(userSearching);
+            var probability = 2 / ownedPets;
+            return Math.Min(1, probability);
         }
 
         private double GetBefriendSuccessProbability(DiscordMember user, Pet target)
         {
-            var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity+1);
             const double baseRate = 0.1;
-            //TODO: return baseRate + (petCapacity-ownedPets)/(petCapacity+rarityModifier)
-            return 1;
+
+            var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity+1);
+            var petCapacity = (double)GetPetCapacity(user);
+            var ownedPets = (double)GetNumberOfOwnedPets(user);
+            return baseRate + ((petCapacity - ownedPets) / (petCapacity + rarityModifier));
+        }
+
+        private int GetPetCapacity(DiscordMember discordUser)
+        {
+            int result = 1;
+            const int newPetSlotUnlockLevels = 20;
+
+            if(Cache.Users.TryGetUser(discordUser.Guild.Id, discordUser.Id, out var user))
+            {
+                result += (user.CurrentLevel / newPetSlotUnlockLevels);
+            }
+            return result;
+        }
+
+        private int GetNumberOfOwnedPets(DiscordMember discordUser)
+        {
+            int result = 0;
+            if(Cache.Pets.TryGetUsersPets(discordUser.Id, out var pets))
+            {
+                result = pets.Count;
+            }
+            return result;
         }
     }
 }
