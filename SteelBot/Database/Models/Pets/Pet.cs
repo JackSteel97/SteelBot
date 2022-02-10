@@ -17,7 +17,7 @@ namespace SteelBot.Database.Models.Pets
         public string Name { get; set; }
 
         public int Priority { get; set; }
-        public ulong EarnedXp { get; set; }
+        public double EarnedXp { get; set; }
         public int CurrentLevel { get; set; } = 1;
         public DateTime BornAt { get; set; }
         public DateTime FoundAt { get; set; }
@@ -38,5 +38,7 @@ namespace SteelBot.Database.Models.Pets
         {
             return Name ?? $"Unnamed {Species.GetName()}";
         }
+
+        public bool IsPrimary => Priority == 0;
     }
 }

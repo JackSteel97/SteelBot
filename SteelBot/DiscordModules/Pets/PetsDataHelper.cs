@@ -18,6 +18,7 @@ using DSharpPlus.CommandsNext;
 using SteelBot.Helpers.Constants;
 using DSharpPlus.Interactivity.Extensions;
 using System.Security.Cryptography;
+using SteelBot.Helpers.Levelling;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -235,6 +236,18 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
+        public async Task PetXpsUpdated(List<Pet> pets)
+        {
+            foreach (var pet in pets)
+            {
+                if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
+                {
+                    pet.CurrentLevel = newLevel;
+                }
+                await Cache.Pets.UpdatePet(pet);
+            }
+        }
+
         private async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)
         {
             bool named = false;
@@ -304,7 +317,7 @@ namespace SteelBot.DiscordModules.Pets
         {
             const double baseRate = 0.1;
 
-            var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity+1);
+            var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity + 1);
             var petCapacity = (double)GetPetCapacity(user.Guild.Id, user.Id);
             var ownedPets = (double)GetNumberOfOwnedPets(user.Id);
             return baseRate + ((petCapacity - ownedPets) / (petCapacity + rarityModifier));
@@ -315,7 +328,7 @@ namespace SteelBot.DiscordModules.Pets
             int result = 1;
             const int newPetSlotUnlockLevels = 20;
 
-            if(Cache.Users.TryGetUser(guildId, userId, out var user))
+            if (Cache.Users.TryGetUser(guildId, userId, out var user))
             {
                 result += (user.CurrentLevel / newPetSlotUnlockLevels);
             }
@@ -325,7 +338,7 @@ namespace SteelBot.DiscordModules.Pets
         private int GetNumberOfOwnedPets(ulong userId)
         {
             int result = 0;
-            if(Cache.Pets.TryGetUsersPets(userId, out var pets))
+            if (Cache.Pets.TryGetUsersPets(userId, out var pets))
             {
                 result = pets.Count;
             }

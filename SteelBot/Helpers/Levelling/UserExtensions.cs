@@ -17,21 +17,8 @@ namespace SteelBot.Helpers.Levelling
 
         public static bool UpdateLevel(this User user)
         {
-            int newLevel = user.CurrentLevel;
+            var levelIncreased = LevellingMaths.UpdateLevel(user.CurrentLevel, user.TotalXp, out var newLevel);
 
-            bool hasEnoughXp;
-
-            do
-            {
-                ulong requiredXp = LevellingMaths.XpForLevel(newLevel + 1);
-                hasEnoughXp = user.TotalXp >= requiredXp;
-                if (hasEnoughXp)
-                {
-                    ++newLevel;
-                }
-            } while (hasEnoughXp);
-
-            bool levelIncreased = newLevel > user.CurrentLevel;
             if (levelIncreased)
             {
                 user.CurrentLevel = newLevel;

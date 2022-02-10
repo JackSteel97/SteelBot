@@ -13,6 +13,24 @@ namespace SteelBot.Helpers.Levelling
             return Convert.ToUInt64(Math.Round((Math.Pow(1.2, level) - 1) + (500 * level)));
         }
 
+        public static bool UpdateLevel(int currentLevel, double totalXp, out int newLevel)
+        {
+            newLevel = currentLevel;
+
+            bool hasEnoughXp;
+            do
+            {
+                ulong requiredXp = XpForLevel(newLevel + 1);
+                hasEnoughXp = totalXp >= requiredXp;
+                if (hasEnoughXp)
+                {
+                    ++newLevel;
+                }
+            } while (hasEnoughXp);
+
+            return newLevel > currentLevel;
+        }
+
         public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, double baseXp = 1)
         {
             TimeSpan AWeek = TimeSpan.FromDays(7);
@@ -45,7 +63,29 @@ namespace SteelBot.Helpers.Levelling
                 }
             }
 
-            return Convert.ToUInt64(Math.Round(baseXp * multiplier));
-        } 
+            var earnedXp = Convert.ToUInt64(Math.Round(baseXp * multiplier));
+            IncrementPetXp(earnedXp, availablePets);
+            return earnedXp;
+        }
+
+        public static void IncrementPetXp(ulong userEarnedXp, List<Pet> pets)
+        {
+            const double percentageForPrimary = 0.5;
+            const double percentageForOthers = 0.01;
+
+            foreach(var pet in pets)
+            {
+                double earnedXp;
+                if (pet.IsPrimary)
+                {
+                    earnedXp = userEarnedXp * percentageForPrimary;
+                }
+                else
+                {
+                    earnedXp = userEarnedXp * percentageForOthers;
+                }
+                pet.EarnedXp += earnedXp;
+            }
+        }
     }
 }

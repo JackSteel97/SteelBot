@@ -38,10 +38,12 @@ namespace SteelBot.DiscordModules.Stats
                 Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
                 // Clone user to avoid making change to cache till db change confirmed.
                 User copyOfUser = user.Clone();
-                if (copyOfUser.NewMessage(args.Message.Content.Length, PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id)))
+                var availablePets = PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id);
+                if (copyOfUser.NewMessage(args.Message.Content.Length, availablePets))
                 {
                     // Xp has changed.
                     levelIncreased = copyOfUser.UpdateLevel();
+                    await PetsDataHelper.PetXpsUpdated(availablePets);
                 }
                 await Cache.Users.UpdateUser(args.Guild.Id, copyOfUser);
 
@@ -82,10 +84,12 @@ namespace SteelBot.DiscordModules.Stats
                 Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
 
                 User copyOfUser = user.Clone();
-                copyOfUser.VoiceStateChange(args.After, PetsDataHelper.GetAvailablePets(guildId, userId));
+                var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId);
+                copyOfUser.VoiceStateChange(args.After, availablePets);
 
                 levelIncreased = copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(guildId, copyOfUser);
+                await PetsDataHelper.PetXpsUpdated(availablePets);
 
                 if (levelIncreased)
                 {
@@ -107,11 +111,13 @@ namespace SteelBot.DiscordModules.Stats
             foreach (var user in allUsers)
             {
                 User copyOfUser = user.Clone();
+                var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId);
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId));
+                copyOfUser.VoiceStateChange(newState: null, availablePets);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
+                await PetsDataHelper.PetXpsUpdated(availablePets);
             }
         }
         
