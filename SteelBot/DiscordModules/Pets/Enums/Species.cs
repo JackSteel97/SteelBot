@@ -78,7 +78,12 @@ namespace SteelBot.DiscordModules.Pets.Enums
         ManedWolf,
         Platypus,
         Gorilla,
-        Manatee
+        Manatee,
+        Capybara,
+        Pudu,
+        Seal,
+        Quokka,
+        Wombat
     }
 
     public static class SpeciesExtensions
@@ -158,6 +163,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Platypus => Rarity.Legendary,
                 Species.Gorilla => Rarity.Epic,
                 Species.Manatee => Rarity.Epic,
+                Species.Capybara => Rarity.Rare,
+                Species.Pudu => Rarity.Epic,
+                Species.Seal => Rarity.Epic,
+                Species.Quokka => Rarity.Epic,
+                Species.Wombat => Rarity.Rare,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
             };
         }
@@ -235,6 +245,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Platypus => 5 * Year,
                 Species.Gorilla => 10 * Year,
                 Species.Manatee => 30 * Year,
+                Species.Capybara => 4 * Year,
+                Species.Pudu => 4 * Year,
+                Species.Seal => 15 * Year,
+                Species.Quokka => 5 * Year,
+                Species.Wombat => 10 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }
@@ -438,10 +453,18 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 case Species.Manatee:
                     bodyParts.Add(BodyPart.Flippers);
                     break;
+                case Species.Seal:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Quokka:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Wombat:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
             };
 
             return bodyParts;
-
         }
     }
 }
