@@ -221,6 +221,20 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
+        public List<Pet> GetAvailablePets(ulong guildId, ulong userId)
+        {
+            if (Cache.Pets.TryGetUsersPets(userId, out var pets))
+            {
+                var capacity = GetPetCapacity(guildId, userId);
+                var availableCount = Math.Min(capacity, pets.Count);
+                return pets.OrderBy(p => p.Priority).Take(availableCount).ToList();
+            }
+            else
+            {
+                return new List<Pet>();
+            }
+        }
+
         private async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)
         {
             bool named = false;
@@ -266,8 +280,8 @@ namespace SteelBot.DiscordModules.Pets
 
         public bool HasSpaceForAnotherPet(DiscordMember user)
         {
-            var capacity = GetPetCapacity(user);
-            var ownedPets = GetNumberOfOwnedPets(user);
+            var capacity = GetPetCapacity(user.Guild.Id, user.Id);
+            var ownedPets = GetNumberOfOwnedPets(user.Id);
 
             return ownedPets < capacity;
         }
@@ -281,7 +295,7 @@ namespace SteelBot.DiscordModules.Pets
 
         private double GetSearchSuccessProbability(DiscordMember userSearching)
         {
-            var ownedPets = (double)GetNumberOfOwnedPets(userSearching);
+            var ownedPets = (double)GetNumberOfOwnedPets(userSearching.Id);
             var probability = 2 / ownedPets;
             return Math.Min(1, probability);
         }
@@ -291,27 +305,27 @@ namespace SteelBot.DiscordModules.Pets
             const double baseRate = 0.1;
 
             var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity+1);
-            var petCapacity = (double)GetPetCapacity(user);
-            var ownedPets = (double)GetNumberOfOwnedPets(user);
+            var petCapacity = (double)GetPetCapacity(user.Guild.Id, user.Id);
+            var ownedPets = (double)GetNumberOfOwnedPets(user.Id);
             return baseRate + ((petCapacity - ownedPets) / (petCapacity + rarityModifier));
         }
 
-        private int GetPetCapacity(DiscordMember discordUser)
+        private int GetPetCapacity(ulong guildId, ulong userId)
         {
             int result = 1;
             const int newPetSlotUnlockLevels = 20;
 
-            if(Cache.Users.TryGetUser(discordUser.Guild.Id, discordUser.Id, out var user))
+            if(Cache.Users.TryGetUser(guildId, userId, out var user))
             {
                 result += (user.CurrentLevel / newPetSlotUnlockLevels);
             }
             return result;
         }
 
-        private int GetNumberOfOwnedPets(DiscordMember discordUser)
+        private int GetNumberOfOwnedPets(ulong userId)
         {
             int result = 0;
-            if(Cache.Pets.TryGetUsersPets(discordUser.Id, out var pets))
+            if(Cache.Pets.TryGetUsersPets(userId, out var pets))
             {
                 result = pets.Count;
             }

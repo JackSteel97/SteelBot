@@ -1,4 +1,7 @@
-﻿using System;
+﻿using SteelBot.Database.Models.Pets;
+using SteelBot.DiscordModules.Pets.Enums;
+using System;
+using System.Collections.Generic;
 
 namespace SteelBot.Helpers.Levelling
 {
@@ -20,5 +23,29 @@ namespace SteelBot.Helpers.Levelling
             
             return Convert.ToUInt64(Math.Round(totalXp));
         }
+
+        public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> availablePets, BonusType requiredBonus)
+        {
+            double multiplier = 1;
+            foreach(var pet in availablePets)
+            {
+                foreach(var bonus in pet.Bonuses)
+                {
+                    if (bonus.BonusType.HasFlag(requiredBonus))
+                    {
+                        if (bonus.BonusType.IsNegative())
+                        {
+                            multiplier *= (1 - bonus.PercentageValue);
+                        }
+                        else
+                        {
+                            multiplier *= (1 + bonus.PercentageValue);
+                        }
+                    }
+                }
+            }
+
+            return Convert.ToUInt64(Math.Round(baseXp * multiplier));
+        } 
     }
 }

@@ -1,5 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Pets;
+using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -37,7 +39,7 @@ namespace SteelBot.Helpers.Levelling
             return levelIncreased;
         }
 
-        public static bool NewMessage(this User user, int messageLength)
+        public static bool NewMessage(this User user, int messageLength, List<Pet> availablePets)
         {
             DateTime messageReceivedAt = DateTime.UtcNow;
             ++user.MessageCount;
@@ -47,7 +49,7 @@ namespace SteelBot.Helpers.Levelling
             if (lastMessageWasMoreThanAMinuteAgo)
             {
                 user.LastXpEarningMessage = messageReceivedAt;
-                user.MessageXpEarned += LevelConfig.MessageXp;
+                user.MessageXpEarned += LevellingMaths.ApplyPetBonuses(LevelConfig.MessageXp, availablePets, BonusType.Message);
             }
 
             user.LastActivity = messageReceivedAt;
@@ -56,11 +58,11 @@ namespace SteelBot.Helpers.Levelling
             return lastMessageWasMoreThanAMinuteAgo;
         }
 
-        public static void VoiceStateChange(this User user, DiscordVoiceState newState)
+        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets)
         {
             DateTime now = DateTime.UtcNow;
             user.LastActivity = now;
-            UpdateVoiceCounters(user, now);
+            UpdateVoiceCounters(user, now, availablePets);
             UpdateStartTimes(user, newState, now);
         }
 
@@ -98,41 +100,41 @@ namespace SteelBot.Helpers.Levelling
             }
         }
 
-        private static void UpdateVoiceCounters(User user, DateTime now)
+        private static void UpdateVoiceCounters(User user, DateTime now, List<Pet> availablePets)
         {
             if (user.VoiceStartTime.HasValue)
             {
                 var durationDifference = now - user.VoiceStartTime.Value;
                 user.TimeSpentInVoice += durationDifference;
-                IncrementVoiceXp(user, durationDifference);
+                IncrementVoiceXp(user, durationDifference, availablePets);
             }
 
             if (user.MutedStartTime.HasValue)
             {
                 var durationDifference = now - user.MutedStartTime.Value;
                 user.TimeSpentMuted += durationDifference;
-                IncrementMutedXp(user, durationDifference);
+                IncrementMutedXp(user, durationDifference, availablePets);
             }
 
             if (user.DeafenedStartTime.HasValue)
             {
                 var durationDifference = now - user.DeafenedStartTime.Value;
                 user.TimeSpentDeafened += durationDifference;
-                IncrementDeafenedXp(user, durationDifference);
+                IncrementDeafenedXp(user, durationDifference, availablePets);
             }
 
             if (user.StreamingStartTime.HasValue)
             {
                 var durationDifference = now - user.StreamingStartTime.Value;
                 user.TimeSpentStreaming += durationDifference;
-                IncrementStreamingXp(user, durationDifference);
+                IncrementStreamingXp(user, durationDifference, availablePets);
             }
 
             if (user.VideoStartTime.HasValue)
             {
                 var durationDifference = now - user.VideoStartTime.Value;
                 user.TimeSpentOnVideo += durationDifference;
-                IncrementVideoXp(user, durationDifference);
+                IncrementVideoXp(user, durationDifference, availablePets);
             }
 
             if (user.AfkStartTime.HasValue)
@@ -142,29 +144,34 @@ namespace SteelBot.Helpers.Levelling
             }
         }
 
-        private static void IncrementVoiceXp(User user, TimeSpan voiceDuration)
+        private static void IncrementVoiceXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
         {
-            user.VoiceXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentInVoice, LevelConfig.VoiceXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentInVoice, LevelConfig.VoiceXpPerMin);
+            user.VoiceXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Voice);
         }
 
-        private static void IncrementMutedXp(User user, TimeSpan voiceDuration)
+        private static void IncrementMutedXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
         {
-            user.MutedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
+            user.MutedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.MutedPentalty);
         }
 
-        private static void IncrementDeafenedXp(User user, TimeSpan voiceDuration)
+        private static void IncrementDeafenedXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
         {
-            user.DeafenedXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
+            user.DeafenedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.DeafenedPenalty);
         }
 
-        private static void IncrementStreamingXp(User user, TimeSpan voiceDuration)
+        private static void IncrementStreamingXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
         {
-            user.StreamingXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentStreaming, LevelConfig.StreamingXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentStreaming, LevelConfig.StreamingXpPerMin);
+            user.StreamingXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Streaming);
         }
 
-        private static void IncrementVideoXp(User user, TimeSpan voiceDuration)
+        private static void IncrementVideoXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
         {
-            user.VideoXpEarned += LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
+            user.VideoXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Video);
         }
     }
 }

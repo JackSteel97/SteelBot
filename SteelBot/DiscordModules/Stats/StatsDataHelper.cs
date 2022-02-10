@@ -5,6 +5,7 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.Pets;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services.Configuration;
@@ -19,12 +20,14 @@ namespace SteelBot.DiscordModules.Stats
         private readonly DataCache Cache;
         private readonly AppConfigurationService AppConfigurationService;
         private readonly ILogger<StatsDataHelper> Logger;
+        private readonly PetsDataHelper PetsDataHelper;
 
-        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger)
+        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
             Logger = logger;
+            PetsDataHelper = petsDataHelper;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
@@ -35,7 +38,7 @@ namespace SteelBot.DiscordModules.Stats
                 Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
                 // Clone user to avoid making change to cache till db change confirmed.
                 User copyOfUser = user.Clone();
-                if (copyOfUser.NewMessage(args.Message.Content.Length))
+                if (copyOfUser.NewMessage(args.Message.Content.Length, PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id)))
                 {
                     // Xp has changed.
                     levelIncreased = copyOfUser.UpdateLevel();
@@ -77,8 +80,9 @@ namespace SteelBot.DiscordModules.Stats
             if(TryGetUser(guildId, userId, out User user))
             {
                 Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
+
                 User copyOfUser = user.Clone();
-                copyOfUser.VoiceStateChange(args.After);
+                copyOfUser.VoiceStateChange(args.After, PetsDataHelper.GetAvailablePets(guildId, userId));
 
                 levelIncreased = copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(guildId, copyOfUser);
@@ -105,7 +109,7 @@ namespace SteelBot.DiscordModules.Stats
                 User copyOfUser = user.Clone();
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null);
+                copyOfUser.VoiceStateChange(newState: null, PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId));
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
             }
