@@ -38,7 +38,7 @@ namespace SteelBot.DiscordModules.Stats
                 Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
                 // Clone user to avoid making change to cache till db change confirmed.
                 User copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id);
+                var availablePets = PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id, out _);
                 if (copyOfUser.NewMessage(args.Message.Content.Length, availablePets))
                 {
                     // Xp has changed.
@@ -84,7 +84,7 @@ namespace SteelBot.DiscordModules.Stats
                 Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
 
                 User copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId);
+                var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId, out _);
                 copyOfUser.VoiceStateChange(args.After, availablePets);
 
                 levelIncreased = copyOfUser.UpdateLevel();

@@ -20,5 +20,6 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Amber,
         Yellow,
         Gold,
+        Rainbow
     }
 }
