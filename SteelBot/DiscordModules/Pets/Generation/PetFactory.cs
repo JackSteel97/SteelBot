@@ -129,6 +129,17 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return attributes;
         }
 
+        public static PetBonus GenerateBonus(Pet pet)
+        {
+            var bonus = new PetBonus()
+            {
+                Pet = pet,
+                BonusType = GetRandomEnumValue<BonusType>(),
+                PercentageValue = GetRandomPercentageBonus()
+            };
+            return bonus;
+        }
+
         private static List<PetBonus> BuildBonuses(Pet pet)
         {
             var maxBonuses = pet.Rarity.GetStartingBonusCount();
@@ -136,12 +147,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             
             for (int i = 0; i < maxBonuses; ++i)
             {
-                var bonus = new PetBonus()
-                {
-                    Pet = pet,
-                    BonusType = GetRandomEnumValue<BonusType>(),
-                    PercentageValue = GetRandomPercentageBonus()
-                };
+                var bonus = GenerateBonus(pet);
                 bonuses.Add(bonus);
             }
             return bonuses;

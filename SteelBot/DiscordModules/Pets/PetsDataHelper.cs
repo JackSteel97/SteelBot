@@ -28,6 +28,7 @@ namespace SteelBot.DiscordModules.Pets
         private readonly AppConfigurationService AppConfigurationService;
         private readonly PetFactory PetFactory;
         private readonly ILogger<PetsDataHelper> Logger;
+        private const int NewPetSlotUnlockLevels = 20;
 
         public PetsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, PetFactory petFactory, ILogger<PetsDataHelper> logger)
         {
@@ -117,6 +118,38 @@ namespace SteelBot.DiscordModules.Pets
             }
 
             embedBuilder.AddField("Bonuses", bonuses.ToString());
+
+            return embedBuilder;
+        }
+
+        public DiscordEmbedBuilder GetOwnedPetsDisplayEmbed(ulong guildId, ulong userId)
+        {
+            var embedBuilder = new DiscordEmbedBuilder()
+                .WithColor(EmbedGenerator.InfoColour)
+                .WithTitle("Your Pets");
+
+            var availablePets = GetAvailablePets(guildId, userId, out var disabledPets);
+            if (disabledPets.Count > 0)
+            {
+                embedBuilder.WithFooter("Disabled pet's bonuses have no effect until you reach the required level in this server.");
+            }
+
+            StringBuilder petList = new StringBuilder();
+            foreach(var pet in availablePets)
+            {
+                AppendShortDescription(petList, pet);
+                petList.AppendLine();
+            }
+
+            int petNumber = availablePets.Count;
+            foreach(var disabledPet in disabledPets)
+            {
+                AppendShortDescription(petList, disabledPet);
+                int levelRequired = GetRequiredLevelForPet(petNumber);
+                petList.Append(" - Disabled, Level ").Append(petNumber).Append(" required");
+                petList.AppendLine();
+                ++petNumber;
+            }
 
             return embedBuilder;
         }
@@ -222,13 +255,29 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        public List<Pet> GetAvailablePets(ulong guildId, ulong userId)
+        public List<Pet> GetAvailablePets(ulong guildId, ulong userId, out List<Pet> disabledPets)
         {
             if (Cache.Pets.TryGetUsersPets(userId, out var pets))
             {
                 var capacity = GetPetCapacity(guildId, userId);
                 var availableCount = Math.Min(capacity, pets.Count);
-                return pets.OrderBy(p => p.Priority).Take(availableCount).ToList();
+                var orderedPets = pets.OrderBy(p => p.Priority);
+
+                disabledPets = orderedPets.Skip(availableCount).ToList();
+                return orderedPets.Take(availableCount).ToList();
+            }
+            else
+            {
+                disabledPets = new List<Pet>();
+                return new List<Pet>();
+            }
+        }
+
+        public List<Pet> GetAllPets(ulong userId)
+        {
+            if(Cache.Pets.TryGetUsersPets(userId, out var pets))
+            {
+                return pets.OrderBy(p => p.Priority).ToList();
             }
             else
             {
@@ -243,8 +292,38 @@ namespace SteelBot.DiscordModules.Pets
                 if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
                 {
                     pet.CurrentLevel = newLevel;
+                    PetLevelledUp(pet);
                 }
                 await Cache.Pets.UpdatePet(pet);
+            }
+        }
+
+        private void AppendShortDescription(StringBuilder builder, Pet pet)
+        {
+            builder.Append((pet.Priority + 1).Ordinalize()).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(pet.GetName());
+        }
+
+        private void PetLevelledUp(Pet pet)
+        {
+            if(pet.CurrentLevel == 10 || pet.CurrentLevel % 25 == 0)
+            {
+                // New bonuses gained at level 10, 25, 50, 75, etc...
+                GivePetNewBonus(pet);
+            }
+            ImproveCurrentPetBonuses(pet);
+        }
+
+        private void GivePetNewBonus(Pet pet)
+        {
+            var bonus = PetFactory.GenerateBonus(pet);
+            pet.Bonuses.Add(bonus);
+        }
+
+        private void ImproveCurrentPetBonuses(Pet pet)
+        {
+            foreach (var bonus in pet.Bonuses)
+            {
+                bonus.PercentageValue *= 1.01;
             }
         }
 
@@ -326,13 +405,18 @@ namespace SteelBot.DiscordModules.Pets
         private int GetPetCapacity(ulong guildId, ulong userId)
         {
             int result = 1;
-            const int newPetSlotUnlockLevels = 20;
 
             if (Cache.Users.TryGetUser(guildId, userId, out var user))
             {
-                result += (user.CurrentLevel / newPetSlotUnlockLevels);
+                result += (user.CurrentLevel / NewPetSlotUnlockLevels);
             }
             return result;
+        }
+
+        private int GetRequiredLevelForPet(int petNumber)
+        {
+            int additionalPetNumber = petNumber - 1;
+            return additionalPetNumber * NewPetSlotUnlockLevels;
         }
 
         private int GetNumberOfOwnedPets(ulong userId)

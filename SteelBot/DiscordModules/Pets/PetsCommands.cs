@@ -37,8 +37,18 @@ namespace SteelBot.DiscordModules.Pets
             DataHelpers = dataHelpers;
         }
 
+        [GroupCommand]
+        [Description("Show all your pets")]
+        public async Task GetPets(CommandContext context)
+        {
+            Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
+
+            var embed = DataHelpers.Pets.GetOwnedPetsDisplayEmbed(context.Guild.Id, context.User.Id);
+            await context.RespondAsync(embed);
+        }
+
         [Command("Search")]
-        [Description("WIP: Search for a new pet")]
+        [Description("Search for a new pet")]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
@@ -60,7 +70,6 @@ namespace SteelBot.DiscordModules.Pets
             {
                 await context.RespondAsync(DataHelpers.Pets.GetPetOwnedSuccessMessage(context.Member, pet));
             }
-
         }
 
         // TODO: Remove
