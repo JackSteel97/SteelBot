@@ -36,6 +36,7 @@ namespace SteelBot.Helpers
             public const string ThumbsUp = "\uD83D\uDC4D";
             public const string ThumbsDown = "\uD83D\uDC4E";
             public const string WritingHand = "\u270D\uFE0F";
+            public const string Herb = "\uD83C\uDF3F";
         }
 
         public static class Symbols

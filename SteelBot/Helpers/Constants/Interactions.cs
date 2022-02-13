@@ -17,7 +17,7 @@ namespace SteelBot.Helpers.Constants
             public static readonly DiscordButtonComponent NameConfirm = new(ButtonStyle.Success, InteractionIds.Pets.NameConfirm, "Yes", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.ThumbsUp));
             public static readonly DiscordButtonComponent NameRetry = new(ButtonStyle.Danger, InteractionIds.Pets.NameRetry, "Pick a different name", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.ThumbsDown));
             public static readonly DiscordButtonComponent Rename = new(ButtonStyle.Primary, InteractionIds.Pets.Rename, "Rename", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.WritingHand));
-            public static readonly DiscordButtonComponent Abandon = new(ButtonStyle.Danger, InteractionIds.Pets.Abandon, "Abandon", emoji: new DiscordComponentEmoji(EmojiConstants.Faces.Pleading));
+            public static readonly DiscordButtonComponent Abandon = new(ButtonStyle.Danger, InteractionIds.Pets.Abandon, "Release into the wild", emoji: new DiscordComponentEmoji(EmojiConstants.Objects.Herb));
             public static readonly DiscordButtonComponent MakePrimary = new(ButtonStyle.Success, InteractionIds.Pets.MakePrimary, "Make Primary", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.GlowingStar));
             public static readonly DiscordButtonComponent IncreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.IncreasePriority, "Move Up", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.UpButton));
             public static readonly DiscordButtonComponent DecreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.DecreasePriority, "Move Down", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.DownButton));
