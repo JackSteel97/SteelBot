@@ -59,6 +59,20 @@ namespace SteelBot.DataProviders.SubProviders
             return userHasPets;
         }
 
+        public bool TryGetUsersPetsCount(ulong userDiscordId, out int numberOfOwnedPets)
+        {
+            bool userHasPets = PetsByUserId.TryGetValue(userDiscordId, out var pets);
+            if (userHasPets)
+            {
+                numberOfOwnedPets = pets.Count;
+            }
+            else
+            {
+                numberOfOwnedPets = 0;
+            }
+            return userHasPets;
+        }
+
         public bool TryGetPet(ulong userDiscordId, long petId, out Pet pet)
         {
             pet = null;

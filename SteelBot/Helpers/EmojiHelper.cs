@@ -35,6 +35,7 @@ namespace SteelBot.Helpers
             public const string WavingHand = "\uD83D\uDC4B";
             public const string ThumbsUp = "\uD83D\uDC4D";
             public const string ThumbsDown = "\uD83D\uDC4E";
+            public const string WritingHand = "\u270D\uFE0F";
         }
 
         public static class Symbols
@@ -46,37 +47,18 @@ namespace SteelBot.Helpers
             public const string GreenSquare = "\uD83D\uDFE9";
             public const string GreySquare = "\u2B1B";
             public const string YellowSquare = "\uD83D\uDFE8";
+            public const string GlowingStar = "\uD83C\uDF1F";
+            public const string UpButton = "\uD83D\uDD3C";
+            public const string DownButton = "\uD83D\uDD3D";
+        }
+        public static class Faces
+        {
+            public const string Hugging = "\uD83E\uDD17";
+            public const string Pleading = "\uD83E\uDD7A";
         }
 
         public static class RegionalIndicators
         {
-            //public const string A = "\uD83C\uDDE6";
-            //public const string B = "\uD83C\uDDE7";
-            //public const string C = "\uD83C\uDDE8";
-            //public const string D = "\uD83C\uDDE9";
-            //public const string E = "\uD83C\uDDEA";
-            //public const string F = "\uD83C\uDDEB";
-            //public const string G = "\uD83C\uDDEC";
-            //public const string H = "\uD83C\uDDED";
-            //public const string I = "\uD83C\uDDEE";
-            //public const string J = "\uD83C\uDDEF";
-            //public const string K = "\uD83C\uDDF0";
-            //public const string L = "\uD83C\uDDF1";
-            //public const string M = "\uD83C\uDDF2";
-            //public const string N = "\uD83C\uDDF3";
-            //public const string O = "\uD83C\uDDF4";
-            //public const string P = "\uD83C\uDDF5";
-            //public const string Q = "\uD83C\uDDF6";
-            //public const string R = "\uD83C\uDDF7";
-            //public const string S = "\uD83C\uDDF8";
-            //public const string T = "\uD83C\uDDF9";
-            //public const string U = "\uD83C\uDDFA";
-            //public const string V = "\uD83C\uDDFB";
-            //public const string W = "\uD83C\uDDFC";
-            //public const string X = "\uD83C\uDDFD";
-            //public const string Y = "\uD83C\uDDFE";
-            //public const string Z = "\uD83C\uDDFF";
-
             public const string A = ":regional_indicator_a:";
             public const string B = ":regional_indicator_b:";
             public const string C = ":regional_indicator_c:";
@@ -103,13 +85,6 @@ namespace SteelBot.Helpers
             public const string X = ":regional_indicator_x:";
             public const string Y = ":regional_indicator_y:";
             public const string Z = ":regional_indicator_z:";
-        }
-
-        
-
-        public static class Faces
-        {
-            public const string Hugging = "\uD83E\uDD17";
         }
 
         /// <summary>

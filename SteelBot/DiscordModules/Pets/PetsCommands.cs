@@ -44,7 +44,17 @@ namespace SteelBot.DiscordModules.Pets
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
             var embed = DataHelpers.Pets.GetOwnedPetsDisplayEmbed(context.Guild.Id, context.User.Id);
+            embed.WithThumbnail(context.Member.AvatarUrl);
             await context.RespondAsync(embed);
+        }
+
+        [Command("manage")]
+        [Description("Manage your owned pets")]
+        public async Task ManagePets(CommandContext context)
+        {
+            Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
+
+            await DataHelpers.Pets.HandleManagePets(context);
         }
 
         [Command("Search")]
@@ -68,19 +78,9 @@ namespace SteelBot.DiscordModules.Pets
 
             if (newPet)
             {
+
                 await context.RespondAsync(DataHelpers.Pets.GetPetOwnedSuccessMessage(context.Member, pet));
             }
-        }
-
-        // TODO: Remove
-        [GroupCommand]
-        [Description("WIP: Generate a new pet")]
-        public Task Generate(CommandContext context)
-        {
-            Logger.LogInformation("User [{UserId}] generated a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-            var pet = PetFactory.Generate();
-            var embed = DataHelpers.Pets.GetPetDisplayEmbed(pet);
-            return context.RespondAsync(embed);
         }
 
         [Command("DebugStats")]

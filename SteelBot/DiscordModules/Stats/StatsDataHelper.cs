@@ -111,7 +111,7 @@ namespace SteelBot.DiscordModules.Stats
             foreach (var user in allUsers)
             {
                 User copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId);
+                var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
                 copyOfUser.VoiceStateChange(newState: null, availablePets);

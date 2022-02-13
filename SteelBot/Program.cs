@@ -120,6 +120,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<CommandStatisticProvider>();
             serviceProvider.AddSingleton<FunProvider>();
             serviceProvider.AddSingleton<StockPortfoliosProvider>();
+            serviceProvider.AddSingleton<PetsProvider>();
 
             // Add base provider.
             serviceProvider.AddSingleton<DataCache>();
