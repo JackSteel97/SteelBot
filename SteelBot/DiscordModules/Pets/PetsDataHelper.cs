@@ -71,6 +71,18 @@ namespace SteelBot.DiscordModules.Pets
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public DiscordMessageBuilder GetRenameRequestMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Primary("What would you like your their new name to be?", $"Renaming {pet.GetName()}");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
+        public DiscordMessageBuilder GetMakePrimarySuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} Is now your primary pet and will receive a larger share of XP!");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public DiscordMessageBuilder GetNamingTimedOutMessage(Pet pet)
         {
             var embedBuilder = EmbedGenerator.Info($"You can give your pet {pet.Species.GetName()} a name later instead.", $"Looks like you're busy");
@@ -233,8 +245,8 @@ namespace SteelBot.DiscordModules.Pets
             {
                 int columnCounter = 0;
                 int rowCounter = 0;
-                List<DiscordComponent> components = new List<DiscordComponent>();
-                foreach (var pet in allPets)
+                List<DiscordComponent> components = new List<DiscordComponent>(allPets.Count);
+                foreach (var pet in allPets.OrderBy(p=>p.Priority))
                 {
                     components.Add(Interactions.Pets.Manage(pet.RowId, pet.GetName()));
                     ++columnCounter;
@@ -261,10 +273,11 @@ namespace SteelBot.DiscordModules.Pets
                 var result = await message.WaitForButtonAsync(context.Member);
 
                 initialResponseBuilder.ClearComponents();
-                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
 
                 if (!result.TimedOut)
                 {
+                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+
                     // Figure out which pet they want to manage.
                     var parts = result.Result.Id.Split('_');
                     if (parts.Length == 3)
@@ -274,6 +287,10 @@ namespace SteelBot.DiscordModules.Pets
                             await HandleManagePet(context, petId);
                         }
                     }
+                }
+                else
+                {
+                    await message.ModifyAsync(initialResponseBuilder);
                 }
             }
         }
@@ -299,15 +316,17 @@ namespace SteelBot.DiscordModules.Pets
                 var result = await message.WaitForButtonAsync(context.Member);
 
                 initialResponseBuilder.ClearComponents();
-                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
 
                 if (!result.TimedOut)
                 {
+                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
                     switch (result.Result.Id)
                     {
                         case InteractionIds.Pets.Rename:
+                            await HandleRenamingPet(context, pet);
                             break;
                         case InteractionIds.Pets.MakePrimary:
+                            await HandleMakePrimary(context, pet);
                             break;
                         case InteractionIds.Pets.IncreasePriority:
                             break;
@@ -316,6 +335,10 @@ namespace SteelBot.DiscordModules.Pets
                         case InteractionIds.Pets.Abandon:
                             break;
                     }
+                }
+                else
+                {
+                    await message.ModifyAsync(initialResponseBuilder);
                 }
             }
             else
@@ -340,12 +363,33 @@ namespace SteelBot.DiscordModules.Pets
             return !result.TimedOut && result.Result.Id == InteractionIds.Confirmation.Confirm;
         }
 
+        private async Task HandleMakePrimary(CommandContext context, Pet pet)
+        {
+            int oldPriority = pet.Priority;
+            if(Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                foreach(var ownedPet in allPets)
+                {
+                    if(ownedPet.Priority < oldPriority)
+                    {
+                        ++ownedPet.Priority;
+                        await Cache.Pets.UpdatePet(ownedPet);
+                    }
+                }
+                pet.Priority = 0;
+                await Cache.Pets.UpdatePet(pet);
+                await context.Channel.SendMessageAsync(GetMakePrimarySuccessMessage(pet));
+            }
+        }
+
         public async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet)
         {
             bool befriendSuccess = BefriendSuccess(context.Member, pet);
             if (befriendSuccess)
             {
+                Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out int numberOfOwnedPets);
                 pet.OwnerDiscordId = context.Member.Id;
+                pet.Priority = numberOfOwnedPets;
                 await HandleBefriendSuccess(context, pet);
                 await Cache.Pets.InsertPet(pet);
             }
@@ -364,32 +408,53 @@ namespace SteelBot.DiscordModules.Pets
             await HandleNamingPet(context, pet);
         }
 
-        public async Task HandleNamingPet(CommandContext context, Pet pet)
+        private async Task HandleRenamingPet(CommandContext context, Pet pet)
         {
-            bool named = false;
-            while (!named)
+            var message = GetRenameRequestMessage(pet);
+            await context.Channel.SendMessageAsync(message);
+            (bool nameChanged, ulong nameMessageId) = await HandleNamingPet(context, pet);
+            if (nameChanged)
+            {
+                await Cache.Pets.UpdatePet(pet);
+                var successMessage = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"Renamed to {Formatter.Italic(pet.Name)}")).WithReply(nameMessageId, true);
+                await context.Channel.SendMessageAsync(successMessage);
+            }
+        }
+
+        public async Task<(bool nameChanged, ulong nameMessageId)> HandleNamingPet(CommandContext context, Pet pet)
+        {
+            bool validName = false;
+            bool nameChanged = false;
+            ulong nameMessageId = 0;
+            while (!validName)
             {
                 DiscordMessage nextMessage = null;
                 var nameResult = await context.Message.GetNextMessageAsync(m =>
                 {
                     nextMessage = m;
+                    nameMessageId = m.Id;
                     return true;
                 });
 
                 if (!nameResult.TimedOut)
                 {
-                    named = await ValidateAndName(pet, nextMessage);
+                    validName = await ValidateAndName(pet, nextMessage);
                 }
                 else
                 {
                     await context.Channel.SendMessageAsync(GetNamingTimedOutMessage(pet).WithReply(context.Message.Id, mention: true));
-                    named = true;
+                    validName = true;
                 }
-                if (!named)
+                if (!validName)
                 {
-                    await nextMessage.RespondAsync(EmbedGenerator.Primary($"What would you like to name your new {pet.Species.GetName()} instead?", "Ok, try again"));
+                    await nextMessage.RespondAsync(EmbedGenerator.Primary($"What would you like to name your {pet.Species.GetName()} instead?", "Ok, try again"));
+                }
+                else
+                {
+                    nameChanged = true;
                 }
             }
+            return (nameChanged, nameMessageId);
         }
 
         public List<Pet> GetAvailablePets(ulong guildId, ulong userId, out List<Pet> disabledPets)
@@ -437,7 +502,7 @@ namespace SteelBot.DiscordModules.Pets
 
         private void AppendShortDescription(StringBuilder builder, Pet pet)
         {
-            builder.Append(Formatter.Bold((pet.Priority + 1).ToString())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(pet.Species.GetName()).Append(" *\"").Append(pet.GetName()).Append("\"*");
+            builder.Append(Formatter.Bold((pet.Priority + 1).ToString())).Append(" - ").Append(Formatter.Bold(pet.GetName())).Append(" Level ").Append(pet.CurrentLevel).Append(' ').Append(pet.Species.GetName());
         }
 
         private void PetLevelledUp(Pet pet)
