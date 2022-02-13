@@ -26,5 +26,6 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Neck,
         Bill,
         Feet,
+        Legs
     }
 }

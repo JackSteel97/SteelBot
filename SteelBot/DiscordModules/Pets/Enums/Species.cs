@@ -83,7 +83,10 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Pudu,
         Seal,
         Quokka,
-        Wombat
+        Wombat,
+        Otter,
+        Octopus,
+        BlackPhantomTetra
     }
 
     public static class SpeciesExtensions
@@ -168,6 +171,9 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Seal => Rarity.Epic,
                 Species.Quokka => Rarity.Epic,
                 Species.Wombat => Rarity.Rare,
+                Species.Otter => Rarity.Rare,
+                Species.Octopus => Rarity.Rare,
+                Species.BlackPhantomTetra => Rarity.Uncommon,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
             };
         }
@@ -250,6 +256,9 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Seal => 15 * Year,
                 Species.Quokka => 5 * Year,
                 Species.Wombat => 10 * Year,
+                Species.Otter => 2 * Year,
+                Species.Octopus => 1 * Year,
+                Species.BlackPhantomTetra => 2 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }
@@ -461,6 +470,15 @@ namespace SteelBot.DiscordModules.Pets.Enums
                     break;
                 case Species.Wombat:
                     bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Otter:
+                    bodyParts.Add(BodyPart.Tail);
+                    break;
+                case Species.Octopus:
+                    bodyParts.Add(BodyPart.Legs);
+                    break;
+                case Species.BlackPhantomTetra:
+                    bodyParts.Add(BodyPart.Fins);
                     break;
             };
 
