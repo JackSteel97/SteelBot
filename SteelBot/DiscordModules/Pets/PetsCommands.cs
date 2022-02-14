@@ -84,6 +84,7 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [Command("DebugStats")]
+        [RequireOwner]
         public Task GenerateLots(CommandContext context, double count)
         {
             var countByRarity = new Dictionary<Rarity, int>();
@@ -111,6 +112,15 @@ namespace SteelBot.DiscordModules.Pets
                 .AddField("Legendary", $"{countByRarity[Rarity.Legendary]} ({countByRarity[Rarity.Legendary] / count:P2})", true);
 
             return context.RespondAsync(embed);
+        }
+
+        [Command("Combos")]
+        [RequireOwner]
+        public Task CalculateCombinations(CommandContext context)
+        {
+            var count = PetFactory.CountPossibilities();
+
+            return context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
         }
     }
 }

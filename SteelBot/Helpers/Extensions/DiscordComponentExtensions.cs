@@ -13,7 +13,7 @@ namespace SteelBot.Helpers.Extensions
         {
             if (disable)
             {
-                component = component.Disable();
+                return new DiscordButtonComponent(component).Disable();
             }
             return component;
         }

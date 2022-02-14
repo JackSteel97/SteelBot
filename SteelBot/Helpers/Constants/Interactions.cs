@@ -29,7 +29,7 @@ namespace SteelBot.Helpers.Constants
 
         public static class Confirmation
         {
-            public static readonly DiscordButtonComponent Confirm = new(ButtonStyle.Primary, InteractionIds.Confirmation.Confirm, "Confirm", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CheckMark));
+            public static readonly DiscordButtonComponent Confirm = new(ButtonStyle.Primary, InteractionIds.Confirmation.Confirm, "Confirm", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CheckMarkButton));
             public static readonly DiscordButtonComponent Cancel = new(ButtonStyle.Secondary, InteractionIds.Confirmation.Cancel, "Cancel", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CrossMark));
         }
     }

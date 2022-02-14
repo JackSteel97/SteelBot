@@ -83,6 +83,24 @@ namespace SteelBot.DiscordModules.Pets
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public DiscordMessageBuilder GetPriorityIncreaseSuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved up in the priority order of your pets.");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
+        public DiscordMessageBuilder GetPriorityDecreaseSuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved down in the priority order of your pets.");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
+        public DiscordMessageBuilder GetAbandonSuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been released into the wild, freeing up a pet slot.");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public DiscordMessageBuilder GetNamingTimedOutMessage(Pet pet)
         {
             var embedBuilder = EmbedGenerator.Info($"You can give your pet {pet.Species.GetName()} a name later instead.", $"Looks like you're busy");
@@ -103,6 +121,7 @@ namespace SteelBot.DiscordModules.Pets
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(pet.Rarity.GetColour()))
                 .WithTitle($"{name}Level {pet.CurrentLevel}")
+                .WithTimestamp(DateTime.Now)
                 .AddField("Rarity", Formatter.InlineCode(pet.Rarity.ToString()), true)
                 .AddField("Species", Formatter.InlineCode(pet.Species.GetName()), true)
                 .AddField("Size", Formatter.InlineCode(pet.Size.ToString()), true)
@@ -178,7 +197,7 @@ namespace SteelBot.DiscordModules.Pets
             var ownedPets = availablePets.Count + disabledPets.Count;
             embedBuilder
                 .AddField("Pet Slots", $"{ownedPets} / {petCapacity}")
-                .WithTimestamp(DateTime.UtcNow);
+                .WithTimestamp(DateTime.Now);
 
             return embedBuilder;
         }
@@ -329,10 +348,13 @@ namespace SteelBot.DiscordModules.Pets
                             await HandleMakePrimary(context, pet);
                             break;
                         case InteractionIds.Pets.IncreasePriority:
+                            await HandlePriorityIncrease(context, pet);
                             break;
                         case InteractionIds.Pets.DecreasePriority:
+                            await HandlePriorityDecrease(context, pet);
                             break;
                         case InteractionIds.Pets.Abandon:
+                            await HandlePetAbandon(context, pet);
                             break;
                     }
                 }
@@ -347,11 +369,11 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        private async Task<bool> GetConfirmation(CommandContext context)
+        private async Task<bool> GetConfirmation(CommandContext context, string actionDescription)
         {
             var confirmMessageBuilder = new DiscordMessageBuilder()
-                .WithContent($"Attention {context.Member.Mention}")
-                .WithEmbed(EmbedGenerator.Warning("This action cannot be undone, please confirm you want to continue."))
+                .WithContent($"Attention {context.Member.Mention}!")
+                .WithEmbed(EmbedGenerator.Warning($"This action ({actionDescription}) **cannot** be undone, please confirm you want to continue."))
                 .AddComponents(new DiscordComponent[] {
                     Interactions.Confirmation.Confirm,
                     Interactions.Confirmation.Cancel
@@ -360,7 +382,81 @@ namespace SteelBot.DiscordModules.Pets
             var message = await context.Channel.SendMessageAsync(confirmMessageBuilder);
 
             var result = await message.WaitForButtonAsync(context.Member);
-            return !result.TimedOut && result.Result.Id == InteractionIds.Confirmation.Confirm;
+
+            confirmMessageBuilder.ClearComponents();
+
+            if (!result.TimedOut)
+            {
+                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(confirmMessageBuilder));
+                return result.Result.Id == InteractionIds.Confirmation.Confirm;
+            }
+            else
+            {
+                await message.DeleteAsync();
+                return false;
+            }
+        }
+
+        private async Task HandlePetAbandon(CommandContext context, Pet pet)
+        {
+            if (await GetConfirmation(context, "Pet Release"))
+            {
+                await Cache.Pets.RemovePet(context.Member.Id, pet.RowId);
+
+                if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+                {
+                    foreach(var ownedPet in allPets)
+                    {
+                        if(ownedPet.Priority > pet.Priority)
+                        {
+                            --ownedPet.Priority;
+                            await Cache.Pets.UpdatePet(ownedPet);
+                        }
+                    }
+                }
+
+                await context.Channel.SendMessageAsync(GetAbandonSuccessMessage(pet));
+            }
+        }
+
+        private async Task HandlePriorityIncrease(CommandContext context, Pet pet)
+        {
+            int oldPriority = pet.Priority;
+            if(Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                foreach(var ownedPet in allPets)
+                {
+                    if(ownedPet.Priority == oldPriority - 1)
+                    {
+                        ++ownedPet.Priority;
+                        await Cache.Pets.UpdatePet(ownedPet);
+                        break;
+                    }
+                }
+                --pet.Priority;
+                await Cache.Pets.UpdatePet(pet);
+                await context.Channel.SendMessageAsync(GetPriorityIncreaseSuccessMessage(pet));
+            }
+        }
+
+        private async Task HandlePriorityDecrease(CommandContext context, Pet pet)
+        {
+            int oldPriority = pet.Priority;
+            if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                foreach (var ownedPet in allPets)
+                {
+                    if (ownedPet.Priority == oldPriority + 1)
+                    {
+                        --ownedPet.Priority;
+                        await Cache.Pets.UpdatePet(ownedPet);
+                        break;
+                    }
+                }
+                ++pet.Priority;
+                await Cache.Pets.UpdatePet(pet);
+                await context.Channel.SendMessageAsync(GetPriorityDecreaseSuccessMessage(pet));
+            }
         }
 
         private async Task HandleMakePrimary(CommandContext context, Pet pet)

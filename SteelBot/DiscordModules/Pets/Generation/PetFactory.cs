@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,52 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 }
                 includedSpecies.Add(spec);
             }
+        }
+
+        public ulong CountPossibilities()
+        {
+            ulong possibilities = 0;
+            var colours = Enum.GetValues(typeof(Colour)).Cast<Colour>().ToArray();
+            var colourMixings = Enum.GetValues(typeof(ColourMixing)).Cast<ColourMixing>().ToArray();
+            var bonuses = Enum.GetValues(typeof(BonusType)).Cast<BonusType>().ToArray();
+            var sizes = Enum.GetValues(typeof(Size)).Cast<Size>().ToArray();
+
+
+            foreach (var speciesGrouping in SpeciesByRarity)
+            {
+                var startingBonuses = speciesGrouping.Key.GetStartingBonusCount();
+
+                foreach (var species in speciesGrouping.Value)
+                {
+                    foreach(var size in sizes)
+                    {
+                        var bonusMultiplier = PermutationsAndCombinations.nCr(bonuses.Length, startingBonuses);
+                        for (int i = 0; i < bonusMultiplier; ++i)
+                        {
+                            foreach (var bodyPart in species.GetBodyParts())
+                            {
+                                foreach (var colour in colours)
+                                {
+                                    ++possibilities;
+                                }
+                                foreach (var mixing in colourMixings)
+                                {
+                                    foreach (var colour in colours)
+                                    {
+                                        foreach (var colour2 in colours)
+                                        {
+                                            ++possibilities;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+            }
+
+            return possibilities;
         }
 
         public Pet Generate()
@@ -134,7 +181,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             var bonus = new PetBonus()
             {
                 Pet = pet,
-                BonusType = GetRandomEnumValue<BonusType>(),
+                BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
                 PercentageValue = GetRandomPercentageBonus()
             };
             return bonus;
@@ -144,7 +191,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
         {
             var maxBonuses = pet.Rarity.GetStartingBonusCount();
             var bonuses = new List<PetBonus>(maxBonuses);
-            
+
             for (int i = 0; i < maxBonuses; ++i)
             {
                 var bonus = GenerateBonus(pet);
@@ -172,11 +219,15 @@ namespace SteelBot.DiscordModules.Pets.Generation
             }
         }
 
-        private static T GetRandomEnumValue<T>()
+        private static T GetRandomEnumValue<T>(params T[] invalidSelections)
         {
-            var values = Enum.GetValues(typeof(T)).Cast<T>().ToArray();
-            return values[RandomNumberGenerator.GetInt32(values.Length)];
-
+            T result = default(T);
+            do
+            {
+                var values = Enum.GetValues(typeof(T)).Cast<T>().ToArray();
+                result = values[RandomNumberGenerator.GetInt32(values.Length)];
+            } while (Array.FindIndex(invalidSelections, s => s.Equals(result)) >= 0);
+            return result;
         }
 
         private static double GetRandomPercentageBonus()

@@ -54,7 +54,7 @@ namespace SteelBot.Services
                 bool userExists = Cache.Users.BotKnowsUser(guildId, user.Id);
                 if (userExists)
                 {
-                    // This is a bot and we've tracked it, known in Discord API can cause bots to not have the flag set correctly the first time we are notified of their connection.
+                    // This is a bot and we've tracked it, bug in Discord API library can cause bots to not have the flag set correctly the first time we are notified of their connection.
                     // If we've accidentally tracked this user thinking it was not a bot but it now is, remove it.
                     await Cache.Users.RemoveUser(guildId, user.Id);
                 }
