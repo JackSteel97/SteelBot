@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Enums
 {
@@ -86,7 +83,8 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Wombat,
         Otter,
         Octopus,
-        BlackPhantomTetra
+        BlackPhantomTetra,
+        Doge
     }
 
     public static class SpeciesExtensions
@@ -174,6 +172,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Otter => Rarity.Rare,
                 Species.Octopus => Rarity.Rare,
                 Species.BlackPhantomTetra => Rarity.Uncommon,
+                Species.Doge => Rarity.Legendary,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
             };
         }
@@ -259,6 +258,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Otter => 2 * Year,
                 Species.Octopus => 1 * Year,
                 Species.BlackPhantomTetra => 2 * Year,
+                Species.Doge => 10_000 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }
@@ -479,6 +479,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
                     break;
                 case Species.BlackPhantomTetra:
                     bodyParts.Add(BodyPart.Fins);
+                    break;
+                case Species.Doge:
+                    bodyParts.Add(BodyPart.Ears);
+                    bodyParts.Add(BodyPart.Tail);
+                    bodyParts.Add(BodyPart.Legs);
                     break;
             };
 
