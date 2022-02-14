@@ -13,9 +13,6 @@ using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets
@@ -29,6 +26,8 @@ namespace SteelBot.DiscordModules.Pets
         private readonly ILogger<PetsCommands> Logger;
         private readonly PetFactory PetFactory;
         private readonly DataHelpers DataHelpers;
+        private const double DayInSeconds = 24 * 60 * 60;
+        private const double TwelveHours = 12 * 60 * 60;
 
         public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers)
         {
@@ -39,6 +38,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [GroupCommand]
         [Description("Show all your pets")]
+        [Cooldown(2, 60, CooldownBucketType.User)]
         public async Task GetPets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -50,6 +50,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("manage")]
         [Description("Manage your owned pets")]
+        [Cooldown(3, 60, CooldownBucketType.User)]
         public async Task ManagePets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -60,6 +61,7 @@ namespace SteelBot.DiscordModules.Pets
         [Command("treat")]
         [Aliases("reward", "gift")]
         [Description("Give one of your pets a treat, boosting their XP instantly")]
+        [Cooldown(2, DayInSeconds, CooldownBucketType.User)]
         public async Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -69,6 +71,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("Search")]
         [Description("Search for a new pet")]
+        [Cooldown(2, TwelveHours, CooldownBucketType.User)]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
