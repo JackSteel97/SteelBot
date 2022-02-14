@@ -41,7 +41,6 @@ namespace SteelBot.Helpers
         private static readonly LinearGradientBrush GradientBrush = new LinearGradientBrush(new PointF(0, 0), new PointF(0, XpBarHeight), GradientRepetitionMode.Repeat, XpGradient);
 
         private static readonly FontCollection Fonts = new FontCollection();
-        private const string FontName = "Roboto";
         private readonly FontFamily FontFamily;
 
         public LevelCardGenerator(AppConfigurationService appConfigurationService)
