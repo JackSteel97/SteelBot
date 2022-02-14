@@ -77,9 +77,9 @@ namespace SteelBot.Helpers.Extensions
             }
         }
 
-        public static void DrawSimpleText(this IImageProcessingContext ctx, DrawingOptions opts, string text, Font font, Color color, float x, float y)
+        public static void DrawSimpleText(this IImageProcessingContext ctx, TextOptions opts, string text, Color color)
         {
-            ctx.DrawText(opts, text, font, color, new PointF(x, y));
+            ctx.DrawText(opts, text, color);
         }
     }
 }

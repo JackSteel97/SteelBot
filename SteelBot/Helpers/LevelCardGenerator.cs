@@ -42,10 +42,11 @@ namespace SteelBot.Helpers
 
         private static readonly FontCollection Fonts = new FontCollection();
         private const string FontName = "Roboto";
+        private readonly FontFamily FontFamily;
 
         public LevelCardGenerator(AppConfigurationService appConfigurationService)
         {
-            Fonts.Install(Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf"));
+            FontFamily = Fonts.Add(Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf"));
         }
 
         public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
@@ -85,47 +86,66 @@ namespace SteelBot.Helpers
 
                     float xpBarMidpointX = X1 + (XpBarWidth / 2),
                     xpBarMidpointY = Y1 + (XpBarHeight / 2);
+
                     // Current XP text.
-                    imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Right, VerticalAlignment.Center),
-                        user.TotalXp.KiloFormat(),
-                        Fonts.CreateFont(FontName, XpBarHeight - 12),
-                        Color.WhiteSmoke,
-                        xpBarMidpointX,
-                        xpBarMidpointY);
+                    var currentXpOpts = GetOptions(FontFamily.CreateFont(XpBarHeight - 12),
+                        HorizontalAlignment.Right,
+                        VerticalAlignment.Center,
+                        x: xpBarMidpointX,
+                        y: xpBarMidpointY);
+                    imageContext.DrawSimpleText(currentXpOpts, user.TotalXp.KiloFormat(), Color.WhiteSmoke);
 
                     // Remaining Xp text.
-                    imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Left, VerticalAlignment.Center),
-                        $" / {xpForNextLevel.KiloFormat()}",
-                        Fonts.CreateFont(FontName, XpBarHeight - 12),
-                        Color.LightGray,
-                        xpBarMidpointX,
-                        xpBarMidpointY);
+                    var remainingXpOpts = GetOptions(FontFamily.CreateFont(XpBarHeight - 12),
+                        HorizontalAlignment.Left,
+                        VerticalAlignment.Center,
+                        x: xpBarMidpointX,
+                        y: xpBarMidpointY);
+                    imageContext.DrawSimpleText(remainingXpOpts, $" / {xpForNextLevel.KiloFormat()}", Color.LightGray);
 
                     // Current Level text.
-                    DrawingOptions levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
+                    var levelTextOpts = GetOptions(FontFamily.CreateFont(48),
+                        HorizontalAlignment.Right,
+                        VerticalAlignment.Top,
+                        x: Width - XPadding,
+                        y: YPadding);
+
                     string levelText = $"Level {user.CurrentLevel}";
-                    Font levelFont = Fonts.CreateFont(FontName, 48);
-                    FontRectangle levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
-                    imageContext.DrawText(levelTextOpts, levelText, levelFont, Color.WhiteSmoke, new PointF(Width - XPadding, YPadding));
+                    FontRectangle levelMeasurements = TextMeasurer.Measure(levelText, levelTextOpts);
+                    imageContext.DrawText(levelTextOpts, levelText, Color.WhiteSmoke);
 
                     // Username Text.
-                    DrawingOptions usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
-                    Font usernameFont = Fonts.CreateFont(FontName, 44);
-                    Font tagFont = Fonts.CreateFont(FontName, 28);
-                    FontRectangle usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
-                    imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(AvatarHeight + (XPadding * 2), Y1 - (XPadding * 2)));
-                    imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray, new PointF(AvatarHeight + (XPadding * 2) + usernameMeasurements.Width, Y1 - (XPadding * 2)));
+                    var usernameTextOpts = GetOptions(FontFamily.CreateFont(44),
+                        HorizontalAlignment.Left,
+                        VerticalAlignment.Bottom,
+                        x: AvatarHeight + (XPadding * 2),
+                        y: Y1 - (XPadding * 2));
+
+                    FontRectangle usernameMeasurements = TextMeasurer.Measure(member.Username, usernameTextOpts);
+
+                    var tagTextOpts = GetOptions(FontFamily.CreateFont(28),
+                        HorizontalAlignment.Left,
+                        VerticalAlignment.Bottom,
+                        x: AvatarHeight + (XPadding * 2) + usernameMeasurements.Width,
+                        y: Y1 - (XPadding * 2));
+
+
+                    imageContext.DrawText(usernameTextOpts, member.Username, Color.WhiteSmoke);
+                    imageContext.DrawText(tagTextOpts, $" #{member.Discriminator}", Color.Gray);
 
                     DiscordRole topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
                     if (topRole != default)
                     {
-                        DrawingOptions serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
+                        var serverRoleOptions = GetOptions(FontFamily.CreateFont(28),
+                            HorizontalAlignment.Left,
+                            VerticalAlignment.Bottom,
+                            x: AvatarHeight + (XPadding * 2),
+                            y: Y1 - (YPadding * 2) - usernameMeasurements.Height,
+                            Width - AvatarHeight - (XPadding * 2) - levelMeasurements.Width);
+                       
                         imageContext.DrawSimpleText(serverRoleOptions,
                             topRole.Name,
-                            Fonts.CreateFont(FontName, 28),
-                            Color.FromRgb(topRole.Color.R, topRole.Color.G, topRole.Color.B),
-                            AvatarHeight + (XPadding * 2),
-                            Y1 - (YPadding * 2) - usernameMeasurements.Height);
+                            Color.FromRgb(topRole.Color.R, topRole.Color.G, topRole.Color.B));
                     }
                 });
 
@@ -139,19 +159,18 @@ namespace SteelBot.Helpers
             }
         }
 
-        private static DrawingOptions GetOptions(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
+        private static TextOptions GetOptions(Font font, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float x, float y, float? wrapWidth = null)
         {
-            DrawingOptions opts = new DrawingOptions()
+            var opts = new TextOptions(font)
             {
-                TextOptions = new TextOptions()
-                {
-                    HorizontalAlignment = horizontalAlignment,
-                    VerticalAlignment = verticalAlignment
-                }
+                Origin = new System.Numerics.Vector2(x, y),
+                HorizontalAlignment = horizontalAlignment,
+                VerticalAlignment = verticalAlignment,
             };
+
             if (wrapWidth.HasValue)
             {
-                opts.TextOptions.WrapTextWidth = wrapWidth.Value;
+                opts.WrappingLength = wrapWidth.Value;
             }
             return opts;
         }
