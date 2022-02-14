@@ -1,15 +1,12 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
@@ -37,7 +34,7 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [GroupCommand]
-        [Description("Show all your pets")]
+        [Description("Show all your owned pets")]
         [Cooldown(2, 60, CooldownBucketType.User)]
         public async Task GetPets(CommandContext context)
         {
@@ -60,7 +57,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("treat")]
         [Aliases("reward", "gift")]
-        [Description("Give one of your pets a treat, boosting their XP instantly")]
+        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per day")]
         [Cooldown(2, DayInSeconds, CooldownBucketType.User)]
         public async Task TreatPet(CommandContext context)
         {
@@ -70,7 +67,7 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [Command("Search")]
-        [Description("Search for a new pet")]
+        [Description("Search for a new pet. Allows 2 searches every 12 hours.")]
         [Cooldown(2, TwelveHours, CooldownBucketType.User)]
         public async Task Search(CommandContext context)
         {
