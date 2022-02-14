@@ -148,6 +148,11 @@ namespace SteelBot.DiscordModules.Pets
                 bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
             }
 
+            if(pet.Rarity == Rarity.Legendary)
+            {
+                bonuses.Append("`Passive Offline XP: +").Append(pet.CurrentLevel).Append('`');
+            }
+
             embedBuilder.AddField("Bonuses", bonuses.ToString());
 
             return embedBuilder;

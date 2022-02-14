@@ -64,6 +64,7 @@ namespace SteelBot.Helpers.Levelling
                 user.StreamingStartTime = null;
                 user.VideoStartTime = null;
                 user.AfkStartTime = null;
+                user.DisconnectedStartTime = now;
             }
             else if(newState.Channel == newState.Guild.AfkChannel)
             {
@@ -74,6 +75,7 @@ namespace SteelBot.Helpers.Levelling
                 user.DeafenedStartTime = null;
                 user.StreamingStartTime = null;
                 user.VideoStartTime = null;
+                user.DisconnectedStartTime = null;
             }
             else
             {
@@ -84,6 +86,7 @@ namespace SteelBot.Helpers.Levelling
                 user.StreamingStartTime = newState.IsSelfStream ? now : null;
                 user.VideoStartTime = newState.IsSelfVideo ? now : null;
                 user.AfkStartTime = null;
+                user.DisconnectedStartTime = null;
             }
         }
 
@@ -129,6 +132,13 @@ namespace SteelBot.Helpers.Levelling
                 user.TimeSpentAfk += (now - user.AfkStartTime.Value);
                 // No XP earned or lost for AFK.
             }
+
+            if (user.DisconnectedStartTime.HasValue)
+            {
+                var durationDifference = (now - user.DisconnectedStartTime.Value);
+                user.TimeSpentDisconnected += durationDifference;
+                IncrementDisconnectedXp(user, durationDifference, availablePets);
+            }
         }
 
         private static void IncrementVoiceXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
@@ -137,28 +147,47 @@ namespace SteelBot.Helpers.Levelling
             user.VoiceXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Voice);
         }
 
-        private static void IncrementMutedXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
+        private static void IncrementMutedXp(User user, TimeSpan mutedDuration, List<Pet> availablePets)
         {
-            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(mutedDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
             user.MutedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.MutedPentalty);
         }
 
-        private static void IncrementDeafenedXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
+        private static void IncrementDeafenedXp(User user, TimeSpan deafenedXp, List<Pet> availablePets)
         {
-            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(deafenedXp, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
             user.DeafenedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.DeafenedPenalty);
         }
 
-        private static void IncrementStreamingXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
+        private static void IncrementStreamingXp(User user, TimeSpan streamingDuration, List<Pet> availablePets)
         {
-            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentStreaming, LevelConfig.StreamingXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(streamingDuration, user.TimeSpentStreaming, LevelConfig.StreamingXpPerMin);
             user.StreamingXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Streaming);
         }
 
-        private static void IncrementVideoXp(User user, TimeSpan voiceDuration, List<Pet> availablePets)
+        private static void IncrementVideoXp(User user, TimeSpan videoDuration, List<Pet> availablePets)
         {
-            var baseXp = LevellingMaths.GetDurationXp(voiceDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
+            var baseXp = LevellingMaths.GetDurationXp(videoDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
             user.VideoXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.Video);
+        }
+
+        private static void IncrementDisconnectedXp(User user, TimeSpan disconnectedDuration, List<Pet> availablePets)
+        {
+            int disconnectedXpPerMin = 0;
+            foreach(var pet in availablePets)
+            {
+                if(pet.Rarity == Rarity.Legendary)
+                {
+                    // Legendary pets earn passive xp.
+                    disconnectedXpPerMin += pet.CurrentLevel;
+                }
+            }
+
+            if(disconnectedXpPerMin > 0)
+            {
+                var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, user.TimeSpentDisconnected, disconnectedXpPerMin);
+                user.DisconnectedXpEarned += xpEarned;
+            }
         }
     }
 }

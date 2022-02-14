@@ -17,6 +17,7 @@ namespace SteelBot.Database.Models
         public ulong TimeSpentStreamingSeconds { get; set; }
         public ulong TimeSpentOnVideoSeconds { get; set; }
         public ulong TimeSpentAfkSeconds { get; set; }
+        public ulong TimeSpentDisconnectedSeconds { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
         public DateTime? DeafenedStartTime { get; set; }
@@ -24,6 +25,7 @@ namespace SteelBot.Database.Models
         public DateTime? VideoStartTime { get; set; }
         public DateTime? VoiceStartTime { get; set; }
         public DateTime? AfkStartTime { get; set; }
+        public DateTime? DisconnectedStartTime { get; set; }
         public DateTime LastActivity { get; set; }
 
         public long GuildRowId { get; set; }
@@ -35,6 +37,7 @@ namespace SteelBot.Database.Models
         public ulong DeafenedXpEarned { get; set; }
         public ulong StreamingXpEarned { get; set; }
         public ulong VideoXpEarned { get; set; }
+        public ulong DisconnectedXpEarned { get; set; }
 
         public int CurrentLevel { get; set; }
 
@@ -51,7 +54,7 @@ namespace SteelBot.Database.Models
         {
             get
             {
-                var positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned;
+                var positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned + DisconnectedXpEarned;
                 var negativeXp = MutedXpEarned + DeafenedXpEarned;
                 if(positiveXp >= negativeXp)
                 {
@@ -135,6 +138,18 @@ namespace SteelBot.Database.Models
             set
             {
                 TimeSpentAfkSeconds = (ulong)Math.Floor(value.TotalSeconds);
+            }
+        }
+
+        public TimeSpan TimeSpentDisconnected
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(TimeSpentDisconnectedSeconds);
+            }
+            set
+            {
+                TimeSpentDisconnectedSeconds = (ulong)Math.Floor(value.TotalSeconds);
             }
         }
 
