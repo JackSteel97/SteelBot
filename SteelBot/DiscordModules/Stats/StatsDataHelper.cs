@@ -43,7 +43,7 @@ namespace SteelBot.DiscordModules.Stats
                 {
                     // Xp has changed.
                     levelIncreased = copyOfUser.UpdateLevel();
-                    await PetsDataHelper.PetXpsUpdated(availablePets);
+                    await PetsDataHelper.PetXpUpdated(availablePets);
                 }
                 await Cache.Users.UpdateUser(args.Guild.Id, copyOfUser);
 
@@ -89,7 +89,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 levelIncreased = copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(guildId, copyOfUser);
-                await PetsDataHelper.PetXpsUpdated(availablePets);
+                await PetsDataHelper.PetXpUpdated(availablePets);
 
                 if (levelIncreased)
                 {
@@ -117,7 +117,7 @@ namespace SteelBot.DiscordModules.Stats
                 copyOfUser.VoiceStateChange(newState: null, availablePets);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
-                await PetsDataHelper.PetXpsUpdated(availablePets);
+                await PetsDataHelper.PetXpUpdated(availablePets);
             }
         }
         

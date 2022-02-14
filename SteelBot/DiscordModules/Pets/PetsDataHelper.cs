@@ -107,6 +107,12 @@ namespace SteelBot.DiscordModules.Pets
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public DiscordMessageBuilder GetPetTreatedMessage(Pet pet, int xpGain)
+        {
+            var embedBuilder = EmbedGenerator.Info($"{Formatter.Bold(pet.GetName())} Greatly enjoyed their treat and gained {xpGain} XP", "Tasty!");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true)
         {
             string name;
@@ -148,7 +154,7 @@ namespace SteelBot.DiscordModules.Pets
                 bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
             }
 
-            if(pet.Rarity == Rarity.Legendary)
+            if (pet.Rarity == Rarity.Legendary)
             {
                 bonuses.Append("`Passive Offline XP: +").Append(pet.CurrentLevel).Append('`');
             }
@@ -167,25 +173,23 @@ namespace SteelBot.DiscordModules.Pets
             var availablePets = GetAvailablePets(guildId, userId, out var disabledPets);
             if (disabledPets.Count > 0)
             {
-                embedBuilder.WithFooter("Disabled pet's bonuses have no effect until you reach the required level in this server.");
+                embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server.");
             }
+
 
             StringBuilder petList = new StringBuilder();
             if (availablePets.Count > 0 || disabledPets.Count > 0)
             {
-                foreach (var pet in availablePets)
+                foreach(var pet in availablePets)
                 {
-                    AppendShortDescription(petList, pet);
-                    petList.AppendLine();
+                    embedBuilder.AddField(pet.GetName(), $"Level {pet.CurrentLevel} {pet.Species.GetName()}");
                 }
 
                 int petNumber = availablePets.Count;
                 foreach (var disabledPet in disabledPets)
                 {
-                    AppendShortDescription(petList, disabledPet);
                     int levelRequired = GetRequiredLevelForPet(petNumber);
-                    petList.Append(" - Disabled, Level ").Append(petNumber).Append(" required");
-                    petList.AppendLine();
+                    embedBuilder.AddField(disabledPet.GetName(), $"Level {disabledPet.CurrentLevel} {disabledPet.Species.GetName()} - **Inactive**, Level {levelRequired} required");
                     ++petNumber;
                 }
             }
@@ -258,40 +262,110 @@ namespace SteelBot.DiscordModules.Pets
             return (befriendAttempt, foundPet);
         }
 
+        public async Task HandleTreat(CommandContext context)
+        {
+            var petList = GetOwnedPetsDisplayEmbed(context.Guild.Id, context.Member.Id);
+
+            var initialResponseBuilder = new DiscordMessageBuilder().WithEmbed(petList);
+            
+            if(Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Treat(p.RowId, p.GetName()));
+                initialResponseBuilder = AddComponents(initialResponseBuilder, components);
+
+                var message = await context.RespondAsync(initialResponseBuilder);
+                var result = await message.WaitForButtonAsync();
+
+                initialResponseBuilder.ClearComponents();
+                if (!result.TimedOut)
+                {
+                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                    if(TryGetPetIdFromPetSelectorButton(result.Result.Id, out long petId))
+                    {
+                        await HandleTreatGiven(context, petId);
+                    }
+                }
+                else
+                {
+                    await message.ModifyAsync(initialResponseBuilder);
+                }
+            }
+        }
+
+        public async Task HandleTreatGiven(CommandContext context, long petId)
+        {
+            if(Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
+            {
+                var xpRequiredToLevel = LevellingMaths.XpForLevel(pet.CurrentLevel + 1);
+                var upperBound = (int)Math.Round(xpRequiredToLevel * 0.1);
+                var xpGain = RandomNumberGenerator.GetInt32(1, upperBound);
+                pet.EarnedXp += xpGain;
+                await PetXpUpdated(pet);
+                await context.Channel.SendMessageAsync(GetPetTreatedMessage(pet, xpGain));
+            }
+        }
+
+        /// <summary>
+        /// Add components, handling starting new rows.
+        /// Cuts off any excess components.
+        /// </summary>
+        /// <param name="message">The message builder.</param>
+        /// <param name="components">The flat collection of components to add.</param>
+        /// <returns>The message builder with components added.</returns>
+        private static DiscordMessageBuilder AddComponents(DiscordMessageBuilder message, IEnumerable<DiscordComponent> components)
+        {
+            const int maxColumns = 5;
+            const int maxRows = 5;
+
+            int currentColumnCount = 0;
+            int currentRowCount = 0;
+            List<DiscordComponent> currentRowComponents = new List<DiscordComponent>(maxColumns);
+
+            foreach (var component in components)
+            {
+                ++currentColumnCount;
+
+                currentRowComponents.Add(component);
+                if (currentColumnCount == maxColumns)
+                {
+                    // Start a new row.
+                    message.AddComponents(components);
+                    currentRowComponents.Clear();
+                    currentColumnCount = 0;
+                    ++currentRowCount;
+                    if (currentRowCount == maxRows)
+                    {
+                        // Can't fit any more rows.
+                        return message;
+                    }
+                }
+            }
+            // Add remaining components.
+            message.AddComponents(components);
+            return message;
+        }
+
+        private static bool TryGetPetIdFromPetSelectorButton(string buttonId, out long petId)
+        {
+            var parts = buttonId.Split('_');
+            if (parts.Length == 3)
+            {
+                return long.TryParse(parts[2], out petId);
+            }
+            petId = default;
+            return false;
+        }
+
         public async Task HandleManagePets(CommandContext context)
         {
             var petList = GetOwnedPetsDisplayEmbed(context.Guild.Id, context.Member.Id);
 
             var initialResponseBuilder = new DiscordMessageBuilder().WithEmbed(petList);
 
-
             if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                int columnCounter = 0;
-                int rowCounter = 0;
-                List<DiscordComponent> components = new List<DiscordComponent>(allPets.Count);
-                foreach (var pet in allPets.OrderBy(p=>p.Priority))
-                {
-                    components.Add(Interactions.Pets.Manage(pet.RowId, pet.GetName()));
-                    ++columnCounter;
-                    if (columnCounter % 4 == 0)
-                    {
-                        // Start a new row.
-                        initialResponseBuilder.AddComponents(components);
-                        components.Clear();
-                        columnCounter = 0;
-                        ++rowCounter;
-                        if (rowCounter == 5)
-                        {
-                            // Can't fit any more rows
-                            break;
-                        }
-                    }
-                }
-                if(rowCounter < 5)
-                {
-                    initialResponseBuilder.AddComponents(components);
-                }
+                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Manage(p.RowId, p.GetName()));
+                initialResponseBuilder = AddComponents(initialResponseBuilder, components);
 
                 var message = await context.RespondAsync(initialResponseBuilder);
                 var result = await message.WaitForButtonAsync(context.Member);
@@ -303,13 +377,9 @@ namespace SteelBot.DiscordModules.Pets
                     await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
 
                     // Figure out which pet they want to manage.
-                    var parts = result.Result.Id.Split('_');
-                    if (parts.Length == 3)
+                    if(TryGetPetIdFromPetSelectorButton(result.Result.Id, out var petId))
                     {
-                        if (long.TryParse(parts[2], out long petId))
-                        {
-                            await HandleManagePet(context, petId);
-                        }
+                        await HandleManagePet(context, petId);
                     }
                 }
                 else
@@ -321,7 +391,7 @@ namespace SteelBot.DiscordModules.Pets
 
         public async Task HandleManagePet(CommandContext context, long petId)
         {
-            if(Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
+            if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
             {
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out var ownedPetCount);
                 var petDisplay = GetPetDisplayEmbed(pet);
@@ -333,7 +403,7 @@ namespace SteelBot.DiscordModules.Pets
                         Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
                         Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
                         Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
-                        Interactions.Pets.Abandon
+                        Interactions.Pets.Abandon,
                     });
 
                 var message = await context.RespondAsync(initialResponseBuilder);
@@ -410,9 +480,9 @@ namespace SteelBot.DiscordModules.Pets
 
                 if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
                 {
-                    foreach(var ownedPet in allPets)
+                    foreach (var ownedPet in allPets)
                     {
-                        if(ownedPet.Priority > pet.Priority)
+                        if (ownedPet.Priority > pet.Priority)
                         {
                             --ownedPet.Priority;
                             await Cache.Pets.UpdatePet(ownedPet);
@@ -427,11 +497,11 @@ namespace SteelBot.DiscordModules.Pets
         private async Task HandlePriorityIncrease(CommandContext context, Pet pet)
         {
             int oldPriority = pet.Priority;
-            if(Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                foreach(var ownedPet in allPets)
+                foreach (var ownedPet in allPets)
                 {
-                    if(ownedPet.Priority == oldPriority - 1)
+                    if (ownedPet.Priority == oldPriority - 1)
                     {
                         ++ownedPet.Priority;
                         await Cache.Pets.UpdatePet(ownedPet);
@@ -467,11 +537,11 @@ namespace SteelBot.DiscordModules.Pets
         private async Task HandleMakePrimary(CommandContext context, Pet pet)
         {
             int oldPriority = pet.Priority;
-            if(Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                foreach(var ownedPet in allPets)
+                foreach (var ownedPet in allPets)
                 {
-                    if(ownedPet.Priority < oldPriority)
+                    if (ownedPet.Priority < oldPriority)
                     {
                         ++ownedPet.Priority;
                         await Cache.Pets.UpdatePet(ownedPet);
@@ -588,22 +658,22 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        public async Task PetXpsUpdated(List<Pet> pets)
+        public async Task PetXpUpdated(List<Pet> pets)
         {
             foreach (var pet in pets)
             {
-                if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
-                {
-                    pet.CurrentLevel = newLevel;
-                    PetLevelledUp(pet);
-                }
-                await Cache.Pets.UpdatePet(pet);
+                await PetXpUpdated(pet);
             }
         }
 
-        private void AppendShortDescription(StringBuilder builder, Pet pet)
+        private async Task PetXpUpdated(Pet pet)
         {
-            builder.Append(Formatter.Bold((pet.Priority + 1).ToString())).Append(" - ").Append(Formatter.Bold(pet.GetName())).Append(" Level ").Append(pet.CurrentLevel).Append(' ').Append(pet.Species.GetName());
+            if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
+            {
+                pet.CurrentLevel = newLevel;
+                PetLevelledUp(pet);
+            }
+            await Cache.Pets.UpdatePet(pet);
         }
 
         private void PetLevelledUp(Pet pet)
@@ -718,8 +788,7 @@ namespace SteelBot.DiscordModules.Pets
 
         private int GetRequiredLevelForPet(int petNumber)
         {
-            int additionalPetNumber = petNumber - 1;
-            return additionalPetNumber * NewPetSlotUnlockLevels;
+            return petNumber * NewPetSlotUnlockLevels;
         }
 
         private int GetNumberOfOwnedPets(ulong userId)

@@ -57,6 +57,16 @@ namespace SteelBot.DiscordModules.Pets
             await DataHelpers.Pets.HandleManagePets(context);
         }
 
+        [Command("treat")]
+        [Aliases("reward", "gift")]
+        [Description("Give one of your pets a treat, boosting their XP instantly")]
+        public async Task TreatPet(CommandContext context)
+        {
+            Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
+
+            await DataHelpers.Pets.HandleTreat(context);
+        }
+
         [Command("Search")]
         [Description("Search for a new pet")]
         public async Task Search(CommandContext context)
