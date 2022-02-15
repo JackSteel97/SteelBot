@@ -113,6 +113,12 @@ namespace SteelBot.DiscordModules.Pets
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public DiscordMessageBuilder GetNoPetsAvailableMessage()
+        {
+            var embedBuilder = EmbedGenerator.Info($"You don't currently have any pets, use the `Pet Search` command to get some!", "No pets!");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true)
         {
             string name;
@@ -290,6 +296,10 @@ namespace SteelBot.DiscordModules.Pets
                     await message.ModifyAsync(initialResponseBuilder);
                 }
             }
+            else
+            {
+                await context.RespondAsync(GetNoPetsAvailableMessage());
+            }
         }
 
         public async Task HandleTreatGiven(CommandContext context, long petId)
@@ -386,6 +396,10 @@ namespace SteelBot.DiscordModules.Pets
                 {
                     await message.ModifyAsync(initialResponseBuilder);
                 }
+            }
+            else
+            {
+                await context.RespondAsync(GetNoPetsAvailableMessage());
             }
         }
 

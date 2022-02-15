@@ -56,7 +56,7 @@ namespace SteelBot.DataProviders.SubProviders
                 pets = new List<Pet>();
             }
 
-            return userHasPets;
+            return userHasPets && pets.Count > 0;
         }
 
         public bool TryGetUsersPetsCount(ulong userDiscordId, out int numberOfOwnedPets)
