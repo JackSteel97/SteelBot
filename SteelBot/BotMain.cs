@@ -270,7 +270,7 @@ namespace SteelBot
                         if (failedCheck is CooldownAttribute cooldown)
                         {
                             await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                                .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**"));
+                                .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
                             return;
                         }
                         if (failedCheck is RequireUserPermissionsAttribute userPerms)

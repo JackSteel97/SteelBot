@@ -45,7 +45,6 @@ namespace SteelBot.DiscordModules.WordGuesser
         private readonly Dictionary<ulong, WordGuesserStats> Stats = new Dictionary<ulong, WordGuesserStats>();
         private readonly StringBuilder CurrentResponse = new StringBuilder();
 
-
         public WordGuesserCommands(ILogger<WordGuesserCommands> logger, AppConfigurationService appConfigurationService)
         {
             Logger = logger;
