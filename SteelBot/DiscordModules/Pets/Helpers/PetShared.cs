@@ -153,7 +153,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)
         {
             bool named = false;
-            if (nameMessage.Content.Length > 255)
+            if (nameMessage.Content.Length > 70)
             {
                 await nameMessage.RespondAsync(EmbedGenerator.Warning("Sorry, that name is too long. Please try something else"));
             }

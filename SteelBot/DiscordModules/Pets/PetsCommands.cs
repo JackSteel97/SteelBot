@@ -36,47 +36,47 @@ namespace SteelBot.DiscordModules.Pets
         [GroupCommand]
         [Description("Show all your owned pets")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public Task GetPets(CommandContext context)
+        public async Task GetPets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            return DataHelpers.Pets.SendOwnedPetsDisplay(context);
+            await DataHelpers.Pets.SendOwnedPetsDisplay(context);
         }
 
         [Command("manage")]
         [Description("Manage your owned pets")]
         [Cooldown(3, 60, CooldownBucketType.User)]
-        public Task ManagePets(CommandContext context)
+        public async Task ManagePets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            return DataHelpers.Pets.HandleManage(context);
+            await DataHelpers.Pets.HandleManage(context);
         }
 
         [Command("treat")]
         [Aliases("reward", "gift")]
         [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per day")]
         [Cooldown(2, DayInSeconds, CooldownBucketType.User)]
-        public Task TreatPet(CommandContext context)
+        public async Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            return DataHelpers.Pets.HandleTreat(context);
+            await DataHelpers.Pets.HandleTreat(context);
         }
 
         [Command("Search")]
         [Description("Search for a new pet. Allows 6 searches per day.")]
         [Cooldown(6, DayInSeconds, CooldownBucketType.User)]
-        public Task Search(CommandContext context)
+        public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
-            return DataHelpers.Pets.HandleSearch(context);
+            await DataHelpers.Pets.HandleSearch(context);
         }
 
         [Command("DebugStats")]
         [RequireOwner]
-        public Task GenerateLots(CommandContext context, double count)
+        public async Task GenerateLots(CommandContext context, double count)
         {
             var countByRarity = new Dictionary<Rarity, int>();
 
@@ -102,16 +102,16 @@ namespace SteelBot.DiscordModules.Pets
                 .AddField("Epic", $"{countByRarity[Rarity.Epic]} ({countByRarity[Rarity.Epic] / count:P2})", true)
                 .AddField("Legendary", $"{countByRarity[Rarity.Legendary]} ({countByRarity[Rarity.Legendary] / count:P2})", true);
 
-            return context.RespondAsync(embed);
+            await context.RespondAsync(embed);
         }
 
         [Command("Combos")]
         [RequireOwner]
-        public Task CalculateCombinations(CommandContext context)
+        public async Task CalculateCombinations(CommandContext context)
         {
             var count = PetFactory.CountPossibilities();
 
-            return context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
+            await context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
         }
     }
 }

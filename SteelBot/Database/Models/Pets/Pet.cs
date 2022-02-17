@@ -13,7 +13,7 @@ namespace SteelBot.Database.Models.Pets
     {
         public long RowId { get; set; }
         public ulong OwnerDiscordId { get; set; }
-        [MaxLength(255)]
+        [MaxLength(70)]
         public string Name { get; set; }
 
         public int Priority { get; set; }
