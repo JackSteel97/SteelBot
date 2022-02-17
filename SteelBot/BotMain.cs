@@ -79,7 +79,6 @@ namespace SteelBot
         {
             await ShutdownDiscordClient();
             await DataHelpers.Stats.DisconnectAllUsers();
-
         }
 
         private async Task ShutdownDiscordClient()
@@ -150,10 +149,10 @@ namespace SteelBot
         {
             string guildsPrefix = DataHelpers.Config.GetPrefix(msg.Channel.GuildId.Value);
 
-            int prefixFound = CommandsNextUtilities.GetStringPrefixLength(msg, guildsPrefix);
+            int prefixFound = msg.GetStringPrefixLength(guildsPrefix);
             if (prefixFound == -1)
             {
-                prefixFound = CommandsNextUtilities.GetMentionPrefixLength(msg, Client.CurrentUser);
+                prefixFound = msg.GetMentionPrefixLength(Client.CurrentUser);
             }
             return Task.FromResult(prefixFound);
         }
@@ -203,7 +202,6 @@ namespace SteelBot
             });
 
             return Task.CompletedTask;
-
         }
 
         private Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
@@ -235,7 +233,7 @@ namespace SteelBot
             // Don't offload to a Task.run because this happens rarely and needs to happen before any commands from a new guild can be processed.
             try
             {
-                Guild joinedGuild = new Guild(args.Guild.Id);
+                var joinedGuild = new Guild(args.Guild.Id);
                 await Cache.Guilds.UpsertGuild(joinedGuild);
             }
             catch (Exception ex)

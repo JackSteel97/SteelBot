@@ -485,7 +485,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                     bodyParts.Add(BodyPart.Tail);
                     bodyParts.Add(BodyPart.Legs);
                     break;
-            };
+            }
 
             return bodyParts;
         }

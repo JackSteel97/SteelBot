@@ -79,7 +79,6 @@ namespace SteelBot.DiscordModules.Pets.Generation
                             }
                         }
                     }
-                    
                 }
             }
 

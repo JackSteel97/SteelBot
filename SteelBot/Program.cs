@@ -12,6 +12,7 @@ using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Generation;
+using SteelBot.DiscordModules.Pets.Services;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
@@ -28,7 +29,7 @@ using System.Reflection;
 
 namespace SteelBot
 {
-    public class Program
+    public static class Program
     {
         private const string Environment = "Development";
 
@@ -39,7 +40,7 @@ namespace SteelBot
                 .AddJsonFile($"appsettings.{Environment.ToLower()}.json", false, true)
                 .Build();
 
-            AppConfigurationService appConfigurationService = new AppConfigurationService();
+            var appConfigurationService = new AppConfigurationService();
             configuration.Bind("AppConfig", appConfigurationService);
             appConfigurationService.Environment = Environment;
             appConfigurationService.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -73,7 +74,7 @@ namespace SteelBot
             // Discord client setup.
             LogLevel discordLogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), appConfigurationService.Application.Discord.LogLevel);
 
-            DiscordClient client = new DiscordClient(new DiscordConfiguration()
+            var client = new DiscordClient(new DiscordConfiguration()
             {
                 MinimumLogLevel = discordLogLevel,
                 MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
@@ -133,6 +134,9 @@ namespace SteelBot
             serviceProvider.AddSingleton<LevelCardGenerator>();
             serviceProvider.AddSingleton<StockPriceService>();
             serviceProvider.AddSingleton<PetFactory>();
+            serviceProvider.AddTransient<PetBefriendingService>();
+            serviceProvider.AddTransient<PetManagementService>();
+            serviceProvider.AddTransient<PetTreatingService>();
         }
 
         public static void Main(string[] args)

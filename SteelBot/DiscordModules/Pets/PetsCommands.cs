@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
+using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
@@ -35,61 +36,42 @@ namespace SteelBot.DiscordModules.Pets
         [GroupCommand]
         [Description("Show all your owned pets")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task GetPets(CommandContext context)
+        public Task GetPets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            var embed = DataHelpers.Pets.GetOwnedPetsDisplayEmbed(context.Guild.Id, context.User.Id);
-            embed.WithThumbnail(context.Member.AvatarUrl);
-            await context.RespondAsync(embed);
+            return DataHelpers.Pets.SendOwnedPetsDisplay(context);
         }
 
         [Command("manage")]
         [Description("Manage your owned pets")]
         [Cooldown(3, 60, CooldownBucketType.User)]
-        public async Task ManagePets(CommandContext context)
+        public Task ManagePets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.HandleManagePets(context);
+            return DataHelpers.Pets.HandleManage(context);
         }
 
         [Command("treat")]
         [Aliases("reward", "gift")]
         [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per day")]
         [Cooldown(2, DayInSeconds, CooldownBucketType.User)]
-        public async Task TreatPet(CommandContext context)
+        public Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.HandleTreat(context);
+            return DataHelpers.Pets.HandleTreat(context);
         }
 
         [Command("Search")]
         [Description("Search for a new pet. Allows 6 searches per day.")]
         [Cooldown(6, DayInSeconds, CooldownBucketType.User)]
-        public async Task Search(CommandContext context)
+        public Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
-            if (!DataHelpers.Pets.SearchSuccess(context.Member))
-            {
-                await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"));
-                return;
-            }
-
-            (bool befriendAttempt, Pet pet) = await DataHelpers.Pets.HandleInitialSearchSuccess(context);
-            bool newPet = false;
-            if (befriendAttempt)
-            {
-                newPet = await DataHelpers.Pets.HandleBefriendAttempt(context, pet);
-            }
-
-            if (newPet)
-            {
-
-                await context.RespondAsync(DataHelpers.Pets.GetPetOwnedSuccessMessage(context.Member, pet));
-            }
+            return DataHelpers.Pets.HandleSearch(context);
         }
 
         [Command("DebugStats")]
@@ -97,12 +79,12 @@ namespace SteelBot.DiscordModules.Pets
         public Task GenerateLots(CommandContext context, double count)
         {
             var countByRarity = new Dictionary<Rarity, int>();
-            
+
             var start = DateTime.UtcNow;
-            for (int i =0; i < count; ++i)
+            for (int i = 0; i < count; ++i)
             {
                 var pet = PetFactory.Generate();
-                if(!countByRarity.ContainsKey(pet.Rarity))
+                if (!countByRarity.ContainsKey(pet.Rarity))
                 {
                     countByRarity.Add(pet.Rarity, 1);
                 }
@@ -113,7 +95,7 @@ namespace SteelBot.DiscordModules.Pets
             var embed = new DiscordEmbedBuilder().WithTitle("Stats").WithColor(EmbedGenerator.InfoColour)
                 .AddField("Generated", count.ToString(), true)
                 .AddField("Took", (end - start).Humanize(), true)
-                .AddField("Average Per Pet", $"{((end - start) / count).TotalMilliseconds*1000} μs", true)
+                .AddField("Average Per Pet", $"{((end - start) / count).TotalMilliseconds * 1000} μs", true)
                 .AddField("Common", $"{countByRarity[Rarity.Common]} ({countByRarity[Rarity.Common] / count:P2})", true)
                 .AddField("Uncommon", $"{countByRarity[Rarity.Uncommon]} ({countByRarity[Rarity.Uncommon] / count:P2})", true)
                 .AddField("Rare", $"{countByRarity[Rarity.Rare]} ({countByRarity[Rarity.Rare] / count:P2})", true)
