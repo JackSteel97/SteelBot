@@ -24,7 +24,7 @@ namespace SteelBot.DiscordModules.Pets
         private readonly ILogger<PetsCommands> Logger;
         private readonly PetFactory PetFactory;
         private readonly DataHelpers DataHelpers;
-        private const double DayInSeconds = 24 * 60 * 60;
+        private const double TwelveHoursSeconds = 12 * 60 * 60;
 
         public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers)
         {
@@ -55,8 +55,8 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("treat")]
         [Aliases("reward", "gift")]
-        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per day")]
-        [Cooldown(2, DayInSeconds, CooldownBucketType.User)]
+        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per twelve hours")]
+        [Cooldown(2, TwelveHoursSeconds, CooldownBucketType.User)]
         public async Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -65,8 +65,8 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [Command("Search")]
-        [Description("Search for a new pet. Allows 6 searches per day.")]
-        [Cooldown(6, DayInSeconds, CooldownBucketType.User)]
+        [Description("Search for a new pet. Allows 6 searches 12 hours.")]
+        [Cooldown(6, TwelveHoursSeconds, CooldownBucketType.User)]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);

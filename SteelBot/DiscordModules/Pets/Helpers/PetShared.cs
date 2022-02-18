@@ -66,7 +66,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static List<Pet> GetAvailablePets(User user, List<Pet> allPets, out List<Pet> disabledPets)
         {
-            if (allPets.Count>0)
+            if (allPets.Count > 0)
             {
                 var capacity = GetPetCapacity(user);
                 var availableCount = Math.Min(capacity, allPets.Count);
@@ -106,10 +106,14 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static Pet PetXpChanged(Pet pet)
         {
+            int originalLevel = pet.CurrentLevel;
             if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
             {
                 pet.CurrentLevel = newLevel;
-                PetLevelledUp(pet);
+                for (int level = originalLevel; level <= pet.CurrentLevel; ++level)
+                {
+                    PetLevelledUp(pet, level);
+                }
             }
             return pet;
         }
@@ -195,9 +199,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return petNumber * NewPetSlotUnlockLevels;
         }
 
-        private static void PetLevelledUp(Pet pet)
+        private static void PetLevelledUp(Pet pet, int level)
         {
-            if (pet.CurrentLevel == 10 || pet.CurrentLevel % 25 == 0)
+            if (level == 10 || level % 25 == 0)
             {
                 // New bonuses gained at level 10, 25, 50, 75, etc...
                 GivePetNewBonus(pet);
