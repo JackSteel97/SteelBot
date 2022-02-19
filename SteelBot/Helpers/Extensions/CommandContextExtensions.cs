@@ -20,7 +20,7 @@ namespace SteelBot.Helpers.Extensions
 
         public static Task<DiscordMessage> RespondAsync(this CommandContext context, DiscordMessageBuilder messageBuilder, bool mention)
         {
-            return context.RespondAsync(messageBuilder.WithReply(context.Message.Id, mention));
+            return context.Channel.SendMessageAsync(messageBuilder.WithReply(context.Message.Id, mention));
         }
     }
 }
