@@ -25,6 +25,7 @@ namespace SteelBot.DiscordModules.Pets
         private readonly PetFactory PetFactory;
         private readonly DataHelpers DataHelpers;
         private const double TwelveHoursSeconds = 12 * 60 * 60;
+        private const double HourSeconds = 60 * 60;
 
         public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers)
         {
@@ -65,8 +66,8 @@ namespace SteelBot.DiscordModules.Pets
         }
 
         [Command("Search")]
-        [Description("Search for a new pet. Allows 6 searches 12 hours.")]
-        [Cooldown(6, TwelveHoursSeconds, CooldownBucketType.User)]
+        [Description("Search for a new pet. Allows 5 searches per hour.")]
+        [Cooldown(5, HourSeconds, CooldownBucketType.User)]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
