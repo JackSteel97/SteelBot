@@ -31,7 +31,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             if (!SearchSuccess(context.Member))
             {
-                await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"));
+                await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"), mention: true);
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
             if (newPet)
             {
-                await context.RespondAsync(PetMessages.GetPetOwnedSuccessMessage(context.Member, pet));
+                await context.RespondAsync(PetMessages.GetPetOwnedSuccessMessage(context.Member, pet), mention: true);
             }
         }
 
@@ -69,7 +69,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     Interactions.Pets.Leave
                 });
 
-            var message = await context.RespondAsync(initialResponseBuilder);
+            var message = await context.RespondAsync(initialResponseBuilder, mention: true);
             var result = await message.WaitForButtonAsync(context.Member);
 
             if (!result.TimedOut)
@@ -81,7 +81,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             else
             {
                 await message.DeleteAsync();
-                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet));
+                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
             }
 
             return (befriendAttempt, foundPet);

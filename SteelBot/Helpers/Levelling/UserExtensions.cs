@@ -45,7 +45,7 @@ namespace SteelBot.Helpers.Levelling
             return lastMessageWasMoreThanAMinuteAgo;
         }
 
-        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets)
+        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets, bool updateLastActivity = true)
         {
             DateTime now = DateTime.UtcNow;
             user.LastActivity = now;

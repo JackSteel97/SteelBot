@@ -5,6 +5,7 @@ using SteelBot.Database.Models.Pets;
 using DSharpPlus.CommandsNext;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.DiscordModules.Pets.Services;
+using SteelBot.Helpers.Extensions;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -48,11 +49,26 @@ namespace SteelBot.DiscordModules.Pets
             {
                 var embed = PetShared.GetOwnedPetsDisplayEmbed(user, pets);
                 embed.WithThumbnail(context.User.AvatarUrl);
-                return context.RespondAsync(embed);
+                return context.RespondAsync(embed, mention: true);
             }
             else
             {
-                return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage());
+                return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
+            }
+        }
+
+        public Task SendPetBonusesDisplay(CommandContext context)
+        {
+            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
+                && Cache.Pets.TryGetUsersPets(context.User.Id, out var pets))
+            {
+                var embed = PetDisplayHelpers.GetPetBonusesSummary(pets);
+                embed.WithThumbnail(context.User.AvatarUrl);
+                return context.RespondAsync(embed, mention: true);
+            }
+            else
+            {
+                return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
             }
         }
 

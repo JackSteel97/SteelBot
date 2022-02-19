@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using Humanizer;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Helpers
 {
-    public class PetDisplayHelpers
+    public static class PetDisplayHelpers
     {
         public static DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true)
         {
@@ -39,28 +40,26 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description), true);
             }
 
-            StringBuilder bonuses = new StringBuilder();
-            foreach (var bonus in pet.Bonuses)
-            {
-                bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ");
-                if (bonus.BonusType.IsNegative())
-                {
-                    bonuses.Append('-');
-                }
-                else
-                {
-                    bonuses.Append('+');
-                }
-                bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
-            }
-
-            if (pet.Rarity == Rarity.Legendary)
-            {
-                bonuses.Append("`Passive Offline XP: +").Append(pet.CurrentLevel).Append('`');
-            }
+            StringBuilder bonuses = AppendBonuses(new StringBuilder(), pet);
 
             embedBuilder.AddField("Bonuses", bonuses.ToString());
 
+            return embedBuilder;
+        }
+
+        public static DiscordEmbedBuilder GetPetBonusesSummary(List<Pet> availablePets)
+        {
+            var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+                .WithTitle("Your Pet's Bonuses")
+                .WithTimestamp(DateTime.Now);
+
+            var bonuses = new StringBuilder();
+            foreach (var pet in availablePets)
+            {
+                AppendBonuses(bonuses, pet);
+                embedBuilder.AddField(pet.GetName(), bonuses.ToString());
+                bonuses.Clear();
+            }
             return embedBuilder;
         }
 
@@ -69,6 +68,40 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             var age = DateTime.UtcNow - birthdate;
             var ageStr = age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year);
             return string.Concat(ageStr, " old");
+        }
+
+        private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
+        {
+            foreach (var bonus in pet.Bonuses)
+            {
+                AppendBonus(bonuses, bonus);
+            }
+
+            if (pet.Rarity == Rarity.Legendary)
+            {
+                AppendLegendaryBonus(bonuses, pet.CurrentLevel);
+            }
+            return bonuses;
+        }
+
+        private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
+        {
+            bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ");
+            if (bonus.BonusType.IsNegative())
+            {
+                bonuses.Append('-');
+            }
+            else
+            {
+                bonuses.Append('+');
+            }
+            bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
+            return bonuses;
+        }
+
+        private static StringBuilder AppendLegendaryBonus(StringBuilder bonuses, int currentLevel)
+        {
+            return bonuses.Append("`Passive Offline XP: +").Append(currentLevel).Append('`');
         }
     }
 }

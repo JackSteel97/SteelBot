@@ -37,7 +37,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Manage(p.RowId, p.GetName()));
                 initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, components);
 
-                var message = await context.RespondAsync(initialResponseBuilder);
+                var message = await context.RespondAsync(initialResponseBuilder, mention: true);
                 var result = await message.WaitForButtonAsync(context.Member);
 
                 initialResponseBuilder.ClearComponents();
@@ -59,7 +59,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
             else
             {
-                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage());
+                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
             }
         }
 
@@ -80,7 +80,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                         Interactions.Pets.Abandon,
                     });
 
-                var message = await context.RespondAsync(initialResponseBuilder);
+                var message = await context.RespondAsync(initialResponseBuilder, mention: true);
                 var result = await message.WaitForButtonAsync(context.Member);
 
                 initialResponseBuilder.ClearComponents();
@@ -114,7 +114,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
             else
             {
-                await context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."));
+                await context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true);
             }
         }
 

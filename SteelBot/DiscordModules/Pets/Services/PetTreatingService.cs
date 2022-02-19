@@ -6,6 +6,7 @@ using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
 using System;
 using System.Linq;
@@ -35,7 +36,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Treat(p.RowId, p.GetName()));
                 initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, components);
 
-                var message = await context.RespondAsync(initialResponseBuilder);
+                var message = await context.RespondAsync(initialResponseBuilder, mention: true);
                 var result = await message.WaitForButtonAsync();
 
                 initialResponseBuilder.ClearComponents();
@@ -54,7 +55,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
             else
             {
-                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage());
+                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
             }
         }
 

@@ -33,7 +33,7 @@ namespace SteelBot.DiscordModules.Stats
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
         {
             bool levelIncreased = false;
-            if(TryGetUser(args.Guild.Id, args.Author.Id, out User user))
+            if (TryGetUser(args.Guild.Id, args.Author.Id, out User user))
             {
                 Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
                 // Clone user to avoid making change to cache till db change confirmed.
@@ -52,7 +52,7 @@ namespace SteelBot.DiscordModules.Stats
                     await SendLevelUpMessage(args.Guild, args.Author);
                 }
             }
-            
+
             return levelIncreased;
         }
 
@@ -79,7 +79,7 @@ namespace SteelBot.DiscordModules.Stats
             ulong userId = args.User.Id;
             bool levelIncreased = false;
 
-            if(TryGetUser(guildId, userId, out User user))
+            if (TryGetUser(guildId, userId, out User user))
             {
                 Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
 
@@ -114,13 +114,13 @@ namespace SteelBot.DiscordModules.Stats
                 var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, availablePets);
+                copyOfUser.VoiceStateChange(newState: null, availablePets, updateLastActivity: false);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
                 await PetsDataHelper.PetXpUpdated(availablePets);
             }
         }
-        
+
         public bool TryGetUser(ulong guildId, ulong discordId, out User user)
         {
             return Cache.Users.TryGetUser(guildId, discordId, out user);
