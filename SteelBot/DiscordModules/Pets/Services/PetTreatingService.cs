@@ -33,14 +33,15 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 var initialResponseBuilder = new DiscordMessageBuilder().WithEmbed(petList);
 
-                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Treat(p.RowId, p.GetName()));
+                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Treat(p.RowId, p.GetName())).ToList();
+                components.Add(Interactions.Confirmation.Cancel);
                 initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, components);
 
                 var message = await context.RespondAsync(initialResponseBuilder, mention: true);
                 var result = await message.WaitForButtonAsync();
 
                 initialResponseBuilder.ClearComponents();
-                if (!result.TimedOut)
+                if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
                     await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
                     if (PetShared.TryGetPetIdFromPetSelectorButton(result.Result.Id, out long petId))

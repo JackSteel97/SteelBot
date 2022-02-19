@@ -34,7 +34,8 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 var initialResponseBuilder = new DiscordMessageBuilder().WithEmbed(petList);
 
-                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Manage(p.RowId, p.GetName()));
+                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Manage(p.RowId, p.GetName())).ToList();
+                components.Add(Interactions.Confirmation.Cancel);
                 initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, components);
 
                 var message = await context.RespondAsync(initialResponseBuilder, mention: true);
@@ -42,7 +43,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 initialResponseBuilder.ClearComponents();
 
-                if (!result.TimedOut)
+                if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
                     await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
 
@@ -70,14 +71,16 @@ namespace SteelBot.DiscordModules.Pets.Services
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out var ownedPetCount);
                 var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet);
                 var initialResponseBuilder = new DiscordMessageBuilder()
-                    .WithEmbed(petDisplay)
-                    .AddComponents(new DiscordComponent[]
+                    .WithEmbed(petDisplay);
+
+                initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, new DiscordComponent[]
                     {
                         Interactions.Pets.Rename,
                         Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
                         Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
                         Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
                         Interactions.Pets.Abandon,
+                        Interactions.Confirmation.Cancel,
                     });
 
                 var message = await context.RespondAsync(initialResponseBuilder, mention: true);
@@ -85,7 +88,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 initialResponseBuilder.ClearComponents();
 
-                if (!result.TimedOut)
+                if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
                     await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
                     switch (result.Result.Id)

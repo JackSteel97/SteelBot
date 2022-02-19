@@ -37,7 +37,7 @@ namespace SteelBot.Helpers
                 if (currentColumnCount == maxColumns)
                 {
                     // Start a new row.
-                    message.AddComponents(components);
+                    message.AddComponents(currentRowComponents);
                     currentRowComponents.Clear();
                     currentColumnCount = 0;
                     ++currentRowCount;
@@ -49,7 +49,7 @@ namespace SteelBot.Helpers
                 }
             }
             // Add remaining components.
-            message.AddComponents(components);
+            message.AddComponents(currentRowComponents);
             return message;
         }
 
