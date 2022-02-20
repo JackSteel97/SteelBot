@@ -9,6 +9,8 @@ using SteelBot.Helpers.Extensions;
 using DSharpPlus.Entities;
 using SteelBot.Helpers;
 using DSharpPlus;
+using System;
+using SteelBot.Services;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -18,31 +20,55 @@ namespace SteelBot.DiscordModules.Pets
         private readonly PetBefriendingService BefriendingService;
         private readonly PetManagementService ManagementService;
         private readonly PetTreatingService TreatingService;
+        private readonly ErrorHandlingService ErrorHandlingService;
 
         public PetsDataHelper(DataCache cache,
             PetBefriendingService petBefriendingService,
             PetManagementService petManagementService,
-            PetTreatingService petTreatingService)
+            PetTreatingService petTreatingService,
+            ErrorHandlingService errorHandlingService)
         {
             Cache = cache;
             BefriendingService = petBefriendingService;
             ManagementService = petManagementService;
             TreatingService = petTreatingService;
+            ErrorHandlingService = errorHandlingService;
         }
 
-        public Task HandleSearch(CommandContext context)
+        public async Task HandleSearch(CommandContext context)
         {
-            return BefriendingService.Search(context);
+            try
+            {
+                await BefriendingService.Search(context);
+            }
+            catch (Exception e)
+            {
+                await ErrorHandlingService.Log(e, nameof(HandleSearch));
+            }
         }
 
-        public Task HandleManage(CommandContext context)
+        public async Task HandleManage(CommandContext context)
         {
-            return ManagementService.Manage(context);
+            try
+            {
+                await ManagementService.Manage(context);
+            }
+            catch (Exception e)
+            {
+                await ErrorHandlingService.Log(e, nameof(HandleManage));
+            }
         }
 
-        public Task HandleTreat(CommandContext context)
+        public async Task HandleTreat(CommandContext context)
         {
-            return TreatingService.Treat(context);
+            try
+            {
+                await TreatingService.Treat(context);
+            }
+            catch (Exception e)
+            {
+                await ErrorHandlingService.Log(e, nameof(HandleTreat));
+            }
         }
 
         public Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)

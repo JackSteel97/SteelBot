@@ -48,8 +48,13 @@ namespace SteelBot.Helpers
                     }
                 }
             }
-            // Add remaining components.
-            message.AddComponents(currentRowComponents);
+
+            if (currentRowComponents.Count > 0)
+            {
+                // Add remaining components.
+                message.AddComponents(currentRowComponents);
+            }
+
             return message;
         }
 

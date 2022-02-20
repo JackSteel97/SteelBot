@@ -46,8 +46,9 @@ namespace SteelBot
         private readonly DataCache Cache;
         private CommandsNextExtension Commands;
         private readonly UserTrackingService UserTrackingService;
+        private readonly ErrorHandlingService ErrorHandlingService;
 
-        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService)
+        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService, ErrorHandlingService errorHandlingService)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -56,6 +57,7 @@ namespace SteelBot
             DataHelpers = dataHelpers;
             Cache = cache;
             UserTrackingService = userTrackingService;
+            ErrorHandlingService = errorHandlingService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -171,7 +173,7 @@ namespace SteelBot
                 }
                 catch (Exception ex)
                 {
-                    await Log(ex, nameof(HandleReactionAdded));
+                    await ErrorHandlingService.Log(ex, nameof(HandleReactionAdded));
                 }
             });
 
@@ -197,7 +199,7 @@ namespace SteelBot
                 }
                 catch (Exception ex)
                 {
-                    await Log(ex, nameof(HandleMessageCreated));
+                    await ErrorHandlingService.Log(ex, nameof(HandleMessageCreated));
                 }
             });
 
@@ -221,7 +223,7 @@ namespace SteelBot
                 }
                 catch (Exception ex)
                 {
-                    await Log(ex, nameof(HandleVoiceStateChange));
+                    await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
                 }
             });
 
@@ -238,7 +240,7 @@ namespace SteelBot
             }
             catch (Exception ex)
             {
-                await Log(ex, nameof(HandleJoiningGuild));
+                await ErrorHandlingService.Log(ex, nameof(HandleJoiningGuild));
             }
         }
 
@@ -255,7 +257,7 @@ namespace SteelBot
             }
             catch (Exception ex)
             {
-                await Log(ex, nameof(HandleLeavingGuild));
+                await ErrorHandlingService.Log(ex, nameof(HandleLeavingGuild));
             }
         }
 
@@ -295,7 +297,7 @@ namespace SteelBot
                 }
                 else
                 {
-                    await Log(args.Exception, args.Context.Message.Content);
+                    await ErrorHandlingService.Log(args.Exception, args.Context.Message.Content);
                     await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
                 }
             });
@@ -325,7 +327,7 @@ namespace SteelBot
             }
             catch (Exception ex)
             {
-                await Log(ex, nameof(HandleGuildMemberAdded));
+                await ErrorHandlingService.Log(ex, nameof(HandleGuildMemberAdded));
             }
         }
 
@@ -338,26 +340,8 @@ namespace SteelBot
             }
             catch (Exception ex)
             {
-                await Log(ex, nameof(HandleGuildMemberRemoved));
+                await ErrorHandlingService.Log(ex, nameof(HandleGuildMemberRemoved));
             }
-        }
-
-        private async Task Log(Exception e, string source)
-        {
-            Logger.LogError(e, $"Source Method: [{source}]");
-            await Cache.Exceptions.InsertException(new ExceptionLog(e, source));
-            await SendMessageToJack(e, source);
-        }
-
-        private async Task SendMessageToJack(Exception e, string source)
-        {
-            ulong civlationId = AppConfigurationService.Application.CommonServerId;
-            ulong jackId = AppConfigurationService.Application.CreatorUserId;
-
-            DiscordGuild commonServer = await Client.GetGuildAsync(civlationId);
-            DiscordMember jack = await commonServer.GetMemberAsync(jackId);
-
-            await jack.SendMessageAsync(embed: EmbedGenerator.Info($"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}\n\nStack Trace:\n{Formatter.BlockCode(e.StackTrace)}", "An Error Occured", $"Source: {source}"));
-        }
+        }     
     }
 }

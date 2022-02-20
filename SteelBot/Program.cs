@@ -31,7 +31,7 @@ namespace SteelBot
 {
     public static class Program
     {
-        private const string Environment = "Test";
+        private const string Environment = "Development";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
@@ -137,6 +137,7 @@ namespace SteelBot
             serviceProvider.AddTransient<PetBefriendingService>();
             serviceProvider.AddTransient<PetManagementService>();
             serviceProvider.AddTransient<PetTreatingService>();
+            serviceProvider.AddSingleton<ErrorHandlingService>();
         }
 
         public static void Main(string[] args)
