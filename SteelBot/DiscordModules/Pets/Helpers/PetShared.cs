@@ -106,11 +106,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static Pet PetXpChanged(Pet pet)
         {
-            int originalLevel = pet.CurrentLevel;
             if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
             {
+                int nextLevel = pet.CurrentLevel + 1;
                 pet.CurrentLevel = newLevel;
-                for (int level = originalLevel; level <= pet.CurrentLevel; ++level)
+                for (int level = nextLevel; level <= pet.CurrentLevel; ++level)
                 {
                     PetLevelledUp(pet, level);
                 }
