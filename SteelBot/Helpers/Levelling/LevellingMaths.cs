@@ -44,16 +44,16 @@ namespace SteelBot.Helpers.Levelling
             double multiplier = 1 + (existingDuration / AWeek);
 
             double totalXp = duration.TotalMinutes * baseXp * multiplier;
-            
+
             return Convert.ToUInt64(Math.Round(totalXp, MidpointRounding.AwayFromZero));
         }
 
         public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> availablePets, BonusType requiredBonus)
         {
             double multiplier = 1;
-            foreach(var pet in availablePets)
+            foreach (var pet in availablePets)
             {
-                foreach(var bonus in pet.Bonuses)
+                foreach (var bonus in pet.Bonuses)
                 {
                     if (bonus.BonusType.HasFlag(requiredBonus))
                     {
@@ -79,7 +79,7 @@ namespace SteelBot.Helpers.Levelling
             const double percentageForPrimary = 0.5;
             const double percentageForOthers = 0.01;
 
-            foreach(var pet in pets)
+            foreach (var pet in pets)
             {
                 double earnedXp;
                 if (pet.IsPrimary)

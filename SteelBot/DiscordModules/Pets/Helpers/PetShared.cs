@@ -164,6 +164,10 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     // Legendary pets earn passive xp.
                     disconnectedXpPerMin += pet.CurrentLevel;
                 }
+                else if (pet.Rarity == Rarity.Mythical)
+                {
+                    disconnectedXpPerMin += pet.CurrentLevel * 5;
+                }
             }
             return disconnectedXpPerMin;
         }
@@ -226,7 +230,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static void GivePetNewBonus(Pet pet)
         {
             var bonus = PetFactory.GenerateBonus(pet);
-            pet.Bonuses.Add(bonus);
+            pet.AddBonus(bonus);
         }
 
         private static void ImproveCurrentPetBonuses(Pet pet)

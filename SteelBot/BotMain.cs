@@ -357,7 +357,7 @@ namespace SteelBot
             DiscordGuild commonServer = await Client.GetGuildAsync(civlationId);
             DiscordMember jack = await commonServer.GetMemberAsync(jackId);
 
-            await jack.SendMessageAsync(embed: EmbedGenerator.Info($"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}", "An Error Occured", $"Source: {source}"));
+            await jack.SendMessageAsync(embed: EmbedGenerator.Info($"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}\n\nStack Trace:\n{Formatter.BlockCode(e.StackTrace)}", "An Error Occured", $"Source: {source}"));
         }
     }
 }

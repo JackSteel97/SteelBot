@@ -85,9 +85,10 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Octopus,
         BlackPhantomTetra,
         Doge,
-        
+
         [Description("Yoda-ling")]
-        Yodaling
+        Yodaling,
+        Rock
     }
 
     public static class SpeciesExtensions
@@ -175,8 +176,9 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Otter => Rarity.Rare,
                 Species.Octopus => Rarity.Rare,
                 Species.BlackPhantomTetra => Rarity.Uncommon,
-                Species.Doge => Rarity.Legendary,
-                Species.Yodaling => Rarity.Legendary,
+                Species.Doge => Rarity.Mythical,
+                Species.Yodaling => Rarity.Mythical,
+                Species.Rock => Rarity.Mythical,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
             };
         }
@@ -262,8 +264,9 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Otter => 2 * Year,
                 Species.Octopus => 1 * Year,
                 Species.BlackPhantomTetra => 2 * Year,
-                Species.Doge => 10_000 * Year,
-                Species.Yodaling => 1000 * Year,
+                Species.Doge => 1000 * Year,
+                Species.Yodaling => 1500 * Year,
+                Species.Rock => 2000 * Year,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }

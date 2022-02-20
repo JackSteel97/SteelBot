@@ -39,6 +39,32 @@ namespace SteelBot.Database.Models.Pets
             return Name ?? $"Unnamed {Species.GetName()}";
         }
 
+        public void AddBonuses(List<PetBonus> bonuses)
+        {
+            foreach (var bonus in bonuses)
+            {
+                AddBonus(bonus);
+            }
+        }
+
+        public void AddBonus(PetBonus bonus)
+        {
+            if (Bonuses == default)
+            {
+                Bonuses = new List<PetBonus>(1);
+            }
+
+            var existingBonusOfThisType = Bonuses.Find(b => b.BonusType == bonus.BonusType);
+            if (existingBonusOfThisType != null)
+            {
+                existingBonusOfThisType.PercentageValue += bonus.PercentageValue;
+            }
+            else
+            {
+                Bonuses.Add(bonus);
+            }
+        }
+
         public bool IsPrimary => Priority == 0;
     }
 }

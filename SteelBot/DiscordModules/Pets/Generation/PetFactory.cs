@@ -55,7 +55,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
                 foreach (var species in speciesGrouping.Value)
                 {
-                    foreach(var size in sizes)
+                    foreach (var size in sizes)
                     {
                         var bonusMultiplier = PermutationsAndCombinations.nCr(bonuses.Length, startingBonuses);
                         for (int i = 0; i < bonusMultiplier; ++i)
@@ -102,18 +102,22 @@ namespace SteelBot.DiscordModules.Pets.Generation
             };
 
             pet.Attributes = BuildAttributes(pet);
-            pet.Bonuses = BuildBonuses(pet);
+
+            var bonuses = BuildBonuses(pet);
+            pet.AddBonuses(bonuses);
             return pet;
         }
 
         private static Rarity GetBaseRarity()
         {
             const int maxBound = 1000;
-            const double LegendaryChance = 0.01;
-            const double EpicChance = 0.04;
+            const double MythicalChance = 1; //0.002;
+            const double LegendaryChance = 0.02;
+            const double EpicChance = 0.05;
             const double RareChance = 0.10;
             const double UncommonChance = 0.4;
 
+            const double MythicalBound = maxBound * MythicalChance;
             const double LegendaryBound = maxBound * LegendaryChance;
             const double EpicBound = maxBound * EpicChance;
             const double RareBound = maxBound * RareChance;
@@ -121,7 +125,11 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             int random = RandomNumberGenerator.GetInt32(maxBound);
 
-            if (random <= LegendaryBound)
+            if (random <= MythicalBound)
+            {
+                return Rarity.Mythical;
+            }
+            else if (random <= LegendaryBound)
             {
                 return Rarity.Legendary;
             }

@@ -81,6 +81,10 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 AppendLegendaryBonus(bonuses, pet.CurrentLevel);
             }
+            else if (pet.Rarity == Rarity.Mythical)
+            {
+                AppendMythicalBonus(bonuses, pet.CurrentLevel);
+            }
             return bonuses;
         }
 
@@ -102,6 +106,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static StringBuilder AppendLegendaryBonus(StringBuilder bonuses, int currentLevel)
         {
             return bonuses.Append("`Passive Offline XP: +").Append(currentLevel).Append('`');
+        }
+
+        private static StringBuilder AppendMythicalBonus(StringBuilder bonuses, int currentLevel)
+        {
+            return bonuses.Append("`Passive Offline XP +").Append(currentLevel * 5).Append('`');
         }
     }
 }

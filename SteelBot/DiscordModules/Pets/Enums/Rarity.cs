@@ -12,7 +12,8 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Uncommon,
         Rare,
         Epic,
-        Legendary
+        Legendary,
+        Mythical
     }
 
     public static class RarityExtensions
@@ -22,6 +23,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
         private const string Rare = "#0F52BA";
         private const string Epic = "#7F00FF";
         private const string Legendary = "#FF5F1F";
+        private const string Mythical = "#DC2367";
 
         public static string GetColour(this Rarity rarity)
         {
@@ -32,6 +34,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Rarity.Rare => Rare,
                 Rarity.Epic => Epic,
                 Rarity.Legendary => Legendary,
+                Rarity.Mythical => Mythical,
                 _ => throw new ArgumentOutOfRangeException(nameof(rarity)),
             };
         }
@@ -45,6 +48,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Rarity.Rare => 2,
                 Rarity.Epic => 3,
                 Rarity.Legendary => 3,
+                Rarity.Mythical => 5,
                 _ => throw new ArgumentOutOfRangeException(nameof(rarity))
             };
         }
