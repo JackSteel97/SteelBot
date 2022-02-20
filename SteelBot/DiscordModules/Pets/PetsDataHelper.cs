@@ -6,6 +6,7 @@ using DSharpPlus.CommandsNext;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.DiscordModules.Pets.Services;
 using SteelBot.Helpers.Extensions;
+using DSharpPlus.Entities;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -57,13 +58,13 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        public Task SendPetBonusesDisplay(CommandContext context)
+        public Task SendPetBonusesDisplay(CommandContext context, DiscordMember discordMember)
         {
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.User.Id, out var pets))
+            if (Cache.Users.TryGetUser(discordMember.Guild.Id, discordMember.Id, out _)
+                && Cache.Pets.TryGetUsersPets(discordMember.Id, out var pets))
             {
-                var embed = PetDisplayHelpers.GetPetBonusesSummary(pets);
-                embed.WithThumbnail(context.User.AvatarUrl);
+                var embed = PetDisplayHelpers.GetPetBonusesSummary(pets, discordMember.DisplayName);
+                embed.WithThumbnail(discordMember.AvatarUrl);
                 return context.RespondAsync(embed, mention: true);
             }
             else

@@ -47,10 +47,10 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static DiscordEmbedBuilder GetPetBonusesSummary(List<Pet> availablePets)
+        public static DiscordEmbedBuilder GetPetBonusesSummary(List<Pet> availablePets, string username)
         {
             var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Your Pet's Bonuses")
+                .WithTitle($"{username} Pet's Bonuses")
                 .WithTimestamp(DateTime.Now);
 
             var bonuses = new StringBuilder();

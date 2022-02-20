@@ -79,11 +79,12 @@ namespace SteelBot.DiscordModules.Pets
         [Aliases("Bonuses", "b")]
         [Description("View the bonuses from all your pets available in this server")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task Bonuses(CommandContext context)
+        public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.SendPetBonusesDisplay(context);
+            otherUser ??= context.Member;
+            await DataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
         }
 
         [Command("DebugStats")]
