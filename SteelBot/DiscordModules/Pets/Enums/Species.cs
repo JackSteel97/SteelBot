@@ -88,7 +88,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
 
         [Description("Yoda-ling")]
         Yodaling,
-        Rock
+        Rock,
+        Ogre,
+        Kraken,
+        LochNessMonster,
+        Dodo
     }
 
     public static class SpeciesExtensions
@@ -179,6 +183,10 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Doge => Rarity.Mythical,
                 Species.Yodaling => Rarity.Mythical,
                 Species.Rock => Rarity.Mythical,
+                Species.Ogre => Rarity.Epic,
+                Species.Kraken => Rarity.Legendary,
+                Species.LochNessMonster => Rarity.Mythical,
+                Species.Dodo => Rarity.Rare,
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
             };
         }
@@ -267,6 +275,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Doge => 1000 * Year,
                 Species.Yodaling => 1500 * Year,
                 Species.Rock => 2000 * Year,
+                Species.Ogre => 50 * Year,
+                Species.Kraken => 2000 * Year,
+                Species.LochNessMonster => 150 * Year,
+                Species.Dodo => 15 * Year,
+
                 _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
             };
         }
@@ -496,6 +509,19 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 case Species.Yodaling:
                     bodyParts.Add(BodyPart.Ears);
                     break;
+                case Species.Ogre:
+                    bodyParts.Add(BodyPart.Ears);
+                    break;
+                case Species.Kraken:
+                    bodyParts.Add(BodyPart.Tentacles);
+                    break;
+                case Species.LochNessMonster:
+                    bodyParts.Add(BodyPart.Flippers);
+                    break;
+                case Species.Dodo:
+                    bodyParts.Add(BodyPart.Wings);
+                    break;
+
             }
 
             return bodyParts;
