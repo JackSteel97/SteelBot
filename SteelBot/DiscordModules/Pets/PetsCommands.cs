@@ -37,11 +37,12 @@ namespace SteelBot.DiscordModules.Pets
         [GroupCommand]
         [Description("Show all your owned pets")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task GetPets(CommandContext context)
+        public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.SendOwnedPetsDisplay(context);
+            otherUser ??= context.Member;
+            await DataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
         }
 
         [Command("manage")]

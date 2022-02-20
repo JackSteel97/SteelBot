@@ -43,13 +43,13 @@ namespace SteelBot.DiscordModules.Pets
             return TreatingService.Treat(context);
         }
 
-        public Task SendOwnedPetsDisplay(CommandContext context)
+        public Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
         {
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.User.Id, out var pets))
+            if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user)
+                && Cache.Pets.TryGetUsersPets(target.Id, out var pets))
             {
-                var embed = PetShared.GetOwnedPetsDisplayEmbed(user, pets);
-                embed.WithThumbnail(context.User.AvatarUrl);
+                var embed = PetShared.GetOwnedPetsDisplayEmbed(user, pets, target.DisplayName);
+                embed.WithThumbnail(target.AvatarUrl);
                 return context.RespondAsync(embed, mention: true);
             }
             else

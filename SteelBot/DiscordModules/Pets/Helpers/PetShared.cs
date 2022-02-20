@@ -20,11 +20,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
     public static class PetShared
     {
         private const int NewPetSlotUnlockLevels = 20;
-        public static DiscordEmbedBuilder GetOwnedPetsDisplayEmbed(User user, List<Pet> allPets)
+        public static DiscordEmbedBuilder GetOwnedPetsDisplayEmbed(User user, List<Pet> allPets, string username = "Your")
         {
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Your Pets");
+                .WithTitle($"{username} Owned Pets");
 
             var availablePets = GetAvailablePets(user, allPets, out var disabledPets);
             if (disabledPets.Count > 0)
