@@ -7,6 +7,8 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.DiscordModules.Pets.Services;
 using SteelBot.Helpers.Extensions;
 using DSharpPlus.Entities;
+using SteelBot.Helpers;
+using DSharpPlus;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -83,12 +85,24 @@ namespace SteelBot.DiscordModules.Pets
             return new List<Pet>();
         }
 
-        public async Task PetXpUpdated(List<Pet> pets)
+        public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild)
         {
             foreach (var pet in pets)
             {
-                PetShared.PetXpChanged(pet);
+                bool levelledUp = PetShared.PetXpChanged(pet);
                 await Cache.Pets.UpdatePet(pet);
+                if (levelledUp && sourceGuild != default)
+                {
+                    await SendPetLevelledUpMessage(pet, sourceGuild);
+                }
+            }
+        }
+
+        private async Task SendPetLevelledUpMessage(Pet pet, DiscordGuild discordGuild)
+        {
+            if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
+            {
+                await PetShared.SendPetLevelledUpMessage(pet, guild, discordGuild);
             }
         }
     }

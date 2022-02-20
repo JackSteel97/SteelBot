@@ -8,6 +8,7 @@ using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
 using System;
 using System.Collections.Generic;
@@ -104,9 +105,10 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return false;
         }
 
-        public static Pet PetXpChanged(Pet pet)
+        public static bool PetXpChanged(Pet pet)
         {
-            if (LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel))
+            bool levelledUp = LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel);
+            if (levelledUp)
             {
                 int nextLevel = pet.CurrentLevel + 1;
                 pet.CurrentLevel = newLevel;
@@ -115,7 +117,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     PetLevelledUp(pet, level);
                 }
             }
-            return pet;
+            return levelledUp;
         }
 
         public static async Task<(bool nameChanged, ulong nameMessageId)> HandleNamingPet(CommandContext context, Pet pet)
@@ -170,6 +172,21 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 }
             }
             return disconnectedXpPerMin;
+        }
+
+        public static async Task SendPetLevelledUpMessage(Pet pet, Guild guild, DiscordGuild discordGuild)
+        {
+            var channel = guild.GetLevelAnnouncementChannel(discordGuild);
+            if (channel != null)
+            {
+                var message = new DiscordMessageBuilder()
+                    .WithContent(pet.OwnerDiscordId.ToMention())
+                    .WithEmbed(EmbedGenerator.Info($"Your pet {Formatter.Italic(pet.GetName())} advanced to level {Formatter.Bold(pet.CurrentLevel.ToString())} and improved their abilities!",
+                    "Pet Level Up",
+                    "Use the Pet Bonuses command to view their improved bonuses"));
+
+                await channel.SendMessageAsync(message);
+            }
         }
 
         private static async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)

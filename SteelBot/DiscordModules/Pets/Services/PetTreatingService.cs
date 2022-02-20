@@ -69,9 +69,13 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var xpGain = RandomNumberGenerator.GetInt32(1, upperBound);
                 pet.EarnedXp += xpGain;
 
-                PetShared.PetXpChanged(pet);
+                bool levelledUp = PetShared.PetXpChanged(pet);
                 await Cache.Pets.UpdatePet(pet);
                 await context.Channel.SendMessageAsync(PetMessages.GetPetTreatedMessage(pet, xpGain));
+                if (levelledUp && Cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
+                {
+                    await PetShared.SendPetLevelledUpMessage(pet, guild, context.Guild);
+                }
             }
         }
     }
