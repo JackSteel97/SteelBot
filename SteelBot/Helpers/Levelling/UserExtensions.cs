@@ -2,6 +2,7 @@
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -173,16 +174,7 @@ namespace SteelBot.Helpers.Levelling
 
         private static void IncrementDisconnectedXp(User user, TimeSpan disconnectedDuration, List<Pet> availablePets)
         {
-            int disconnectedXpPerMin = 0;
-            foreach(var pet in availablePets)
-            {
-                if(pet.Rarity == Rarity.Legendary)
-                {
-                    // Legendary pets earn passive xp.
-                    disconnectedXpPerMin += pet.CurrentLevel;
-                }
-            }
-
+            var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
             if(disconnectedXpPerMin > 0)
             {
                 var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, user.TimeSpentDisconnected, disconnectedXpPerMin);

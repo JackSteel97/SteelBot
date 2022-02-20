@@ -334,7 +334,7 @@ namespace SteelBot.DiscordModules.Stats
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                .WithColor(EmbedGenerator.InfoColour)
                .WithTitle($"{context.Guild.Name} Leaderboard")
-               .WithTimestamp(DateTime.UtcNow);
+               .WithTimestamp(DateTime.Now);
 
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 2, (builder, user, index) =>
             {
@@ -354,6 +354,32 @@ namespace SteelBot.DiscordModules.Stats
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
             await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+        }
+
+        [Command("Velocity")]
+        [Aliases("Gains")]
+        [Description("Show the current XP velocity for yourself or a given user")]
+        [Cooldown(5, 60, CooldownBucketType.Channel)]
+        public async Task Velocity(CommandContext context, DiscordMember target = null)
+        {
+            target ??= context.Member;
+            var availablePets = DataHelper.Pets.GetAvailablePets(target.Guild.Id, target.Id, out _);
+            var velocity = DataHelper.Stats.GetVelocity(target, availablePets);
+
+            var embed = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+                .WithTitle($"{target.DisplayName} XP Velocity")
+                .WithDescription("XP earned per unit for each action")
+                .WithTimestamp(DateTime.Now)
+                .AddField("Message", Formatter.InlineCode(velocity.Message.ToString("N0")), true)
+                .AddField("Voice", Formatter.InlineCode(velocity.Voice.ToString("N0")), true)
+                .AddField("Muted", Formatter.InlineCode($"-{velocity.Muted:N0}"), true)
+                .AddField("Deafened", Formatter.InlineCode($"-{velocity.Deafened:N0}"))
+                .AddField("Streaming", Formatter.InlineCode(velocity.Streaming.ToString("N0")), true)
+                .AddField("Video", Formatter.InlineCode(velocity.Video.ToString("N0")), true)
+                .AddField("Passive", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);
+
+            await context.RespondAsync(embed);
+
         }
     }
 }

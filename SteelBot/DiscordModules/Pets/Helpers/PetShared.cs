@@ -154,6 +154,20 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return (nameChanged, nameMessageId);
         }
 
+        public static int GetDisconnectedXpPerMin(List<Pet> availablePets)
+        {
+            int disconnectedXpPerMin = 0;
+            foreach (var pet in availablePets)
+            {
+                if (pet.Rarity == Rarity.Legendary)
+                {
+                    // Legendary pets earn passive xp.
+                    disconnectedXpPerMin += pet.CurrentLevel;
+                }
+            }
+            return disconnectedXpPerMin;
+        }
+
         private static async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)
         {
             bool named = false;

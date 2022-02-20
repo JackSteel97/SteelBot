@@ -4,13 +4,18 @@ using DSharpPlus.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets;
+using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.DiscordModules.Pets.Helpers;
+using SteelBot.DiscordModules.Stats.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Stats
@@ -134,6 +139,27 @@ namespace SteelBot.DiscordModules.Stats
         public List<CommandStatistic> GetCommandStatistics()
         {
             return Cache.CommandStatistics.GetAllCommandStatistics();
+        }
+
+        public XpVelocity GetVelocity(DiscordMember target, List<Pet> availablePets)
+        {
+            var velocity = new XpVelocity();
+            var baseDuration = TimeSpan.FromMinutes(1);
+            var levelConfig = AppConfigurationService.Application.Levelling;
+
+            if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user))
+            {
+                velocity.Message = LevellingMaths.ApplyPetBonuses(levelConfig.MessageXp, availablePets, BonusType.Message);
+                velocity.Voice = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentInVoice, availablePets, BonusType.Voice, levelConfig.VoiceXpPerMin);
+                velocity.Muted = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentMuted, availablePets, BonusType.MutedPentalty, levelConfig.MutedXpPerMin);
+                velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenalty, levelConfig.DeafenedXpPerMin);
+                velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.Streaming, levelConfig.StreamingXpPerMin);
+                velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.Video, levelConfig.VideoXpPerMin);
+
+                var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
+                velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDisconnected, disconnectedXpPerMin);
+            }
+            return velocity;
         }
 
         private async Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)

@@ -31,6 +31,12 @@ namespace SteelBot.Helpers.Levelling
             return newLevel > currentLevel;
         }
 
+        public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, List<Pet> availablePets, BonusType bonusType, double baseXp = 1)
+        {
+            var durationXp = GetDurationXp(duration, existingDuration, baseXp);
+            return ApplyPetBonuses(durationXp, availablePets, bonusType);
+        }
+
         public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, double baseXp = 1)
         {
             TimeSpan AWeek = TimeSpan.FromDays(7);
@@ -39,7 +45,7 @@ namespace SteelBot.Helpers.Levelling
 
             double totalXp = duration.TotalMinutes * baseXp * multiplier;
             
-            return Convert.ToUInt64(Math.Round(totalXp));
+            return Convert.ToUInt64(Math.Round(totalXp, MidpointRounding.AwayFromZero));
         }
 
         public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> availablePets, BonusType requiredBonus)
