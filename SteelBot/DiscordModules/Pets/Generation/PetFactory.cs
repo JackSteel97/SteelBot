@@ -46,7 +46,6 @@ namespace SteelBot.DiscordModules.Pets.Generation
             var bonuses = Enum.GetValues(typeof(BonusType)).Cast<BonusType>().ToArray();
             var sizes = Enum.GetValues(typeof(Size)).Cast<Size>().ToArray();
 
-
             foreach (var speciesGrouping in SpeciesByRarity)
             {
                 var startingBonuses = speciesGrouping.Key.GetStartingBonusCount();

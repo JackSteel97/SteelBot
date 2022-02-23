@@ -69,7 +69,8 @@ namespace SteelBot.Helpers.Levelling
                 }
             }
 
-            var earnedXp = Convert.ToUInt64(Math.Round(baseXp * multiplier));
+            var multipliedXp = Convert.ToUInt64(Math.Round(baseXp * multiplier));
+            var earnedXp = Math.Max(0, multipliedXp); // Prevent negative from massive negative bonuses.
             IncrementPetXp(earnedXp, availablePets);
             return earnedXp;
         }
