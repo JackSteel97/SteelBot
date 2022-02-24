@@ -49,7 +49,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Rarity.Epic => 3,
                 Rarity.Legendary => 3,
                 Rarity.Mythical => 5,
-                _ => throw new ArgumentOutOfRangeException(nameof(rarity))
+                _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
             };
         }
     }

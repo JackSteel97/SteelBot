@@ -86,12 +86,13 @@ namespace SteelBot.DiscordModules.Pets.Generation
         {
             var baseRarity = GetBaseRarity();
             var species = GetSpecies(baseRarity);
+            var finalRarity = GetFinalRarity(baseRarity);
             var size = GetRandomEnumValue<Size>();
             var birthDate = GetBirthDate(species);
 
             var pet = new Pet()
             {
-                Rarity = baseRarity,
+                Rarity = finalRarity,
                 Species = species,
                 Size = size,
                 BornAt = birthDate,
@@ -146,6 +147,25 @@ namespace SteelBot.DiscordModules.Pets.Generation
             {
                 return Rarity.Common;
             }
+        }
+
+        private static Rarity GetFinalRarity(Rarity rarity)
+        {
+            const double rarityUpChance = 0.1;
+            const int maxRarity = (int)Rarity.Mythical;
+            int currentRarity = (int)rarity;
+
+            int finalRarity = currentRarity;
+
+            for (int i = currentRarity+1; i <= maxRarity; ++i)
+            {
+                if (!MathsHelper.TrueWithProbability(rarityUpChance))
+                {
+                    break;
+                }
+                finalRarity = i;
+            }
+            return (Rarity)finalRarity;
         }
 
         private Species GetSpecies(Rarity rarity)
