@@ -59,11 +59,11 @@ namespace SteelBot.Helpers.Levelling
                     {
                         if (bonus.BonusType.IsNegative())
                         {
-                            multiplier *= (1 - bonus.PercentageValue);
+                            multiplier -= bonus.PercentageValue;
                         }
                         else
                         {
-                            multiplier *= (1 + bonus.PercentageValue);
+                            multiplier += bonus.PercentageValue;
                         }
                     }
                 }

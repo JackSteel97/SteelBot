@@ -151,6 +151,7 @@ namespace SteelBot.DiscordModules.Stats
                 .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode($"-{user.MutedXpEarned.ToString("N0")}"))
                 .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned.ToString("N0")}"))
                 .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
+                .Append(Formatter.Bold("Offline ")).AppendLine(Formatter.InlineCode(user.DisconnectedXpEarned.ToString("N0")))
                 .AppendLine()
                 .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.ToString("N0")));
 
