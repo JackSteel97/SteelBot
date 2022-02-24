@@ -157,7 +157,7 @@ namespace SteelBot.DiscordModules.Stats
                 velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.Video, levelConfig.VideoXpPerMin);
 
                 var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
-                velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDisconnected, disconnectedXpPerMin);
+                velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
             }
             return velocity;
         }

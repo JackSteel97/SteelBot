@@ -360,6 +360,7 @@ namespace SteelBot.DiscordModules.Stats
         [Aliases("Gains")]
         [Description("Show the current XP velocity for yourself or a given user")]
         [Cooldown(5, 60, CooldownBucketType.Channel)]
+        [RequirePermissions(Permissions.Administrator)]
         public async Task Velocity(CommandContext context, DiscordMember target = null)
         {
             target ??= context.Member;
@@ -376,7 +377,7 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Deafened", Formatter.InlineCode($"-{velocity.Deafened:N0}"))
                 .AddField("Streaming", Formatter.InlineCode(velocity.Streaming.ToString("N0")), true)
                 .AddField("Video", Formatter.InlineCode(velocity.Video.ToString("N0")), true)
-                .AddField("Passive", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);
+                .AddField("Offline", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);
 
             await context.RespondAsync(embed);
 

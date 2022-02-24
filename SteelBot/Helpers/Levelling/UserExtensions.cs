@@ -177,7 +177,7 @@ namespace SteelBot.Helpers.Levelling
             var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
             if(disconnectedXpPerMin > 0)
             {
-                var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, user.TimeSpentDisconnected, disconnectedXpPerMin);
+                var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, TimeSpan.Zero, disconnectedXpPerMin);
                 user.DisconnectedXpEarned += xpEarned;
             }
         }
