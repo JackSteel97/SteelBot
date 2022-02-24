@@ -63,25 +63,34 @@ namespace SteelBot.DiscordModules.Pets.Services
 
             var initialResponseBuilder = new DiscordMessageBuilder()
                 .WithContent($"You found a new potential friend!{noSpaceMessage}")
-                .WithEmbed(initialPetDisplay)
-                .AddComponents(new DiscordComponent[] {
+                .WithEmbed(initialPetDisplay);
+
+            if (hasSpace)
+            {
+                initialResponseBuilder.AddComponents(new DiscordComponent[] {
                     Interactions.Pets.Befriend.Disable(!hasSpace),
                     Interactions.Pets.Leave
                 });
+            }
+
 
             var message = await context.RespondAsync(initialResponseBuilder, mention: true);
-            var result = await message.WaitForButtonAsync(context.Member);
 
-            if (!result.TimedOut)
+            if (hasSpace)
             {
-                initialResponseBuilder.ClearComponents();
-                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
-                befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
-            }
-            else
-            {
-                await message.DeleteAsync();
-                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
+                var result = await message.WaitForButtonAsync(context.Member);
+
+                if (!result.TimedOut)
+                {
+                    initialResponseBuilder.ClearComponents();
+                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                    befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
+                }
+                else
+                {
+                    await message.DeleteAsync();
+                    await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
+                }
             }
 
             return (befriendAttempt, foundPet);
