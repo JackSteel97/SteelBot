@@ -188,63 +188,69 @@ namespace SteelBot.DiscordModules.Stats
             switch (metric.ToLower())
             {
                 case "xp":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TotalXp > 0).OrderByDescending(u => u.TotalXp).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp:N0}`");
                     break;
 
                 case "level":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.CurrentLevel).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.CurrentLevel > 0).OrderByDescending(u => u.CurrentLevel).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Level: `{u.CurrentLevel}`");
                     break;
 
                 case "message count":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.MessageCount).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.MessageCount > 0).OrderByDescending(u => u.MessageCount).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount:N0}`");
                     break;
 
                 case "message length":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.GetAverageMessageLength() > 0).OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
                     break;
 
                 case "afk":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentAfk).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentAfk > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentAfk).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"AFK Time: `{u.TimeSpentAfk.Humanize(3)}`");
                     break;
 
                 case "voice":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentInVoice > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Voice Time: `{u.TimeSpentInVoice.Humanize(3)}`");
                     break;
 
                 case "muted":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentMuted).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentMuted > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentMuted).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Muted Time: `{u.TimeSpentMuted.Humanize(3)}`");
                     break;
 
                 case "deafened":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentDeafened > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Deafened Time: `{u.TimeSpentDeafened.Humanize(3)}`");
                     break;
 
                 case "last active":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.LastActivity).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.LastActivity != default).OrderByDescending(u => u.LastActivity).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Last Active: `{u.LastActivity.Humanize()}`");
                     break;
 
                 case "stream":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentStreaming).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentStreaming > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentStreaming).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Streaming Time: `{u.TimeSpentStreaming.Humanize(3)}`");
                     break;
 
                 case "video":
-                    orderedUsers = guildUsers.OrderByDescending(u => u.TimeSpentOnVideo).Take(top).ToArray();
+                    orderedUsers = guildUsers.Where(u => u.TimeSpentOnVideo > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentOnVideo).Take(top).ToArray();
                     metricValues = Array.ConvertAll(orderedUsers, u => $"Video Time: `{u.TimeSpentOnVideo.Humanize(3)}`");
                     break;
 
                 default:
                     await context.RespondAsync(embed: EmbedGenerator.Error("Invalid Metric selected."));
                     return;
+            }
+
+            if (orderedUsers.Length == 0)
+            {
+                await context.RespondAsync(EmbedGenerator.Info("There are no entries to show"));
+                return;
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
@@ -282,7 +288,13 @@ namespace SteelBot.DiscordModules.Stats
                 return;
             }
 
-            User[] orderedByXp = guildUsers.OrderByDescending(u => u.TotalXp).Take(top).ToArray();
+            User[] orderedByXp = guildUsers.Where(u => u.TotalXp > 0).OrderByDescending(u => u.TotalXp).Take(top).ToArray();
+
+            if (orderedByXp.Length == 0)
+            {
+                await context.RespondAsync(EmbedGenerator.Info("There are no entries to show"));
+                return;
+            }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
