@@ -17,7 +17,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Spider,
         Armadillo,
         Horse,
-        BearedDragon,
+        BeardedDragon,
         Tortise,
         Snake,
         Turtle,
@@ -116,7 +116,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Spider => Rarity.Uncommon,
                 Species.Armadillo => Rarity.Rare,
                 Species.Horse => Rarity.Uncommon,
-                Species.BearedDragon => Rarity.Rare,
+                Species.BeardedDragon => Rarity.Rare,
                 Species.Tortise => Rarity.Rare,
                 Species.Snake => Rarity.Uncommon,
                 Species.Turtle => Rarity.Rare,
@@ -208,7 +208,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Spider => 6 * Month,
                 Species.Armadillo => Year,
                 Species.Horse => 10 * Year,
-                Species.BearedDragon => 2 * Year,
+                Species.BeardedDragon => 2 * Year,
                 Species.Tortise => 30 * Year,
                 Species.Snake => 2 * Year,
                 Species.Turtle => 10 * Year,
@@ -323,7 +323,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                     bodyParts.Add(BodyPart.Tail);
                     bodyParts.Add(BodyPart.Mane);
                     break;
-                case Species.BearedDragon:
+                case Species.BeardedDragon:
                     bodyParts.Add(BodyPart.Tail);
                     break;
                 case Species.Turtle:
