@@ -168,7 +168,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 }
                 else if (pet.Rarity == Rarity.Mythical)
                 {
-                    disconnectedXpPerMin += pet.CurrentLevel * 5;
+                    disconnectedXpPerMin += pet.CurrentLevel * 2;
                 }
             }
             return disconnectedXpPerMin;

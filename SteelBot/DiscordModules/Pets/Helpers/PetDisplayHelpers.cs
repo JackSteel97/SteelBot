@@ -6,9 +6,7 @@ using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Helpers
 {
@@ -110,7 +108,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendMythicalBonus(StringBuilder bonuses, int currentLevel)
         {
-            return bonuses.Append("`Passive Offline XP +").Append(currentLevel * 5).Append('`');
+            return bonuses.Append("`Passive Offline XP +").Append(currentLevel * 2).Append('`');
         }
     }
 }
