@@ -172,7 +172,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Species.Platypus => Rarity.Legendary,
                 Species.Gorilla => Rarity.Epic,
                 Species.Manatee => Rarity.Epic,
-                Species.Capybara => Rarity.Rare,
+                Species.Capybara => Rarity.Legendary,
                 Species.Pudu => Rarity.Epic,
                 Species.Seal => Rarity.Epic,
                 Species.Quokka => Rarity.Epic,

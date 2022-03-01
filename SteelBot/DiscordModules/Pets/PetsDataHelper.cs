@@ -88,10 +88,11 @@ namespace SteelBot.DiscordModules.Pets
 
         public Task SendPetBonusesDisplay(CommandContext context, DiscordMember discordMember)
         {
-            if (Cache.Users.TryGetUser(discordMember.Guild.Id, discordMember.Id, out _)
+            if (Cache.Users.TryGetUser(discordMember.Guild.Id, discordMember.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(discordMember.Id, out var pets))
             {
-                var embed = PetDisplayHelpers.GetPetBonusesSummary(pets, discordMember.DisplayName);
+                var availablePets = PetShared.GetAvailablePets(user, pets, out var _);
+                var embed = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName);
                 embed.WithThumbnail(discordMember.AvatarUrl);
                 return context.RespondAsync(embed, mention: true);
             }
