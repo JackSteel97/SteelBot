@@ -9,7 +9,7 @@ namespace SteelBot.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("UPDATE \"PetBonuses\" SET \"Value\" = 0-\"Value\" WHERE \"Value\" > 0 AND (\"BonusType\" = 16 OR \"BonusType\" = 32);");
-            migrationBuilder.Sql("UPDATE \"PetBonuses\" SET \"Value\" = -100 WHERE \"Value\" < -100 AND (\"BonusType\" = 16 OR \"BonusType\" = 32);");
+            migrationBuilder.Sql("UPDATE \"PetBonuses\" SET \"Value\" = -1 WHERE \"Value\" < -100 AND (\"BonusType\" = 16 OR \"BonusType\" = 32);");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
