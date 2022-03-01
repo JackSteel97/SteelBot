@@ -254,7 +254,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         {
             foreach (var bonus in pet.Bonuses)
             {
-                bonus.PercentageValue *= 1.01;
+                bonus.Value *= 1.01;
             }
         }
     }

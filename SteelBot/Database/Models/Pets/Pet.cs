@@ -57,7 +57,7 @@ namespace SteelBot.Database.Models.Pets
             var existingBonusOfThisType = Bonuses.Find(b => b.BonusType == bonus.BonusType);
             if (existingBonusOfThisType != null)
             {
-                existingBonusOfThisType.PercentageValue += bonus.PercentageValue;
+                existingBonusOfThisType.Value += bonus.Value;
             }
             else
             {

@@ -88,16 +88,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
         {
-            bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ");
-            if (bonus.BonusType.IsNegative())
-            {
-                bonuses.Append('-');
-            }
-            else
-            {
-                bonuses.Append('+');
-            }
-            bonuses.Append(bonus.PercentageValue.ToString("P2")).AppendLine("`");
+            bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ").Append(bonus.Value.ToString("P2")).AppendLine("`");
             return bonuses;
         }
 

@@ -1,9 +1,4 @@
 ﻿using SteelBot.DiscordModules.Pets.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Database.Models.Pets
 {
@@ -13,6 +8,6 @@ namespace SteelBot.Database.Models.Pets
         public long PetId { get; set; }
         public Pet Pet { get; set; }
         public BonusType BonusType { get; set; }
-        public double PercentageValue { get; set; }
+        public double Value { get; set; }
     }
 }

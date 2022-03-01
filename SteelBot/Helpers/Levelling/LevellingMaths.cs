@@ -15,7 +15,7 @@ namespace SteelBot.Helpers.Levelling
 
         public static double PetXpForLevel(int level, Rarity rarity)
         {
-            double multiplier = 1 + (rarity - Rarity.Rare);
+            double multiplier = 1 + ((rarity - Rarity.Rare)/10D);
 
             return XpForLevel(level) * multiplier;
         }
@@ -82,14 +82,7 @@ namespace SteelBot.Helpers.Levelling
                 {
                     if (bonus.BonusType.HasFlag(requiredBonus))
                     {
-                        if (bonus.BonusType.IsNegative())
-                        {
-                            multiplier -= bonus.PercentageValue;
-                        }
-                        else
-                        {
-                            multiplier += bonus.PercentageValue;
-                        }
+                        multiplier += bonus.Value;
                     }
                 }
             }

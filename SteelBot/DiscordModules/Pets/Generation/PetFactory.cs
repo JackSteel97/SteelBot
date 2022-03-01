@@ -206,7 +206,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             {
                 Pet = pet,
                 BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
-                PercentageValue = GetRandomPercentageBonus()
+                Value = GetRandomPercentageBonus()
             };
             return bonus;
         }
