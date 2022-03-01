@@ -13,6 +13,13 @@ namespace SteelBot.Helpers.Levelling
             return Convert.ToUInt64(Math.Round((Math.Pow(1.2, level) - 1) + (500 * level)));
         }
 
+        public static double PetXpForLevel(int level, Rarity rarity)
+        {
+            double multiplier = 1 + (rarity - Rarity.Rare);
+
+            return XpForLevel(level) * multiplier;
+        }
+
         public static bool UpdateLevel(int currentLevel, double totalXp, out int newLevel)
         {
             newLevel = currentLevel;
@@ -21,6 +28,24 @@ namespace SteelBot.Helpers.Levelling
             do
             {
                 ulong requiredXp = XpForLevel(newLevel + 1);
+                hasEnoughXp = totalXp >= requiredXp;
+                if (hasEnoughXp)
+                {
+                    ++newLevel;
+                }
+            } while (hasEnoughXp);
+
+            return newLevel > currentLevel;
+        }
+
+        public static bool UpdatePetLevel(int currentLevel, double totalXp, Rarity rarity, out int newLevel)
+        {
+            newLevel = currentLevel;
+
+            bool hasEnoughXp;
+            do
+            {
+                var requiredXp = PetXpForLevel(newLevel + 1, rarity);
                 hasEnoughXp = totalXp >= requiredXp;
                 if (hasEnoughXp)
                 {

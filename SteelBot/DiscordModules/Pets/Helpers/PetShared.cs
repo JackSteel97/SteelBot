@@ -107,7 +107,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static bool PetXpChanged(Pet pet)
         {
-            bool levelledUp = LevellingMaths.UpdateLevel(pet.CurrentLevel, pet.EarnedXp, out var newLevel);
+            bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, out var newLevel);
             if (levelledUp)
             {
                 int nextLevel = pet.CurrentLevel + 1;

@@ -64,7 +64,8 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
             {
-                var xpRequiredToLevel = LevellingMaths.XpForLevel(pet.CurrentLevel + 1);
+                var xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
+                var xpRequiredToLevel = xpRequiredForNextLevel - pet.EarnedXp;
                 var upperBound = (int)Math.Round(xpRequiredToLevel * 0.1);
                 var xpGain = RandomNumberGenerator.GetInt32(1, upperBound);
                 pet.EarnedXp += xpGain;
