@@ -88,18 +88,24 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
         {
-            bonuses.Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ").Append(bonus.Value.ToString("P2")).AppendLine("`");
+            var emoji = EmojiConstants.CustomDiscordEmojis.GreenArrowUp;
+            var isNegativeType = bonus.BonusType.IsNegative();
+            if((isNegativeType && bonus.Value > 0) || (!isNegativeType && bonus.Value <= 0))
+            {
+                emoji = EmojiConstants.CustomDiscordEmojis.RedArrowDown;
+            }
+            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ").Append(bonus.Value.ToString("P2")).AppendLine("`");
             return bonuses;
         }
 
         private static StringBuilder AppendLegendaryBonus(StringBuilder bonuses, int currentLevel)
         {
-            return bonuses.Append("`Passive Offline XP: +").Append(currentLevel).Append('`');
+            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(currentLevel).Append('`');
         }
 
         private static StringBuilder AppendMythicalBonus(StringBuilder bonuses, int currentLevel)
         {
-            return bonuses.Append("`Passive Offline XP +").Append(currentLevel * 2).Append('`');
+            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP +").Append(currentLevel * 2).Append('`');
         }
     }
 }

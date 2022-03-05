@@ -157,7 +157,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             int finalRarity = currentRarity;
 
-            for (int i = currentRarity+1; i <= maxRarity; ++i)
+            for (int i = currentRarity + 1; i <= maxRarity; ++i)
             {
                 if (!MathsHelper.TrueWithProbability(rarityUpChance))
                 {
@@ -202,12 +202,41 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         public static PetBonus GenerateBonus(Pet pet)
         {
-            var bonus = new PetBonus()
+            bool validBonus = true;
+            var maxBonus = pet.Rarity.GetMaxBonusValue();
+            PetBonus bonus;
+            do
             {
-                Pet = pet,
-                BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
-                Value = GetRandomPercentageBonus()
-            };
+                bonus = new PetBonus()
+                {
+                    Pet = pet,
+                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
+                };
+
+                var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
+
+                bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
+                if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
+                {
+                    // Normally positive bonuses being negative should be less common.
+                    if (MathsHelper.TrueWithProbability(0.8))
+                    {
+                        bonus.Value *= -1;
+                    }
+                }
+
+                // Check this won't cause negative bonuses to go far
+                if (bonus.Value < 0 && pet.Bonuses?.Count > 0)
+                {
+                    var currentTotal = pet.Bonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
+                    var newTotal = currentTotal + bonus.Value;
+                    if (newTotal < -1)
+                    {
+                        validBonus = false;
+                    }
+                }
+            } while (!validBonus);
+
             return bonus;
         }
 
@@ -254,7 +283,13 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return result;
         }
 
-        private static double GetRandomPercentageBonus()
+        private static double GetRandomPercentageBonus(double maxValue = 1, double minValue = -1)
+        {
+            var random = GetRandomDouble();
+            return minValue + (random * (maxValue - minValue));
+        }
+
+        private static double GetRandomDouble()
         {
             const int maxValue = 1001;
             const double maxDoubleVal = maxValue;

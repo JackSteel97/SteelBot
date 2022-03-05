@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Enums
 {
@@ -49,6 +45,20 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 Rarity.Epic => 3,
                 Rarity.Legendary => 3,
                 Rarity.Mythical => 5,
+                _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
+            };
+        }
+
+        public static double GetMaxBonusValue(this Rarity rarity)
+        {
+            return rarity switch
+            {
+                Rarity.Common => 0.2,
+                Rarity.Uncommon => 0.4,
+                Rarity.Rare => 0.6,
+                Rarity.Epic => 0.8,
+                Rarity.Legendary => 1,
+                Rarity.Mythical => 2,
                 _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
             };
         }
