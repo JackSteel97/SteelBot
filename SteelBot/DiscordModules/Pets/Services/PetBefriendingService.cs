@@ -29,6 +29,12 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         public async Task Search(CommandContext context)
         {
+            if (!HasSpaceForAnotherPet(context.Member))
+            {
+                await context.RespondAsync(EmbedGenerator.Warning($"You don't have enough room for another pet{Environment.NewLine}Use `Pet Manage` to release one of your existing pets to make room"), mention: true);
+                return;
+            }
+
             if (!SearchSuccess(context.Member))
             {
                 await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"), mention: true);
@@ -51,46 +57,34 @@ namespace SteelBot.DiscordModules.Pets.Services
         private async Task<(bool befriendAttempt, Pet pet)> HandleInitialSearchSuccess(CommandContext context)
         {
             bool befriendAttempt = false;
-            var hasSpace = HasSpaceForAnotherPet(context.Member);
-            string noSpaceMessage = "";
-            if (!hasSpace)
-            {
-                noSpaceMessage = " But you don't have enough room for another pet!";
-            }
 
             var foundPet = PetFactory.Generate();
             var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: false);
 
             var initialResponseBuilder = new DiscordMessageBuilder()
-                .WithContent($"You found a new potential friend!{noSpaceMessage}")
-                .WithEmbed(initialPetDisplay);
-
-            if (hasSpace)
-            {
-                initialResponseBuilder.AddComponents(new DiscordComponent[] {
-                    Interactions.Pets.Befriend.Disable(!hasSpace),
+                .WithContent("You found a new potential friend!")
+                .WithEmbed(initialPetDisplay)
+                .AddComponents(new DiscordComponent[] {
+                    Interactions.Pets.Befriend,
                     Interactions.Pets.Leave
                 });
-            }
 
 
             var message = await context.RespondAsync(initialResponseBuilder, mention: true);
 
-            if (hasSpace)
-            {
-                var result = await message.WaitForButtonAsync(context.Member);
 
-                if (!result.TimedOut)
-                {
-                    initialResponseBuilder.ClearComponents();
-                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
-                    befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
-                }
-                else
-                {
-                    await message.DeleteAsync();
-                    await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
-                }
+            var result = await message.WaitForButtonAsync(context.Member);
+
+            if (!result.TimedOut)
+            {
+                initialResponseBuilder.ClearComponents();
+                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
+            }
+            else
+            {
+                await message.DeleteAsync();
+                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
             }
 
             return (befriendAttempt, foundPet);
@@ -99,7 +93,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         private async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet)
         {
             bool befriendSuccess = BefriendSuccess(context.Member, pet);
-            if (befriendSuccess)
+            if (befriendSuccess && HasSpaceForAnotherPet(context.Member))
             {
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out int numberOfOwnedPets);
                 pet.OwnerDiscordId = context.Member.Id;
