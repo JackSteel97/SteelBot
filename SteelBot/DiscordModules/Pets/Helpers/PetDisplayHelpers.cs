@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using Humanizer;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.DiscordModules.Pets.Models;
 using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
@@ -56,13 +57,17 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 .WithTitle($"{username} Pet's Bonuses")
                 .WithTimestamp(DateTime.Now);
 
+            var totals = new BonusTotals();
             var bonuses = new StringBuilder();
             foreach (var pet in availablePets)
             {
                 AppendBonuses(bonuses, pet);
                 embedBuilder.AddField(pet.GetName(), bonuses.ToString());
                 bonuses.Clear();
+                totals.Add(pet);
             }
+
+            embedBuilder.AddField("Totals", totals.ToString());
             return embedBuilder;
         }
 
