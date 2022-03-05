@@ -12,7 +12,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 {
     public static class PetDisplayHelpers
     {
-        public static DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true)
+        public static DiscordEmbedBuilder GetPetDisplayEmbed(Pet pet, bool includeName = true, bool showLevelProgress = false)
         {
             string name;
             if (includeName)
@@ -32,6 +32,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 .AddField("Size", Formatter.InlineCode(pet.Size.ToString()), true)
                 .AddField("Age", Formatter.InlineCode($"{GetAge(pet.BornAt)}"), true)
                 .AddField("Found", Formatter.InlineCode(pet.FoundAt.Humanize()), true);
+
+            if (showLevelProgress)
+            {
+                embedBuilder.WithDescription(PetShared.GetPetLevelProgressBar(pet));
+            }
 
             foreach (var attribute in pet.Attributes)
             {

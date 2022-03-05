@@ -38,7 +38,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 foreach (var pet in availablePets)
                 {
-                    embedBuilder.AddField(pet.GetName(), $"Level {pet.CurrentLevel} {pet.Species.GetName()}");
+                    embedBuilder.AddField(pet.GetName(), $"Level {pet.CurrentLevel} {pet.Species.GetName()}{Environment.NewLine}{GetPetLevelProgressBar(pet)}");
                 }
 
                 int petNumber = availablePets.Count;
@@ -187,6 +187,28 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
                 await channel.SendMessageAsync(message);
             }
+        }
+
+        public static string GetPetLevelProgressBar(Pet pet)
+        {
+            var thisLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
+            var nextLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
+            var xpIntoThisLevel = pet.EarnedXp - thisLevelXp;
+            var xpToLevelUp = nextLevelXp - thisLevelXp;
+
+            var progress = xpIntoThisLevel / xpToLevelUp;
+            const int totalCharacterCount = 30;
+            int progressedCharacterCount = Convert.ToInt32(totalCharacterCount * progress);
+            int remainingCharacters = totalCharacterCount - progressedCharacterCount;
+
+            var sb = new StringBuilder();
+            sb.Append('[');
+            if (progressedCharacterCount > 0)
+            {
+                sb.Append(Formatter.Spoiler(new string('-', progressedCharacterCount)));
+            }
+            sb.Append(new string('-', remainingCharacters)).Append(']').Append(" Level ").Append(pet.CurrentLevel + 1);
+            return sb.ToString();
         }
 
         private static async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)

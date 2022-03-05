@@ -69,7 +69,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
             {
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out var ownedPetCount);
-                var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet);
+                var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet, showLevelProgress: true);
                 var initialResponseBuilder = new DiscordMessageBuilder()
                     .WithEmbed(petDisplay);
 

@@ -69,10 +69,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     Interactions.Pets.Leave
                 });
 
-
             var message = await context.RespondAsync(initialResponseBuilder, mention: true);
-
-
             var result = await message.WaitForButtonAsync(context.Member);
 
             if (!result.TimedOut)
@@ -92,14 +89,16 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet)
         {
-            bool befriendSuccess = BefriendSuccess(context.Member, pet);
-            if (befriendSuccess && HasSpaceForAnotherPet(context.Member))
+            bool befriendSuccess = false;
+            if (HasSpaceForAnotherPet(context.Member) && BefriendSuccess(context.Member, pet))
             {
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out int numberOfOwnedPets);
                 pet.OwnerDiscordId = context.Member.Id;
                 pet.Priority = numberOfOwnedPets;
-                await HandleBefriendSuccess(context, pet);
                 await Cache.Pets.InsertPet(pet);
+                await HandleBefriendSuccess(context, pet);
+                await Cache.Pets.UpdatePet(pet);
+                befriendSuccess = true;
             }
             else
             {

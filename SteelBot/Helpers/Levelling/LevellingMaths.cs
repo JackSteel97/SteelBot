@@ -15,6 +15,12 @@ namespace SteelBot.Helpers.Levelling
 
         public static double PetXpForLevel(int level, Rarity rarity)
         {
+            // Pets start at level 1.
+            if(level == 1)
+            {
+                return 0;
+            }
+
             double multiplier = 1 + ((rarity - Rarity.Rare)/10D);
 
             return XpForLevel(level) * multiplier;
