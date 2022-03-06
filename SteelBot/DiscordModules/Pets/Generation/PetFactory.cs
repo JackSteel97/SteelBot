@@ -234,6 +234,11 @@ namespace SteelBot.DiscordModules.Pets.Generation
             {
                 ++bonus.Value;
             }
+
+            if (MathsHelper.TrueWithProbability(0.1))
+            {
+                bonus.Value *= -1;
+            }
         }
 
         private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses)

@@ -100,7 +100,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 result += (user.CurrentLevel / NewPetSlotUnlockLevels);
             }
-            return result;
+            return Math.Max(result, 0);
         }
 
         public static bool TryGetPetIdFromPetSelectorButton(string buttonId, out long petId)
@@ -301,7 +301,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         {
             foreach (var bonus in pet.Bonuses)
             {
-                var increase = bonus.Value * 0.01;
+                var increase = Math.Abs(bonus.Value * 0.01);
                 bonus.Value += increase;
             }
         }

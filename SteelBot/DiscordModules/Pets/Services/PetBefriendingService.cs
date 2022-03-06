@@ -127,7 +127,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             int ownedPetCount = 0;
             double bonusMultiplier = 1;
-            if(Cache.Users.TryGetUser(userSearching.Guild.Id, userSearching.Id, out var user)
+            if (Cache.Users.TryGetUser(userSearching.Guild.Id, userSearching.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(userSearching.Id, out var ownedPets))
             {
                 var activePets = PetShared.GetAvailablePets(user, ownedPets, out _);
@@ -142,12 +142,16 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private bool HasSpaceForAnotherPet(DiscordMember user)
         {
-            if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser)
-                && Cache.Pets.TryGetUsersPets(user.Id, out var allPets))
+            if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser))
             {
-                var activePets = PetShared.GetAvailablePets(dbUser, allPets, out _);
+                double bonusCapacity = 0;
+                if (Cache.Pets.TryGetUsersPets(user.Id, out var allPets))
+                {
+                    var activePets = PetShared.GetAvailablePets(dbUser, allPets, out _);
 
-                var bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
+                    bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
+                }
+
                 var capacity = PetShared.GetPetCapacity(dbUser, bonusCapacity);
 
                 return allPets.Count < capacity;
@@ -171,7 +175,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             int ownedPetCount = 0;
             double bonusCapacity = 0;
             double bonusMultiplier = 1;
-            if(Cache.Pets.TryGetUsersPets(user.DiscordId, out var allPets))
+            if (Cache.Pets.TryGetUsersPets(user.DiscordId, out var allPets))
             {
                 var activePets = PetShared.GetAvailablePets(user, allPets, out _);
                 bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
