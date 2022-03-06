@@ -200,8 +200,9 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return attributes;
         }
 
-        public static PetBonus GenerateBonus(Pet pet)
+        public static PetBonus GenerateBonus(Pet pet, List<PetBonus> existingBonuses = default)
         {
+            existingBonuses ??= pet.Bonuses;
             bool validBonus = true;
             var maxBonus = pet.Rarity.GetMaxBonusValue();
             PetBonus bonus;
@@ -210,34 +211,58 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 bonus = new PetBonus()
                 {
                     Pet = pet,
-                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None, BonusType.PetSlots),
+                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
                 };
 
-                var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
-
-                bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
-                if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
+                if (bonus.BonusType.IsPercentage())
                 {
-                    // Normally positive bonuses being negative should be less common.
-                    if (MathsHelper.TrueWithProbability(0.8))
-                    {
-                        bonus.Value *= -1;
-                    }
+                    validBonus = HandlePercentageBonusGeneration(pet, maxBonus, bonus, existingBonuses);
                 }
-
-                // Check this won't cause negative bonuses to go far
-                if (bonus.Value < 0 && pet.Bonuses?.Count > 0)
+                else
                 {
-                    var currentTotal = pet.Bonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
-                    var newTotal = currentTotal + bonus.Value;
-                    if (newTotal < -1)
-                    {
-                        validBonus = false;
-                    }
+                    HandleIntegerBonusGeneration(bonus);
                 }
             } while (!validBonus);
 
             return bonus;
+        }
+
+        private static void HandleIntegerBonusGeneration(PetBonus bonus)
+        {
+            bonus.Value = 1;
+            while (MathsHelper.TrueWithProbability(0.1))
+            {
+                ++bonus.Value;
+            }
+        }
+
+        private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses)
+        {
+            bool validBonus = true;
+            var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
+
+            bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
+            if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
+            {
+                // Normally positive bonuses being negative should be less common.
+                if (MathsHelper.TrueWithProbability(0.8))
+                {
+                    bonus.Value *= -1;
+                }
+            }
+
+            // Check this won't cause negative bonuses to go far
+            if (bonus.Value < 0 && existingBonuses?.Count > 0)
+            {
+                var currentTotal = existingBonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
+                var newTotal = currentTotal + bonus.Value;
+                if (newTotal < -1)
+                {
+                    validBonus = false;
+                }
+            }
+
+            return validBonus;
         }
 
         private static List<PetBonus> BuildBonuses(Pet pet)
@@ -247,7 +272,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             for (int i = 0; i < maxBonuses; ++i)
             {
-                var bonus = GenerateBonus(pet);
+                var bonus = GenerateBonus(pet, bonuses);
                 bonuses.Add(bonus);
             }
             return bonuses;

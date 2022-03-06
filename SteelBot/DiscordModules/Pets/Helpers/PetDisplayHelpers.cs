@@ -115,11 +115,13 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
         {
             var emoji = GetEmoji(bonus.Value, bonus.BonusType.IsNegative());
+            var bonusValue = bonus.Value;
 
-            string bonusValueFormat = "";
-            if (bonus.BonusType.IsPercentage())
+            string bonusValueFormat = "P2";
+            if (!bonus.BonusType.IsPercentage())
             {
-                bonusValueFormat = "P2";
+                bonusValue = Math.Floor(bonusValue);
+                bonusValueFormat = "N0";
             }
 
             char bonusSign = char.MinValue;
@@ -128,7 +130,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 bonusSign = '+';
             }
 
-            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonus.Value.ToString(bonusValueFormat)).AppendLine("`");
+            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).AppendLine("`");
             return bonuses;
         }
         private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)

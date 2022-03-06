@@ -56,7 +56,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
             embedBuilder.WithDescription(petList.ToString());
 
-            var petCapacity = GetPetCapacity(user);
+            var bonusCapacity = GetBonusValue(availablePets, BonusType.PetSlots);
+            var petCapacity = GetPetCapacity(user, bonusCapacity);
             var ownedPets = availablePets.Count + disabledPets.Count;
             embedBuilder
                 .AddField("Pet Slots", $"{ownedPets} / {petCapacity}")
@@ -67,25 +68,33 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static List<Pet> GetAvailablePets(User user, List<Pet> allPets, out List<Pet> disabledPets)
         {
+            int baseCapacity = GetPetCapacity(user, 0);
+            int capacity = baseCapacity;
+            var availablePets = new List<Pet>();
             if (allPets.Count > 0)
             {
-                var capacity = GetPetCapacity(user);
-                var availableCount = Math.Min(capacity, allPets.Count);
-                var orderedPets = allPets.OrderBy(p => p.Priority);
+                var orderedPets = allPets.OrderBy(p => p.Priority).ToList();
 
+                int currentIndex = 0;
+                while (availablePets.Count < capacity && currentIndex < orderedPets.Count)
+                {
+                    availablePets.Add(orderedPets[currentIndex]);
+                    ++currentIndex;
+                    capacity = baseCapacity + Convert.ToInt32(GetBonusValue(availablePets, BonusType.PetSlots));
+                }
+                var availableCount = Math.Min(capacity, orderedPets.Count);
                 disabledPets = orderedPets.Skip(availableCount).ToList();
-                return orderedPets.Take(availableCount).ToList();
             }
             else
             {
                 disabledPets = new List<Pet>();
-                return new List<Pet>();
             }
+            return availablePets;
         }
 
-        public static int GetPetCapacity(User user)
+        public static int GetPetCapacity(User user, double bonusCapacity)
         {
-            int result = 1;
+            int result = 1 + Convert.ToInt32(Math.Floor(bonusCapacity));
 
             if (user != default)
             {
@@ -209,6 +218,22 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
             sb.Append(new string('-', remainingCharacters)).Append(']').Append(" Level ").Append(pet.CurrentLevel + 1);
             return sb.ToString();
+        }
+
+        public static double GetBonusValue(List<Pet> activePets, BonusType targetType)
+        {
+            double multiplier = targetType.IsPercentage() ? 1 : 0;
+            foreach (var pet in activePets)
+            {
+                foreach (var bonus in pet.Bonuses)
+                {
+                    if (bonus.BonusType.HasFlag(targetType))
+                    {
+                        multiplier += bonus.Value;
+                    }
+                }
+            }
+            return multiplier;
         }
 
         private static async Task<bool> ValidateAndName(Pet pet, DiscordMessage nameMessage)

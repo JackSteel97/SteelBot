@@ -92,14 +92,15 @@ namespace SteelBot.DiscordModules.Pets
                 && Cache.Pets.TryGetUsersPets(discordMember.Id, out var pets))
             {
                 var availablePets = PetShared.GetAvailablePets(user, pets, out var _);
-                var embed = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName);
-                embed.WithThumbnail(discordMember.AvatarUrl);
-                return context.RespondAsync(embed, mention: true);
+                if (availablePets.Count > 0)
+                {
+                    var embed = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName);
+                    embed.WithThumbnail(discordMember.AvatarUrl);
+                    return context.RespondAsync(embed, mention: true);
+                }
             }
-            else
-            {
-                return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
-            }
+            return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
+
         }
 
         public List<Pet> GetAvailablePets(ulong guildId, ulong userId, out List<Pet> disabledPets)

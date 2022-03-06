@@ -5,12 +5,14 @@ using DSharpPlus.Interactivity.Extensions;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -123,19 +125,32 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private double GetSearchSuccessProbability(DiscordMember userSearching)
         {
-            Cache.Pets.TryGetUsersPetsCount(userSearching.Id, out var ownedPets);
+            int ownedPetCount = 0;
+            double bonusMultiplier = 1;
+            if(Cache.Users.TryGetUser(userSearching.Guild.Id, userSearching.Id, out var user)
+                && Cache.Pets.TryGetUsersPets(userSearching.Id, out var ownedPets))
+            {
+                var activePets = PetShared.GetAvailablePets(user, ownedPets, out _);
+                ownedPetCount = ownedPets.Count;
 
-            var probability = 2D / ownedPets;
+                bonusMultiplier = PetShared.GetBonusValue(activePets, BonusType.SearchSuccessRate);
+            }
+
+            var probability = (2D / ownedPetCount) * bonusMultiplier;
             return Math.Min(1, probability);
         }
 
         private bool HasSpaceForAnotherPet(DiscordMember user)
         {
-            if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser))
+            if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser)
+                && Cache.Pets.TryGetUsersPets(user.Id, out var allPets))
             {
-                var capacity = PetShared.GetPetCapacity(dbUser);
-                Cache.Pets.TryGetUsersPetsCount(user.Id, out int ownedPets);
-                return ownedPets < capacity;
+                var activePets = PetShared.GetAvailablePets(dbUser, allPets, out _);
+
+                var bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
+                var capacity = PetShared.GetPetCapacity(dbUser, bonusCapacity);
+
+                return allPets.Count < capacity;
             }
             return false;
         }
@@ -153,11 +168,21 @@ namespace SteelBot.DiscordModules.Pets.Services
         private double GetBefriendSuccessProbability(User user, Pet target)
         {
             const double baseRate = 0.1;
+            int ownedPetCount = 0;
+            double bonusCapacity = 0;
+            double bonusMultiplier = 1;
+            if(Cache.Pets.TryGetUsersPets(user.DiscordId, out var allPets))
+            {
+                var activePets = PetShared.GetAvailablePets(user, allPets, out _);
+                bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
+                bonusMultiplier = PetShared.GetBonusValue(activePets, BonusType.BefriendSuccessRate);
+                ownedPetCount = allPets.Count;
+            }
 
             var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity + 1);
-            var petCapacity = (double)PetShared.GetPetCapacity(user);
-            Cache.Pets.TryGetUsersPetsCount(user.DiscordId, out var ownedPets);
-            return baseRate + ((petCapacity - ownedPets) / (petCapacity + rarityModifier));
+            var petCapacity = (double)PetShared.GetPetCapacity(user, bonusCapacity);
+            var currentRate = baseRate + ((petCapacity - ownedPetCount) / (petCapacity + rarityModifier));
+            return currentRate * bonusMultiplier;
         }
     }
 }
