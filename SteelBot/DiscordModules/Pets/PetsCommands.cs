@@ -74,7 +74,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("Search")]
         [Description("Search for a new pet. Allows 10 searches per hour.")]
-        //[Cooldown(10, HourSeconds, CooldownBucketType.User)]
+        [Cooldown(10, HourSeconds, CooldownBucketType.User)]
         public Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
