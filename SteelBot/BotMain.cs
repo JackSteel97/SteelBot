@@ -97,7 +97,7 @@ namespace SteelBot
             Client.GuildCreated += HandleJoiningGuild;
             Client.GuildDeleted += HandleLeavingGuild;
             Client.GuildMemberRemoved += HandleGuildMemberRemoved;
-            Client.GuildMemberAdded += HandleGuildMemberAdded;
+            //Client.GuildMemberAdded += HandleGuildMemberAdded; // TODO: Implement properly
 
             Commands.CommandErrored += HandleCommandErrored;
             Commands.CommandExecuted += HandleCommandExecuted;

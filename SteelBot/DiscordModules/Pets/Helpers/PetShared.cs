@@ -205,7 +205,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             var xpIntoThisLevel = pet.EarnedXp - thisLevelXp;
             var xpToLevelUp = nextLevelXp - thisLevelXp;
 
-            var progress = xpIntoThisLevel / xpToLevelUp;
+            var progress = Math.Max(0, xpIntoThisLevel / xpToLevelUp);
             const int totalCharacterCount = 30;
             int progressedCharacterCount = Convert.ToInt32(totalCharacterCount * progress);
             int remainingCharacters = totalCharacterCount - progressedCharacterCount;
