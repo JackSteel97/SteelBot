@@ -200,13 +200,16 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static string GetPetLevelProgressBar(Pet pet)
         {
+            const string progressCharacter = EmojiConstants.Symbols.GreenSquare;
+            const string remainingCharacter = EmojiConstants.Symbols.GreySquare;
+
             var thisLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
             var nextLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
             var xpIntoThisLevel = pet.EarnedXp - thisLevelXp;
             var xpToLevelUp = nextLevelXp - thisLevelXp;
 
             var progress = Math.Max(0, xpIntoThisLevel / xpToLevelUp);
-            const int totalCharacterCount = 30;
+            const int totalCharacterCount = 10;
             int progressedCharacterCount = Convert.ToInt32(totalCharacterCount * progress);
             int remainingCharacters = totalCharacterCount - progressedCharacterCount;
 
@@ -214,9 +217,20 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             sb.Append('[');
             if (progressedCharacterCount > 0)
             {
-                sb.Append(Formatter.Spoiler(new string('-', progressedCharacterCount)));
+                for(int i = 0; i < progressedCharacterCount; ++i)
+                {
+                    sb.Append(progressCharacter);
+                }
             }
-            sb.Append(new string('-', remainingCharacters)).Append(']').Append(" Level ").Append(pet.CurrentLevel + 1);
+
+            if(remainingCharacters > 0)
+            {
+                for(int i =0; i< remainingCharacters; ++i)
+                {
+                    sb.Append(remainingCharacter);
+                }
+            }
+            sb.Append(']').Append(" Level ").Append(pet.CurrentLevel + 1);
             return sb.ToString();
         }
 
