@@ -7,6 +7,7 @@ using SteelBot.DiscordModules.Pets.Models;
 using SteelBot.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SteelBot.DiscordModules.Pets.Helpers
@@ -67,7 +68,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 totals.Add(pet);
             }
 
-            embedBuilder.AddField("Totals", totals.ToString());
+            AppendBonuses(bonuses, totals);
+            embedBuilder.AddField("Totals", bonuses.ToString());
             return embedBuilder;
         }
 
@@ -76,6 +78,20 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             var age = DateTime.UtcNow - birthdate;
             var ageStr = age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year);
             return string.Concat(ageStr, " old");
+        }
+
+        private static StringBuilder AppendBonuses(StringBuilder bonuses, BonusTotals totals)
+        {
+            foreach (var bonus in totals.Totals.Values.OrderBy(x=>x.BonusType))
+            {
+                AppendBonus(bonuses, bonus);
+            }
+
+            if(totals.PassiveOffline != 0)
+            {
+                AppendPassiveXpBonus(bonuses, totals.PassiveOffline);
+            }
+            return bonuses;
         }
 
         private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
@@ -87,35 +103,47 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
             if (pet.Rarity == Rarity.Legendary)
             {
-                AppendLegendaryBonus(bonuses, pet.CurrentLevel);
+                AppendPassiveXpBonus(bonuses, pet.CurrentLevel);
             }
             else if (pet.Rarity == Rarity.Mythical)
             {
-                AppendMythicalBonus(bonuses, pet.CurrentLevel);
+                AppendPassiveXpBonus(bonuses, pet.CurrentLevel * 2);
             }
             return bonuses;
         }
 
         private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
         {
+            var emoji = GetEmoji(bonus.Value, bonus.BonusType.IsNegative());
+
+            string bonusValueFormat = "";
+            if (bonus.BonusType.IsPercentage())
+            {
+                bonusValueFormat = "P2";
+            }
+
+            char bonusSign = char.MinValue;
+            if (bonus.Value >= 0)
+            {
+                bonusSign = '+';
+            }
+
+            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonus.Value.ToString(bonusValueFormat)).AppendLine("`");
+            return bonuses;
+        }
+        private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)
+        {
+            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(passiveXp).Append('`');
+        }
+
+        private static string GetEmoji(double value, bool isNegativeType = false)
+        {
             var emoji = EmojiConstants.CustomDiscordEmojis.GreenArrowUp;
-            var isNegativeType = bonus.BonusType.IsNegative();
-            if((isNegativeType && bonus.Value > 0) || (!isNegativeType && bonus.Value <= 0))
+            if ((isNegativeType && value > 0) || (!isNegativeType && value <= 0))
             {
                 emoji = EmojiConstants.CustomDiscordEmojis.RedArrowDown;
             }
-            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize()).Append(" XP").Append(": ").Append(bonus.Value.ToString("P2")).AppendLine("`");
-            return bonuses;
-        }
-
-        private static StringBuilder AppendLegendaryBonus(StringBuilder bonuses, int currentLevel)
-        {
-            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(currentLevel).Append('`');
-        }
-
-        private static StringBuilder AppendMythicalBonus(StringBuilder bonuses, int currentLevel)
-        {
-            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP +").Append(currentLevel * 2).Append('`');
+            return emoji;
         }
     }
 }

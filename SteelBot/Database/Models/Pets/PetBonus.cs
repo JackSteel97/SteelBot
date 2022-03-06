@@ -10,4 +10,5 @@ namespace SteelBot.Database.Models.Pets
         public BonusType BonusType { get; set; }
         public double Value { get; set; }
     }
+
 }

@@ -210,7 +210,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 bonus = new PetBonus()
                 {
                     Pet = pet,
-                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
+                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None, BonusType.PetSlots),
                 };
 
                 var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
@@ -272,14 +272,15 @@ namespace SteelBot.DiscordModules.Pets.Generation
             }
         }
 
-        private static T GetRandomEnumValue<T>(params T[] invalidSelections)
+        private static T GetRandomEnumValue<T>(params T[] excluding)
         {
             T result = default(T);
+            var excludedValues = excluding.ToHashSet();
             do
             {
                 var values = Enum.GetValues(typeof(T)).Cast<T>().ToArray();
                 result = values[RandomNumberGenerator.GetInt32(values.Length)];
-            } while (Array.FindIndex(invalidSelections, s => s.Equals(result)) >= 0);
+            } while (excludedValues.Contains(result));
             return result;
         }
 
