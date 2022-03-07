@@ -151,7 +151,7 @@ namespace SteelBot.Helpers.Levelling
         private static void IncrementMutedXp(User user, TimeSpan mutedDuration, List<Pet> availablePets)
         {
             var baseXp = LevellingMaths.GetDurationXp(mutedDuration, user.TimeSpentMuted, LevelConfig.MutedXpPerMin);
-            user.MutedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.MutedPentaltyXP);
+            user.MutedXpEarned += LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.MutedPenaltyXP);
         }
 
         private static void IncrementDeafenedXp(User user, TimeSpan deafenedXp, List<Pet> availablePets)
