@@ -18,7 +18,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
         Armadillo,
         Horse,
         BeardedDragon,
-        Tortise,
+        Tortoise,
         Snake,
         Turtle,
         Chicken,
