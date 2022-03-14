@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using SteelBot.Helpers.Constants;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Interactivity.Models;
 using System;
 using System.Collections.Generic;
@@ -15,13 +16,6 @@ namespace SteelBot.Helpers
 {
     public static class InteractivityHelper
     {
-        private static readonly DiscordComponent[] PaginationComponents = new DiscordComponent[]
-            {
-                Interactions.Pagination.PrevPage,
-                Interactions.Pagination.Exit,
-                Interactions.Pagination.NextPage,
-            };
-
         /// <summary>
         /// Add components, handling starting new rows.
         /// Cuts off any excess components.
@@ -110,12 +104,19 @@ namespace SteelBot.Helpers
 
         public static async Task<string> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
         {
+            DiscordComponent[] paginationComponents = new DiscordComponent[]
+            {
+                Interactions.Pagination.PrevPage.Disable(pages.Count <= 1),
+                Interactions.Pagination.Exit,
+                Interactions.Pagination.NextPage.Disable(pages.Count <= 1),
+            };
+
             int currentPageIndex = 0;
             var currentPage = pages[currentPageIndex];
             var messageBuilder = new DiscordMessageBuilder()
                 .WithContent(currentPage.Content)
                 .WithEmbed(currentPage.Embed)
-                .AddComponents(PaginationComponents);
+                .AddComponents(paginationComponents);
             if (currentPage.Options.Count > 0)
             {
                 AddComponents(messageBuilder, currentPage.Options);
@@ -144,7 +145,7 @@ namespace SteelBot.Helpers
                     currentPageIndex = MathsHelper.Modulo(currentPageIndex, pages.Count);
                     currentPage = pages[currentPageIndex];
 
-                    await UpdateMessageToPage(messageBuilder, result.Result.Interaction, currentPage);
+                    await UpdateMessageToPage(messageBuilder, result.Result.Interaction, currentPage, paginationComponents);
                 }
                 else
                 {
@@ -156,12 +157,12 @@ namespace SteelBot.Helpers
             }
         }
 
-        private static async Task UpdateMessageToPage(DiscordMessageBuilder messageBuilder, DiscordInteraction messageInteraction, PageWithSelectionButtons page)
+        private static async Task UpdateMessageToPage(DiscordMessageBuilder messageBuilder, DiscordInteraction messageInteraction, PageWithSelectionButtons page, DiscordComponent[] paginationComponents)
         {
             messageBuilder.ClearComponents();
 
             messageBuilder.WithContent(page.Content).WithEmbed(page.Embed);
-            messageBuilder.AddComponents(PaginationComponents);
+            messageBuilder.AddComponents(paginationComponents);
 
             if (page.Options.Count > 0)
             {
