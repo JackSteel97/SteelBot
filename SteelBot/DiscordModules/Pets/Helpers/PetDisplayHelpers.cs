@@ -151,13 +151,16 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 bonusValueFormat = "N0";
             }
 
-            char bonusSign = char.MinValue;
-            if (bonus.Value >= 0)
+            if(bonusValue != 0)
             {
-                bonusSign = '+';
-            }
+                char bonusSign = char.MinValue;
+                if (bonusValue >= 0)
+                {
+                    bonusSign = '+';
+                }
 
-            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).AppendLine("`");
+                bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).AppendLine("`");
+            }
             return bonuses;
         }
         private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)

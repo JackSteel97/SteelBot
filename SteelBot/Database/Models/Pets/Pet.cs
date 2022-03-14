@@ -34,7 +34,7 @@ namespace SteelBot.Database.Models.Pets
 
         public string GetName()
         {
-            return Name.Trim() ?? $"Unnamed {Species.GetName()}";
+            return Name?.Trim() ?? $"Unnamed {Species.GetName()}";
         }
 
         public void AddBonuses(List<PetBonus> bonuses)
