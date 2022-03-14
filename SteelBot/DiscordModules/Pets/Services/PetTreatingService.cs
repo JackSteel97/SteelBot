@@ -41,7 +41,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 }
 
                 var bonusCapacity = PetShared.GetBonusValue(availablePets, Enums.BonusType.PetSlots);
-                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 1,
+                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                     (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, bonusCapacity),
                     (pet) => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()));
 

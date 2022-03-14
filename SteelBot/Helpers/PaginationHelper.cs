@@ -53,14 +53,21 @@ namespace SteelBot.Helpers
             var pages = new List<PageWithSelectionButtons>();
             int currentPage = 1;
             int totalPages = chunkedItems.Count;
-            foreach(var chunk in chunkedItems)
+            foreach (var chunk in chunkedItems)
             {
                 var listBuilder = new StringBuilder();
                 var components = new List<DiscordComponent>();
-                foreach(var item in chunk)
+                int itemIndex = 0;
+                int lastIndex = chunk.Length - 1;
+                foreach (var item in chunk)
                 {
                     listBuilder = itemAppender(listBuilder, item);
+                    if (itemIndex != lastIndex)
+                    {
+                        listBuilder.AppendLine();
+                    }
                     components.Add(componentGetter(item));
+                    ++itemIndex;
                 }
 
                 var embedPage = baseEmbed.WithDescription(listBuilder.ToString())

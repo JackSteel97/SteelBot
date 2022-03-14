@@ -109,9 +109,11 @@ namespace SteelBot.DiscordModules.Pets
                 && Cache.Pets.TryGetUsersPets(discordMember.Id, out var pets))
             {
                 var availablePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
-                if (availablePets.Count > 0)
+                var combinedPets = PetShared.Recombine(availablePets, disabledPets);
+                if (combinedPets.Count > 0)
                 {
-                    var pages = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName, discordMember.AvatarUrl);
+                    var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
+                    var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, bonusCapacity);
 
                     var interactivity = context.Client.GetInteractivity();
                     return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);

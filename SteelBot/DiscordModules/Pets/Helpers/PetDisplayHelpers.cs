@@ -53,7 +53,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static List<Page> GetPetBonusesSummary(List<Pet> availablePets, string username, string avatarUrl)
+        public static List<Page> GetPetBonusesSummary(List<PetWithActivation> allPets, string username, string avatarUrl, double bonusCapacity)
         {
             var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
                 .WithTitle($"{username} Pet's Active Bonuses")
@@ -61,18 +61,41 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 .WithTimestamp(DateTime.Now);
 
             var totals = new BonusTotals();
-            foreach (var pet in availablePets)
+            bool anyDisabled = false;
+            foreach (var pet in allPets)
             {
-                totals.Add(pet);
+                if (pet.Active)
+                {
+                    totals.Add(pet.Pet);
+                }
+                else
+                {
+                    if (!anyDisabled)
+                    {
+                        anyDisabled = true;
+                    }
+                }
+            }
+
+            if (anyDisabled)
+            {
+                embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
             }
 
             var totalsBuilder = new StringBuilder();
             AppendBonuses(totalsBuilder, totals);
             embedBuilder.AddField("Totals", totalsBuilder.ToString());
 
-            return PaginationHelper.GenerateEmbedPages(embedBuilder, availablePets, 5, (builder, pet, _) =>
+            return PaginationHelper.GenerateEmbedPages(embedBuilder, allPets, 5, (builder, petWithActivation, _) =>
             {
-                builder.Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').AppendLine(pet.Species.GetName());
+                var pet = petWithActivation.Pet;
+                builder.Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
+                if (!petWithActivation.Active)
+                {
+                    var levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, bonusCapacity);
+                    builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
+                }
+                builder.AppendLine();
                 return AppendBonuses(builder, pet);
             });
         }
@@ -86,12 +109,12 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendBonuses(StringBuilder bonuses, BonusTotals totals)
         {
-            foreach (var bonus in totals.Totals.Values.OrderBy(x=>x.BonusType))
+            foreach (var bonus in totals.Totals.Values.OrderBy(x => x.BonusType))
             {
                 AppendBonus(bonuses, bonus);
             }
 
-            if(totals.PassiveOffline != 0)
+            if (totals.PassiveOffline != 0)
             {
                 AppendPassiveXpBonus(bonuses, totals.PassiveOffline);
             }

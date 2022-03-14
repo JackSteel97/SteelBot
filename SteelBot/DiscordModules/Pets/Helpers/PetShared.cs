@@ -22,50 +22,6 @@ namespace SteelBot.DiscordModules.Pets.Helpers
     public static class PetShared
     {
         private const int NewPetSlotUnlockLevels = 20;
-        public static DiscordEmbedBuilder GetOwnedPetsDisplayEmbed(User user, List<Pet> allPets, string username = "Your")
-        {
-            var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle($"{username} Owned Pets");
-
-            var availablePets = GetAvailablePets(user, allPets, out var disabledPets);
-            if (disabledPets.Count > 0)
-            {
-                embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server.");
-            }
-
-            var petList = new StringBuilder();
-            if (availablePets.Count > 0 || disabledPets.Count > 0)
-            {
-                foreach (var pet in availablePets)
-                {
-                    embedBuilder.AddField(pet.GetName(), $"Level {pet.CurrentLevel} {pet.Species.GetName()}{Environment.NewLine}{GetPetLevelProgressBar(pet)}");
-                }
-
-                int petNumber = availablePets.Count;
-                foreach (var disabledPet in disabledPets)
-                {
-                    int levelRequired = GetRequiredLevelForPet(petNumber);
-                    embedBuilder.AddField(disabledPet.GetName(), $"Level {disabledPet.CurrentLevel} {disabledPet.Species.GetName()} - **Inactive**, Level {levelRequired} required");
-                    ++petNumber;
-                }
-            }
-            else
-            {
-                petList.AppendLine("You currently own no pets.");
-            }
-
-            embedBuilder.WithDescription(petList.ToString());
-
-            var bonusCapacity = GetBonusValue(availablePets, BonusType.PetSlots);
-            var petCapacity = GetPetCapacity(user, bonusCapacity);
-            var ownedPets = availablePets.Count + disabledPets.Count;
-            embedBuilder
-                .AddField("Pet Slots", $"{ownedPets} / {petCapacity}")
-                .WithTimestamp(DateTime.Now);
-
-            return embedBuilder;
-        }
 
         public static DiscordEmbedBuilder GetOwnedPetsBaseEmbed(User user, List<Pet> availablePets, List<Pet> disabledPets, string username = "Your")
         {
@@ -75,7 +31,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
             if (disabledPets.Count > 0)
             {
-                embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server.");
+                embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
             }
 
             var bonusCapacity = GetBonusValue(availablePets, BonusType.PetSlots);
@@ -95,7 +51,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
             if (!active)
             {
-                var levelRequired = GetRequiredLevelForPet(pet.Priority - (int)bonusCapacity);
+                var levelRequired = GetRequiredLevelForPet(pet.Priority, bonusCapacity);
                 builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
             }
 
@@ -341,9 +297,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
         }
 
-        private static int GetRequiredLevelForPet(int petNumber)
+        public static int GetRequiredLevelForPet(int petPriority, double bonusCapacity)
         {
-            return petNumber * NewPetSlotUnlockLevels;
+            return (petPriority - (int)bonusCapacity) * NewPetSlotUnlockLevels;
         }
 
         private static void PetLevelledUp(Pet pet, int level)
