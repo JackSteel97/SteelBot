@@ -30,32 +30,31 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
             {
-                var petList = PetShared.GetOwnedPetsDisplayEmbed(user, allPets);
+                var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
+                var combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
-                var initialResponseBuilder = new DiscordMessageBuilder().WithEmbed(petList);
+                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets);
 
-                var components = allPets.OrderBy(p => p.Priority).Select(p => Interactions.Pets.Manage(p.RowId, p.GetName())).ToList();
-                components.Add(Interactions.Confirmation.Cancel);
-                initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, components);
-
-                var message = await context.RespondAsync(initialResponseBuilder, mention: true);
-                var result = await message.WaitForButtonAsync(context.Member);
-
-                initialResponseBuilder.ClearComponents();
-
-                if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
+                if(combinedPets.Count == 0)
                 {
-                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                    baseEmbed.WithDescription("You currently own no pets.");
+                    await context.RespondAsync(baseEmbed);
+                    return;
+                }
 
+                var bonusCapacity = PetShared.GetBonusValue(availablePets, Enums.BonusType.PetSlots);
+                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
+                    (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, bonusCapacity),
+                    (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
+
+                var resultId = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
+                if (!string.IsNullOrWhiteSpace(resultId))
+                {
                     // Figure out which pet they want to manage.
-                    if (PetShared.TryGetPetIdFromPetSelectorButton(result.Result.Id, out var petId))
+                    if (PetShared.TryGetPetIdFromPetSelectorButton(resultId, out var petId))
                     {
                         await HandleManagePet(context, petId);
                     }
-                }
-                else
-                {
-                    await message.ModifyAsync(initialResponseBuilder);
                 }
             }
             else

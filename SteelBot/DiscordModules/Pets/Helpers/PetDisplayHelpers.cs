@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using Humanizer;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
@@ -52,25 +53,28 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static DiscordEmbedBuilder GetPetBonusesSummary(List<Pet> availablePets, string username)
+        public static List<Page> GetPetBonusesSummary(List<Pet> availablePets, string username, string avatarUrl)
         {
             var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
-                .WithTitle($"{username} Pet's Bonuses")
+                .WithTitle($"{username} Pet's Active Bonuses")
+                .WithThumbnail(avatarUrl)
                 .WithTimestamp(DateTime.Now);
 
             var totals = new BonusTotals();
-            var bonuses = new StringBuilder();
             foreach (var pet in availablePets)
             {
-                AppendBonuses(bonuses, pet);
-                embedBuilder.AddField(pet.GetName(), bonuses.ToString());
-                bonuses.Clear();
                 totals.Add(pet);
             }
 
-            AppendBonuses(bonuses, totals);
-            embedBuilder.AddField("Totals", bonuses.ToString());
-            return embedBuilder;
+            var totalsBuilder = new StringBuilder();
+            AppendBonuses(totalsBuilder, totals);
+            embedBuilder.AddField("Totals", totalsBuilder.ToString());
+
+            return PaginationHelper.GenerateEmbedPages(embedBuilder, availablePets, 5, (builder, pet, _) =>
+            {
+                builder.Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').AppendLine(pet.Species.GetName());
+                return AppendBonuses(builder, pet);
+            });
         }
 
         private static string GetAge(DateTime birthdate)
@@ -135,7 +139,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         }
         private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)
         {
-            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(passiveXp).Append('`');
+            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(passiveXp).AppendLine("`");
         }
 
         private static string GetEmoji(double value, bool isNegativeType = false)

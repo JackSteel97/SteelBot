@@ -11,6 +11,9 @@ using SteelBot.Helpers;
 using DSharpPlus;
 using System;
 using SteelBot.Services;
+using SteelBot.DiscordModules.Pets.Models;
+using DSharpPlus.Interactivity.Extensions;
+using SteelBot.DiscordModules.Pets.Enums;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -71,18 +74,32 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        public Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
+        public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
         {
             if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(target.Id, out var pets))
             {
-                var embed = PetShared.GetOwnedPetsDisplayEmbed(user, pets, target.DisplayName);
-                embed.WithThumbnail(target.AvatarUrl);
-                return context.RespondAsync(embed, mention: true);
+                var availablePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
+
+                List<PetWithActivation> combinedPets = PetShared.Recombine(availablePets, disabledPets);
+
+                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets, target.DisplayName)
+                    .WithThumbnail(target.AvatarUrl);
+
+                if (combinedPets.Count == 0) {
+                    baseEmbed.WithDescription("You currently own no pets.");
+                    await context.RespondAsync(baseEmbed);
+                    return;
+                }
+
+                var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
+                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, bonusCapacity));
+                var interactivity = context.Client.GetInteractivity();
+                await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
             }
             else
             {
-                return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
+                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
             }
         }
 
@@ -91,16 +108,16 @@ namespace SteelBot.DiscordModules.Pets
             if (Cache.Users.TryGetUser(discordMember.Guild.Id, discordMember.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(discordMember.Id, out var pets))
             {
-                var availablePets = PetShared.GetAvailablePets(user, pets, out var _);
+                var availablePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
                 if (availablePets.Count > 0)
                 {
-                    var embed = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName);
-                    embed.WithThumbnail(discordMember.AvatarUrl);
-                    return context.RespondAsync(embed, mention: true);
+                    var pages = PetDisplayHelpers.GetPetBonusesSummary(availablePets, discordMember.DisplayName, discordMember.AvatarUrl);
+
+                    var interactivity = context.Client.GetInteractivity();
+                    return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
                 }
             }
             return context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
-
         }
 
         public List<Pet> GetAvailablePets(ulong guildId, ulong userId, out List<Pet> disabledPets)

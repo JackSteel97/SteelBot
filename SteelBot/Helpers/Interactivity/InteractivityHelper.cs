@@ -1,8 +1,10 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using SteelBot.Helpers.Constants;
+using SteelBot.Helpers.Interactivity.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,13 @@ namespace SteelBot.Helpers
 {
     public static class InteractivityHelper
     {
+        private static readonly DiscordComponent[] PaginationComponents = new DiscordComponent[]
+            {
+                Interactions.Pagination.PrevPage,
+                Interactions.Pagination.Exit,
+                Interactions.Pagination.NextPage,
+            };
+
         /// <summary>
         /// Add components, handling starting new rows.
         /// Cuts off any excess components.
@@ -26,7 +35,14 @@ namespace SteelBot.Helpers
             const int maxRows = 5;
 
             int currentColumnCount = 0;
-            int currentRowCount = 0;
+            int currentRowCount = message.Components?.Count ?? 0;
+
+            if (currentRowCount == maxRows)
+            {
+                // Message already at max rows.
+                return message;
+            }
+
             List<DiscordComponent> currentRowComponents = new List<DiscordComponent>(maxColumns);
 
             foreach (var component in components)
@@ -90,6 +106,69 @@ namespace SteelBot.Helpers
                 await message.DeleteAsync();
                 return false;
             }
+        }
+
+        public static async Task<string> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
+        {
+            int currentPageIndex = 0;
+            var currentPage = pages[currentPageIndex];
+            var messageBuilder = new DiscordMessageBuilder()
+                .WithContent(currentPage.Content)
+                .WithEmbed(currentPage.Embed)
+                .AddComponents(PaginationComponents);
+            if (currentPage.Options.Count > 0)
+            {
+                AddComponents(messageBuilder, currentPage.Options);
+            }
+
+            var message = await channel.SendMessageAsync(messageBuilder);
+
+            while(true)
+            {
+                var result = await message.WaitForButtonAsync(user);
+
+                if (!result.TimedOut && result.Result.Id != InteractionIds.Pagination.Exit)
+                {
+                    switch (result.Result.Id)
+                    {
+                        case InteractionIds.Pagination.PrevPage:
+                            --currentPageIndex;
+                            break;
+                        case InteractionIds.Pagination.NextPage:
+                            ++currentPageIndex;
+                            break;
+                        default:
+                            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+                            return result.Result.Id;
+                    }
+                    currentPageIndex = MathsHelper.Modulo(currentPageIndex, pages.Count);
+                    currentPage = pages[currentPageIndex];
+
+                    await UpdateMessageToPage(messageBuilder, result.Result.Interaction, currentPage);
+                }
+                else
+                {
+                    messageBuilder.ClearComponents();
+                    await message.ModifyAsync(messageBuilder);
+
+                    return null;
+                }
+            }
+        }
+
+        private static async Task UpdateMessageToPage(DiscordMessageBuilder messageBuilder, DiscordInteraction messageInteraction, PageWithSelectionButtons page)
+        {
+            messageBuilder.ClearComponents();
+
+            messageBuilder.WithContent(page.Content).WithEmbed(page.Embed);
+            messageBuilder.AddComponents(PaginationComponents);
+
+            if (page.Options.Count > 0)
+            {
+                AddComponents(messageBuilder, page.Options);
+            }
+
+            await messageInteraction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
         }
     }
 }

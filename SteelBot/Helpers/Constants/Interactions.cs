@@ -1,10 +1,5 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Constants
 {
@@ -36,6 +31,13 @@ namespace SteelBot.Helpers.Constants
             public static readonly DiscordButtonComponent Confirm = new(ButtonStyle.Primary, InteractionIds.Confirmation.Confirm, "Confirm", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CheckMarkButton));
             public static readonly DiscordButtonComponent Cancel = new(ButtonStyle.Secondary, InteractionIds.Confirmation.Cancel, "Cancel", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CrossMark));
         }
+
+        public static class Pagination
+        {
+            public static readonly DiscordButtonComponent NextPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.NextPage, "Next Page", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.ForwardArrow));
+            public static readonly DiscordButtonComponent PrevPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.PrevPage, "Previous Page", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.BackwardArrow));
+            public static readonly DiscordButtonComponent Exit = new(ButtonStyle.Secondary, InteractionIds.Pagination.Exit, "Cancel", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CrossMark));
+        }
     }
 
     public static class InteractionIds
@@ -59,6 +61,13 @@ namespace SteelBot.Helpers.Constants
         {
             public const string Confirm = "confirmed";
             public const string Cancel = "cancelled";
+        }
+
+        public static class Pagination
+        {
+            public const string NextPage = "next_page";
+            public const string PrevPage = "prev_page";
+            public const string Exit = "exit_page";
         }
     }
 }

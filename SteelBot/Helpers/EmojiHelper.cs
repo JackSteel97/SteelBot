@@ -51,6 +51,8 @@ namespace SteelBot.Helpers
             public const string GlowingStar = "\uD83C\uDF1F";
             public const string UpButton = "\uD83D\uDD3C";
             public const string DownButton = "\uD83D\uDD3D";
+            public const string BackwardArrow = "\u25C0\uFE0F";
+            public const string ForwardArrow = "\u25B6\uFE0F";
         }
         public static class Faces
         {

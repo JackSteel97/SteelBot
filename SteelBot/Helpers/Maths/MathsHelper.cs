@@ -24,5 +24,11 @@ namespace SteelBot.Helpers
             const int maxBound = 1000;
             return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
         }
+
+        public static int Modulo(int x, int m)
+        {
+            int r = x % m;
+            return r < 0 ? r + m : r;
+        }
     }
 }

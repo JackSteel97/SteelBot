@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using SteelBot.Helpers.Interactivity.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SteelBot.Helpers
 {
-    public class PaginationHelper
+    public static class PaginationHelper
     {
         public static List<Page> GenerateEmbedPages<TItem>(DiscordEmbedBuilder baseEmbed, IEnumerable<TItem> items, int itemsPerPage, Func<StringBuilder, TItem, int, StringBuilder> itemFormatter)
         {
@@ -40,6 +41,33 @@ namespace SteelBot.Helpers
                     listBuilder.Clear();
                 }
                 index++;
+            }
+
+            return pages;
+        }
+
+        public static List<PageWithSelectionButtons> GenerateEmbedPages<TItem>(DiscordEmbedBuilder baseEmbed, IEnumerable<TItem> items, int itemsPerPage, Func<StringBuilder, TItem, StringBuilder> itemAppender, Func<TItem, DiscordComponent> componentGetter)
+        {
+            var chunkedItems = items.Chunk(itemsPerPage).ToList();
+
+            var pages = new List<PageWithSelectionButtons>();
+            int currentPage = 1;
+            int totalPages = chunkedItems.Count;
+            foreach(var chunk in chunkedItems)
+            {
+                var listBuilder = new StringBuilder();
+                var components = new List<DiscordComponent>();
+                foreach(var item in chunk)
+                {
+                    listBuilder = itemAppender(listBuilder, item);
+                    components.Add(componentGetter(item));
+                }
+
+                var embedPage = baseEmbed.WithDescription(listBuilder.ToString())
+                    .WithFooter($"Page {currentPage}/{totalPages}");
+                var page = new PageWithSelectionButtons(embed: embedPage, options: components);
+                pages.Add(page);
+                ++currentPage;
             }
 
             return pages;
