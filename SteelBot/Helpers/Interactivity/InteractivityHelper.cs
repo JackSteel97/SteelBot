@@ -139,7 +139,8 @@ namespace SteelBot.Helpers
                             ++currentPageIndex;
                             break;
                         default:
-                            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+                            messageBuilder.ClearComponents();
+                            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
                             return result.Result.Id;
                     }
                     currentPageIndex = MathsHelper.Modulo(currentPageIndex, pages.Count);

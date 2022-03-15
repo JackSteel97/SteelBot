@@ -220,14 +220,14 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 }
                 else
                 {
-                    HandleIntegerBonusGeneration(bonus);
+                    HandleIntegerBonusGeneration(bonus, pet.Rarity);
                 }
             } while (!validBonus);
 
             return bonus;
         }
 
-        private static void HandleIntegerBonusGeneration(PetBonus bonus)
+        private static void HandleIntegerBonusGeneration(PetBonus bonus, Rarity rarity)
         {
             bonus.Value = 1;
             while (MathsHelper.TrueWithProbability(0.1))
@@ -235,7 +235,8 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 ++bonus.Value;
             }
 
-            if (MathsHelper.TrueWithProbability(0.1))
+            var probabilityToGoNegative = ((double)rarity + 1) / 10;
+            if (MathsHelper.TrueWithProbability(probabilityToGoNegative))
             {
                 bonus.Value *= -1;
             }

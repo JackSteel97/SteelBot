@@ -31,10 +31,16 @@ namespace SteelBot
 {
     public static class Program
     {
-        private const string Environment = "Development";
+        private const string Environment = "Test";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
+
+            serviceProvider.Configure<HostOptions>(options =>
+            {
+                options.ShutdownTimeout = TimeSpan.FromSeconds(30);
+            });
+
             // Config setup.
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddJsonFile($"appsettings.{Environment.ToLower()}.json", false, true)

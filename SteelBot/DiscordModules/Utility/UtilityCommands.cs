@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
+using Microsoft.Extensions.Hosting;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -22,12 +23,14 @@ namespace SteelBot.DiscordModules.Utility
         private readonly Random Rand;
         private readonly AppConfigurationService AppConfigurationService;
         private readonly DataCache Cache;
+        private readonly IApplicationLifetime ApplicationLifetime;
 
-        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache)
+        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IApplicationLifetime applicationLifetime)
         {
             Rand = new Random();
             AppConfigurationService = appConfigurationService;
             Cache = cache;
+            ApplicationLifetime = applicationLifetime;
         }
 
         [Command("ServerInfo")]
@@ -232,6 +235,20 @@ namespace SteelBot.DiscordModules.Utility
             }
 
             return channel.SendMessageAsync(embed: EmbedGenerator.Info(content, title, footerContent));
+        }
+
+        [Command("shutdown")]
+        [Description("Gracefully shuts down the bot")]
+        [RequireOwner]
+        public async Task Shutdown(CommandContext context)
+        {
+            const string shutdownGif = "https://tenor.com/view/serio-no-nop-robot-robot-down-gif-12270251";
+            if (await InteractivityHelper.GetConfirmation(context, "Bot Shutdown"))
+            {
+                await context.RespondAsync(EmbedGenerator.Info("Shutting down...", "Confirmed"));
+                await context.Channel.SendMessageAsync(shutdownGif);
+                ApplicationLifetime.StopApplication();
+            }
         }
     }
 }

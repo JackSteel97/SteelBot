@@ -183,7 +183,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 var message = new DiscordMessageBuilder()
                     .WithContent(pet.OwnerDiscordId.ToMention())
-                    .WithEmbed(EmbedGenerator.Info($"Your pet {Formatter.Italic(pet.GetName())} advanced to level {Formatter.Bold(pet.CurrentLevel.ToString())} and improved their abilities!",
+                    .WithEmbed(EmbedGenerator.Info($"Your pet {Formatter.Italic(pet.GetName())} advanced to level {Formatter.Bold(pet.CurrentLevel.ToString())} and updated their abilities!",
                     "Pet Level Up",
                     "Use the Pet Bonuses command to view their improved bonuses"));
 

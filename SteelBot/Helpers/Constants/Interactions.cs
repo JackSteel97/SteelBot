@@ -34,9 +34,9 @@ namespace SteelBot.Helpers.Constants
 
         public static class Pagination
         {
-            public static readonly DiscordButtonComponent NextPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.NextPage, "Next Page", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.ForwardArrow));
-            public static readonly DiscordButtonComponent PrevPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.PrevPage, "Previous Page", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.BackwardArrow));
-            public static readonly DiscordButtonComponent Exit = new(ButtonStyle.Secondary, InteractionIds.Pagination.Exit, "Cancel", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.CrossMark));
+            public static readonly DiscordButtonComponent NextPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.NextPage, "", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.ForwardArrow));
+            public static readonly DiscordButtonComponent PrevPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.PrevPage, "", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.BackwardArrow));
+            public static readonly DiscordButtonComponent Exit = new(ButtonStyle.Secondary, InteractionIds.Pagination.Exit, "", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.StopButton));
         }
     }
 
