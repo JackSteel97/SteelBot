@@ -23,9 +23,9 @@ namespace SteelBot.DiscordModules.Utility
         private readonly Random Rand;
         private readonly AppConfigurationService AppConfigurationService;
         private readonly DataCache Cache;
-        private readonly IApplicationLifetime ApplicationLifetime;
+        private readonly IHostApplicationLifetime ApplicationLifetime;
 
-        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IApplicationLifetime applicationLifetime)
+        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime)
         {
             Rand = new Random();
             AppConfigurationService = appConfigurationService;
