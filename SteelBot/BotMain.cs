@@ -206,24 +206,19 @@ namespace SteelBot
             return Task.CompletedTask;
         }
 
-        private Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
+        private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
         {
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
                 {
-                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
-                    {
-                        await DataHelpers.Stats.HandleVoiceStateChange(args);
-                    }
+                    await DataHelpers.Stats.HandleVoiceStateChange(args);
                 }
-                catch (Exception ex)
-                {
-                    await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
-                }
-            });
-
-            return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
+            }
         }
 
         private async Task HandleJoiningGuild(DiscordClient client, GuildCreateEventArgs args)
@@ -338,6 +333,6 @@ namespace SteelBot
             {
                 await ErrorHandlingService.Log(ex, nameof(HandleGuildMemberRemoved));
             }
-        }     
+        }
     }
 }
