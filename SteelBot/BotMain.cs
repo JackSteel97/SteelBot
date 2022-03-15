@@ -214,11 +214,7 @@ namespace SteelBot
                 {
                     if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
                     {
-                        bool levelUp = await DataHelpers.Stats.HandleVoiceStateChange(args);
-                        if (levelUp)
-                        {
-                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
-                        }
+                        await DataHelpers.Stats.HandleVoiceStateChange(args);
                     }
                 }
                 catch (Exception ex)

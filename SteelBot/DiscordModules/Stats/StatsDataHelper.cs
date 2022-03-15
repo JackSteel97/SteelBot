@@ -9,6 +9,7 @@ using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Helpers;
+using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Stats.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
@@ -26,13 +27,15 @@ namespace SteelBot.DiscordModules.Stats
         private readonly AppConfigurationService AppConfigurationService;
         private readonly ILogger<StatsDataHelper> Logger;
         private readonly PetsDataHelper PetsDataHelper;
+        private readonly RankRoleDataHelper RankRoleDataHelper;
 
-        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper)
+        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper, RankRoleDataHelper rankRoleDataHelper)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
             Logger = logger;
             PetsDataHelper = petsDataHelper;
+            RankRoleDataHelper = rankRoleDataHelper;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
@@ -78,10 +81,50 @@ namespace SteelBot.DiscordModules.Stats
             return embedBuilder;
         }
 
-        public async Task<bool> HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
+        public async Task HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
         {
-            ulong guildId = args.Guild.Id;
-            ulong userId = args.User.Id;
+            IReadOnlyList<DiscordMember> usersInChannel;
+            bool isLeaving = false;
+            if (args.After != null && args.After.Channel != null)
+            {
+                // Joining voice channel.
+                usersInChannel = args.After.Channel.Users;
+            }
+            else if(args.Before != null && args.Before.Channel != null)
+            {
+                // Leaving voice channel.
+                usersInChannel = args.Before.Channel.Users;
+                isLeaving = true;
+            }
+            else
+            {
+                usersInChannel = new List<DiscordMember>();
+            }
+            bool isAlone = usersInChannel.Count(x=>!x.IsBot) <= 1;
+
+            // Update this user
+            if(await UpdateUserVoiceStats(args.Guild, args.User, args.After, isAlone && !isLeaving))
+            {
+                await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
+            }
+
+            foreach(var userInChannel in usersInChannel)
+            {
+                if(userInChannel.Id != args.User.Id)
+                {
+                    // Update other users.
+                    if(await UpdateUserVoiceStats(args.Guild, userInChannel, userInChannel.VoiceState, isAlone))
+                    {
+                        await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, userInChannel.Id, args.Guild);
+                    }
+                }
+            }
+        }
+
+        private async Task<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, bool isAlone)
+        {
+            ulong guildId = guild.Id;
+            ulong userId = discordUser.Id;
             bool levelIncreased = false;
 
             if (TryGetUser(guildId, userId, out User user))
@@ -90,15 +133,19 @@ namespace SteelBot.DiscordModules.Stats
 
                 User copyOfUser = user.Clone();
                 var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId, out _);
-                copyOfUser.VoiceStateChange(args.After, availablePets);
+                copyOfUser.VoiceStateChange(newState, availablePets, isAlone);
 
-                levelIncreased = copyOfUser.UpdateLevel();
+                if (!isAlone)
+                {
+                    levelIncreased = copyOfUser.UpdateLevel();
+                    await PetsDataHelper.PetXpUpdated(availablePets, guild);
+                }
+
                 await Cache.Users.UpdateUser(guildId, copyOfUser);
-                await PetsDataHelper.PetXpUpdated(availablePets, args.Guild);
 
                 if (levelIncreased)
                 {
-                    await SendLevelUpMessage(args.Guild, args.User);
+                    await SendLevelUpMessage(guild, discordUser);
                 }
             }
 
@@ -119,7 +166,7 @@ namespace SteelBot.DiscordModules.Stats
                 var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, availablePets, updateLastActivity: false);
+                copyOfUser.VoiceStateChange(newState: null, availablePets, false, updateLastActivity: false);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
                 await PetsDataHelper.PetXpUpdated(availablePets, default); // Default - Don't try to send level up messages

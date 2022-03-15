@@ -46,15 +46,18 @@ namespace SteelBot.Helpers.Levelling
             return lastMessageWasMoreThanAMinuteAgo;
         }
 
-        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets, bool updateLastActivity = true)
+        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets, bool isAloneInChannel, bool updateLastActivity = true)
         {
             DateTime now = DateTime.UtcNow;
-            user.LastActivity = now;
-            UpdateVoiceCounters(user, now, availablePets);
-            UpdateStartTimes(user, newState, now);
+            if (updateLastActivity)
+            {
+                user.LastActivity = now;
+            }
+            UpdateVoiceCounters(user, now, availablePets, isAloneInChannel);
+            UpdateStartTimes(user, newState, now, isAloneInChannel);
         }
 
-        private static void UpdateStartTimes(User user, DiscordVoiceState newState, DateTime now)
+        private static void UpdateStartTimes(User user, DiscordVoiceState newState, DateTime now, bool isAloneInChannel)
         {
             if (newState == null || newState.Channel == null)
             {
@@ -67,10 +70,17 @@ namespace SteelBot.Helpers.Levelling
                 user.AfkStartTime = null;
                 user.DisconnectedStartTime = now;
             }
-            else if(newState.Channel == newState.Guild.AfkChannel)
+            else if (isAloneInChannel || newState.Channel == newState.Guild.AfkChannel)
             {
-                // User has gone AFK, this doesn't count as being in a normal voice channel.
-                user.AfkStartTime = now;
+                // User has gone AFK or is alone, this doesn't count as being in a normal voice channel.
+                if(newState.Channel == newState.Guild.AfkChannel)
+                {
+                    user.AfkStartTime = now;
+                }
+                else
+                {
+                    user.AfkStartTime = null;
+                }
                 user.VoiceStartTime = null;
                 user.MutedStartTime = null;
                 user.DeafenedStartTime = null;
@@ -91,41 +101,56 @@ namespace SteelBot.Helpers.Levelling
             }
         }
 
-        private static void UpdateVoiceCounters(User user, DateTime now, List<Pet> availablePets)
+        private static void UpdateVoiceCounters(User user, DateTime now, List<Pet> availablePets, bool isAloneInChannel)
         {
             if (user.VoiceStartTime.HasValue)
             {
                 var durationDifference = now - user.VoiceStartTime.Value;
                 user.TimeSpentInVoice += durationDifference;
-                IncrementVoiceXp(user, durationDifference, availablePets);
+                if (!isAloneInChannel)
+                {
+                    IncrementVoiceXp(user, durationDifference, availablePets);
+                }
             }
 
             if (user.MutedStartTime.HasValue)
             {
                 var durationDifference = now - user.MutedStartTime.Value;
                 user.TimeSpentMuted += durationDifference;
-                IncrementMutedXp(user, durationDifference, availablePets);
+                if (!isAloneInChannel)
+                {
+                    IncrementMutedXp(user, durationDifference, availablePets);
+                }
             }
 
             if (user.DeafenedStartTime.HasValue)
             {
                 var durationDifference = now - user.DeafenedStartTime.Value;
                 user.TimeSpentDeafened += durationDifference;
-                IncrementDeafenedXp(user, durationDifference, availablePets);
+                if (!isAloneInChannel)
+                {
+                    IncrementDeafenedXp(user, durationDifference, availablePets);
+                }
             }
 
             if (user.StreamingStartTime.HasValue)
             {
                 var durationDifference = now - user.StreamingStartTime.Value;
                 user.TimeSpentStreaming += durationDifference;
-                IncrementStreamingXp(user, durationDifference, availablePets);
+                if (!isAloneInChannel)
+                {
+                    IncrementStreamingXp(user, durationDifference, availablePets);
+                }
             }
 
             if (user.VideoStartTime.HasValue)
             {
                 var durationDifference = now - user.VideoStartTime.Value;
                 user.TimeSpentOnVideo += durationDifference;
-                IncrementVideoXp(user, durationDifference, availablePets);
+                if (!isAloneInChannel)
+                {
+                    IncrementVideoXp(user, durationDifference, availablePets);
+                }
             }
 
             if (user.AfkStartTime.HasValue)
@@ -175,7 +200,7 @@ namespace SteelBot.Helpers.Levelling
         private static void IncrementDisconnectedXp(User user, TimeSpan disconnectedDuration, List<Pet> availablePets)
         {
             var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
-            if(disconnectedXpPerMin > 0)
+            if (disconnectedXpPerMin > 0)
             {
                 var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, TimeSpan.Zero, disconnectedXpPerMin);
                 user.DisconnectedXpEarned += xpEarned;
