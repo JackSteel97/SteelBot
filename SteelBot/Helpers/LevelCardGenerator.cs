@@ -53,7 +53,11 @@ namespace SteelBot.Helpers
             ulong xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
             ulong xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
 
-            ulong xpIntoThisLevel = (user.TotalXp - xpForThisLevel);
+            ulong xpIntoThisLevel = 0;
+            if(user.TotalXp > xpForThisLevel)
+            {
+                xpIntoThisLevel = user.TotalXp - xpForThisLevel;
+            }
             ulong xpToAchieveNextLevel = (xpForNextLevel - xpForThisLevel);
 
             double progressToNextLevel = (((double)xpIntoThisLevel / (double)xpToAchieveNextLevel) * XpBarWidth) + XPadding + AvatarHeight;
