@@ -171,6 +171,10 @@ namespace SteelBot.DataProviders.SubProviders
                 // To prevent EF tracking issue, grab and alter existing value.
                 var original = db.Pets.First(u => u.RowId == newPet.RowId);
                 db.Entry(original).CurrentValues.SetValues(newPet);
+
+                // The above doesn't update navigation properties. We must manually update any navigation properties we need to like this.
+                original.Bonuses = newPet.Bonuses;
+
                 db.Pets.Update(original);
                 writtenCount = await db.SaveChangesAsync();
             }
