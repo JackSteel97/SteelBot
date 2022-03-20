@@ -35,7 +35,7 @@ namespace SteelBot.DiscordModules.Pets.Models
             else
             {
                 // Clone to prevent affecting the source bonus.
-                Totals.Add(bonus.BonusType, (PetBonus)bonus.Clone());
+                Totals.Add(bonus.BonusType, bonus.Clone());
             }
         }
 

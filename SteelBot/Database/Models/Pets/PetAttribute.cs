@@ -18,5 +18,12 @@ namespace SteelBot.Database.Models.Pets
 
         [MaxLength(255)]
         public string Description { get; set; }
+
+        public PetAttribute Clone()
+        {
+            var clone = (PetAttribute)MemberwiseClone();
+            Pet = null;
+            return clone;
+        }
     }
 }

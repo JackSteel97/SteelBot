@@ -51,7 +51,6 @@ namespace SteelBot.DiscordModules.Pets
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
             await DataHelpers.Pets.HandleManage(context);
-
         }
 
         [Command("treat")]

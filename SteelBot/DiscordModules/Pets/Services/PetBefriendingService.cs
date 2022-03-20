@@ -97,7 +97,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out int numberOfOwnedPets);
                 pet.OwnerDiscordId = context.Member.Id;
                 pet.Priority = numberOfOwnedPets;
-                await Cache.Pets.InsertPet(pet);
+                pet.RowId = await Cache.Pets.InsertPet(pet);
                 await HandleBefriendSuccess(context, pet);
                 await Cache.Pets.UpdatePet(pet);
                 befriendSuccess = true;

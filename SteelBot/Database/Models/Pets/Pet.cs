@@ -64,5 +64,18 @@ namespace SteelBot.Database.Models.Pets
         }
 
         public bool IsPrimary => Priority == 0;
+
+        /// <summary>
+        /// Deep clone.
+        /// </summary>
+        /// <returns>A deep clone of this object.</returns>
+        public Pet Clone()
+        {
+            var clone = (Pet)MemberwiseClone();
+            clone.Attributes = Attributes.ConvertAll(x => x.Clone());
+            clone.Bonuses = Bonuses.ConvertAll(x => x.Clone());
+
+            return clone;
+        }
     }
 }

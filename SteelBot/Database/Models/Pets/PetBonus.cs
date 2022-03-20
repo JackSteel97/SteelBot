@@ -3,7 +3,7 @@ using System;
 
 namespace SteelBot.Database.Models.Pets
 {
-    public class PetBonus : ICloneable
+    public class PetBonus
     {
         public long RowId { get; set; }
         public long PetId { get; set; }
@@ -15,7 +15,7 @@ namespace SteelBot.Database.Models.Pets
         /// Shallow clones the bonus, <see cref="Pet"/> is nullified during this to prevent accidental alterations.
         /// </summary>
         /// <returns>A clone of the bonus</returns>
-        public object Clone()
+        public PetBonus Clone()
         {
             var clone = (PetBonus)MemberwiseClone();
             clone.Pet = null;
