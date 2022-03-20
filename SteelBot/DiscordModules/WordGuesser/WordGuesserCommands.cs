@@ -30,6 +30,7 @@ namespace SteelBot.DiscordModules.WordGuesser
     [RequireGuild]
     [Group("Words")]
     [Aliases("W", "Word")]
+    [Description("A Wordle style word game")]
     public class WordGuesserCommands : TypingCommandModule
     {
         private const int MaxOutputLines = 20;
