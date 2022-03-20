@@ -26,6 +26,8 @@ using SteelBot.Services.Configuration;
 using System;
 using System.IO;
 using System.Reflection;
+using Serilog;
+using System.Threading.Tasks;
 
 namespace SteelBot
 {
@@ -35,7 +37,6 @@ namespace SteelBot
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
-
             serviceProvider.Configure<HostOptions>(options =>
             {
                 options.ShutdownTimeout = TimeSpan.FromSeconds(30);
@@ -59,42 +60,58 @@ namespace SteelBot
             UserExtensions.LevelConfig = appConfigurationService.Application.Levelling;
 
             // Logging setup.
-            serviceProvider.AddLogging(opt =>
+            var loggerConfig = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .Enrich.FromLogContext()
+                .WriteTo.File("SteelBotLog.txt", rollingInterval: RollingInterval.Day);
+#if DEBUG
+            loggerConfig.WriteTo.Console();
+#endif
+            Log.Logger = loggerConfig.CreateLogger();
+            Log.Logger.Information("Logger Created");
+
+            try
             {
-                opt
-                .AddConsole()
-                .AddConfiguration(configuration.GetSection("Logging"));
-            });
+                var loggerFactory = new LoggerFactory().AddSerilog();
+                serviceProvider.AddLogging(opt =>
+                {
+                    opt.ClearProviders();
+                    opt.AddSerilog(Log.Logger);
+                });
 
-            // Database DI.
-            serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseNpgsql(appConfigurationService.Database.ConnectionString,
-                                                                                                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-                                                                                                        .EnableRetryOnFailure(10))
-                .EnableSensitiveDataLogging(Environment.Equals("Development"))
-                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
+                // Database DI.
+                serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseNpgsql(appConfigurationService.Database.ConnectionString,
+                                                                                                        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                                                                                                            .EnableRetryOnFailure(10))
+                    .EnableSensitiveDataLogging(Environment.Equals("Development"))
+                    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
 
-            ConfigureCustomServices(serviceProvider);
-            ConfigureDataProviders(serviceProvider);
-            ConfigureDataHelpers(serviceProvider);
+                ConfigureCustomServices(serviceProvider);
+                ConfigureDataProviders(serviceProvider);
+                ConfigureDataHelpers(serviceProvider);
 
-            // Discord client setup.
-            LogLevel discordLogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), appConfigurationService.Application.Discord.LogLevel);
+                // Discord client setup.
+                var client = new DiscordClient(new DiscordConfiguration()
+                {
+                    LoggerFactory = loggerFactory,
+                    MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
+                    Token = appConfigurationService.Application.Discord.LoginToken,
+                    TokenType = TokenType.Bot,
+                    Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers
+                });
 
-            var client = new DiscordClient(new DiscordConfiguration()
+                serviceProvider.AddSingleton(client);
+
+                // Main app.
+                serviceProvider.AddHostedService<BotMain>();
+
+                return serviceProvider.BuildServiceProvider(true);
+            }
+            catch (Exception ex)
             {
-                MinimumLogLevel = discordLogLevel,
-                MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
-                Token = appConfigurationService.Application.Discord.LoginToken,
-                TokenType = TokenType.Bot,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers
-            });
-
-            serviceProvider.AddSingleton(client);
-
-            // Main app.
-            serviceProvider.AddHostedService<BotMain>();
-
-            return serviceProvider.BuildServiceProvider(true);
+                Log.Fatal(ex, "A Fatal exception occurred during startup.");
+                throw;
+            }
         }
 
         private static void ConfigureDataHelpers(IServiceCollection serviceProvider)
@@ -146,9 +163,16 @@ namespace SteelBot
             serviceProvider.AddSingleton<ErrorHandlingService>();
         }
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync().GetAwaiter().GetResult();
+            try
+            {
+                await CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync();
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>

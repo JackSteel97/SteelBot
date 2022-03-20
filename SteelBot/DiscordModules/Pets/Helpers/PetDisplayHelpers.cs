@@ -47,8 +47,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
 
             StringBuilder bonuses = AppendBonuses(new StringBuilder(), pet);
-
-            embedBuilder.AddField("Bonuses", bonuses.ToString());
+            var bonusList = bonuses.ToString();
+            if (!string.IsNullOrWhiteSpace(bonusList))
+            {
+                embedBuilder.AddField("Bonuses", bonuses.ToString());
+            }
 
             return embedBuilder;
         }
