@@ -169,7 +169,7 @@ namespace SteelBot.DataProviders.SubProviders
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 // To prevent EF tracking issue, grab and alter existing value.
-                var original = db.Pets.First(u => u.RowId == newPet.RowId);
+                var original = db.Pets.Include(x=>x.Bonuses).First(u => u.RowId == newPet.RowId);
                 db.Entry(original).CurrentValues.SetValues(newPet);
 
                 // The above doesn't update navigation properties. We must manually update any navigation properties we need to like this.
