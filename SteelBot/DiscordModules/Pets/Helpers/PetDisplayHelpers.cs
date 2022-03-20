@@ -126,19 +126,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
         {
-            foreach (var bonus in pet.Bonuses)
-            {
-                AppendBonus(bonuses, bonus);
-            }
+            BonusTotals bonusTotals = new BonusTotals(pet);
+            AppendBonuses(bonuses, bonusTotals);
 
-            if (pet.Rarity == Rarity.Legendary)
-            {
-                AppendPassiveXpBonus(bonuses, pet.CurrentLevel);
-            }
-            else if (pet.Rarity == Rarity.Mythical)
-            {
-                AppendPassiveXpBonus(bonuses, pet.CurrentLevel * 2);
-            }
             return bonuses;
         }
 
@@ -166,6 +156,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
             return bonuses;
         }
+
         private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)
         {
             return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(passiveXp).AppendLine("`");

@@ -110,7 +110,6 @@ namespace SteelBot
                 Services = ServiceProvider,
                 PrefixResolver = ResolvePrefix,
                 EnableDms = false,
-                CommandExecutor = new DSharpPlus.CommandsNext.Executors.AsynchronousCommandExecutor()
             });
 
             Commands.RegisterCommands<ConfigCommands>();

@@ -9,6 +9,20 @@ namespace SteelBot.DiscordModules.Pets.Models
         public Dictionary<BonusType, PetBonus> Totals { get; init; } = new Dictionary<BonusType, PetBonus>();
         public double PassiveOffline { get; private set; }
 
+        /// <summary>
+        /// Empty constructor.
+        /// </summary>
+        public BonusTotals() { }
+
+        /// <summary>
+        /// Immediately add pet bonuses to the total.
+        /// </summary>
+        /// <param name="pet">Pet to calculate totals of.</param>
+        public BonusTotals(Pet pet)
+        {
+            Add(pet);
+        }
+
         public void Add(Pet pet)
         {
             foreach (var bonus in pet.Bonuses)

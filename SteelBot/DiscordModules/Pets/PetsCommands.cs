@@ -35,55 +35,60 @@ namespace SteelBot.DiscordModules.Pets
         [GroupCommand]
         [Description("Show all your owned pets")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
+        public Task GetPets(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
             otherUser ??= context.Member;
-            await DataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
+            _ = DataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
+            return Task.CompletedTask;
         }
 
         [Command("manage")]
         [Description("Manage your owned pets")]
         [Cooldown(3, 60, CooldownBucketType.User)]
-        public async Task ManagePets(CommandContext context)
+        public Task ManagePets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.HandleManage(context);
+            _ = DataHelpers.Pets.HandleManage(context);
+            return Task.CompletedTask;
         }
 
         [Command("treat")]
         [Aliases("reward", "gift")]
         [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per twelve hours")]
         [Cooldown(2, TwelveHoursSeconds, CooldownBucketType.User)]
-        public async Task TreatPet(CommandContext context)
+        public Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.HandleTreat(context);
+            _ = DataHelpers.Pets.HandleTreat(context);
+            return Task.CompletedTask;
         }
 
         [Command("Search")]
         [Description("Search for a new pet. Allows 10 searches per hour.")]
         [Cooldown(10, HourSeconds, CooldownBucketType.User)]
-        public async Task Search(CommandContext context)
+        public Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
-            await DataHelpers.Pets.HandleSearch(context);
+            _ = DataHelpers.Pets.HandleSearch(context);
+            return Task.CompletedTask;
         }
 
         [Command("Bonus")]
         [Aliases("Bonuses", "b")]
         [Description("View the bonuses from all your pets available in this server")]
         [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
+        public Task Bonuses(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
 
             otherUser ??= context.Member;
-            await DataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
+            _ = DataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
+            return Task.CompletedTask;
         }
 
         [Command("DebugStats")]

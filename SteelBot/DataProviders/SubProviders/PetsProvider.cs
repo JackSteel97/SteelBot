@@ -58,7 +58,7 @@ namespace SteelBot.DataProviders.SubProviders
                 userHasPets = PetsByUserId.TryGetValue(userDiscordId, out var indexedPets);
                 if (userHasPets)
                 {
-                    pets = indexedPets.Values.Select(x => x.Clone()).ToList();
+                    pets = indexedPets.Values.ToList();
                 }
                 else
                 {
@@ -95,12 +95,11 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        public async Task<long> InsertPet(Pet newPet)
+        public async Task<long> InsertPet(Pet pet)
         {
             long id = 0;
             using (await Lock.WriterLockAsync())
             {
-                var pet = newPet.Clone();
                 if (!BotKnowsPet(pet.OwnerDiscordId, pet.RowId))
                 {
                     Logger.LogInformation("Writing a new Pet [{PetName}] for User [{UserId}] to the database", pet.GetName(), pet.OwnerDiscordId);
@@ -153,11 +152,10 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        public async Task UpdatePet(Pet petToUpdate)
+        public async Task UpdatePet(Pet newPet)
         {
             using(await Lock.WriterLockAsync())
             {
-                var newPet = petToUpdate.Clone();
                 int writtenCount;
                 using (SteelBotContext db = DbContextFactory.CreateDbContext())
                 {
