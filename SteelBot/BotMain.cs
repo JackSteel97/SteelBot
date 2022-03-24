@@ -17,7 +17,6 @@ using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.NonGroupedCommands;
 using SteelBot.DiscordModules.Pets;
-using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;

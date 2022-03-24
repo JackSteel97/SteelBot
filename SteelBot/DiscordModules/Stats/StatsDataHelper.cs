@@ -84,36 +84,36 @@ namespace SteelBot.DiscordModules.Stats
         public async Task HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
         {
             IReadOnlyList<DiscordMember> usersInChannel;
-            bool isLeaving = false;
             if (args.After != null && args.After.Channel != null)
             {
                 // Joining voice channel.
                 usersInChannel = args.After.Channel.Users;
             }
-            else if(args.Before != null && args.Before.Channel != null)
+            else if (args.Before != null && args.Before.Channel != null)
             {
                 // Leaving voice channel.
                 usersInChannel = args.Before.Channel.Users;
-                isLeaving = true;
             }
             else
             {
                 usersInChannel = new List<DiscordMember>();
             }
-            bool isAlone = usersInChannel.Count(x=>!x.IsBot) <= 1;
+
+            var scalingFactor = GetVoiceXpScalingFactor(args.Guild.Id, args.User.Id, usersInChannel);
 
             // Update this user
-            if(await UpdateUserVoiceStats(args.Guild, args.User, args.After, isAlone && !isLeaving))
+            if (await UpdateUserVoiceStats(args.Guild, args.User, args.After, scalingFactor))
             {
                 await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
             }
 
-            foreach(var userInChannel in usersInChannel)
+            foreach (var userInChannel in usersInChannel)
             {
-                if(userInChannel.Id != args.User.Id)
+                if (userInChannel.Id != args.User.Id)
                 {
+                    var otherScalingFactor = GetVoiceXpScalingFactor(args.Guild.Id, userInChannel.Id, usersInChannel);
                     // Update other users.
-                    if(await UpdateUserVoiceStats(args.Guild, userInChannel, userInChannel.VoiceState, isAlone))
+                    if (await UpdateUserVoiceStats(args.Guild, userInChannel, userInChannel.VoiceState, otherScalingFactor))
                     {
                         await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, userInChannel.Id, args.Guild);
                     }
@@ -121,7 +121,7 @@ namespace SteelBot.DiscordModules.Stats
             }
         }
 
-        private async Task<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, bool isAlone)
+        private async Task<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor)
         {
             ulong guildId = guild.Id;
             ulong userId = discordUser.Id;
@@ -133,9 +133,9 @@ namespace SteelBot.DiscordModules.Stats
 
                 User copyOfUser = user.Clone();
                 var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId, out _);
-                copyOfUser.VoiceStateChange(newState, availablePets, isAlone);
+                copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor);
 
-                if (!isAlone)
+                if (scalingFactor != 0)
                 {
                     levelIncreased = copyOfUser.UpdateLevel();
                     await PetsDataHelper.PetXpUpdated(availablePets, guild);
@@ -152,6 +152,47 @@ namespace SteelBot.DiscordModules.Stats
             return levelIncreased;
         }
 
+        private double GetVoiceXpScalingFactor(ulong guildId, ulong currentUserId, IReadOnlyList<DiscordMember> usersInChannel)
+        {
+            Logger.LogInformation("Calculating Voice Xp scaling factor for User {UserId} in Guild {GuildId}", currentUserId, guildId);
+            int otherUsersCount = 0;
+            double scalingFactor = 0;
+
+            if (!Cache.Users.TryGetUser(guildId, currentUserId, out var thisUser))
+            {
+                Logger.LogWarning("Could not retrieve data for User {UserId} in Guild {GuildId}", currentUserId, guildId);
+                return scalingFactor;
+            }
+
+
+            foreach (var userInChannel in usersInChannel)
+            {
+                if (userInChannel.Id != currentUserId)
+                {
+                    ++otherUsersCount;
+                    if (Cache.Users.TryGetUser(guildId, userInChannel.Id, out var otherUser))
+                    {
+                        if(otherUser.CurrentLevel > 0)
+                        {
+                            scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
+                        }
+                    }
+                }
+            }
+
+            if (otherUsersCount > 0)
+            {
+                // Take average scaling factor.
+                scalingFactor /= otherUsersCount;
+                var groupBonus = (otherUsersCount - 1) / 10D;
+                scalingFactor += groupBonus;
+            }
+
+            Logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor}", currentUserId, guildId, scalingFactor);
+
+            return scalingFactor;
+        }
+
         /// <summary>
         /// Called during app shutdown to make sure no timings get carried too long during downtime.
         /// </summary>
@@ -166,7 +207,7 @@ namespace SteelBot.DiscordModules.Stats
                 var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, availablePets, false, updateLastActivity: false);
+                copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, updateLastActivity: false);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
                 await PetsDataHelper.PetXpUpdated(availablePets, default); // Default - Don't try to send level up messages

@@ -99,6 +99,11 @@ namespace SteelBot.Helpers.Levelling
             return earnedXp;
         }
 
+        public static ulong ApplyScalingFactor(ulong xp, double scalingFactor)
+        {
+            return Convert.ToUInt64(Math.Ceiling(xp * scalingFactor));
+        }
+
         public static void IncrementPetXp(ulong userEarnedXp, List<Pet> pets)
         {
             const double percentageForPrimary = 0.5;
