@@ -164,18 +164,14 @@ namespace SteelBot.DiscordModules.Stats
                 return scalingFactor;
             }
 
-
             foreach (var userInChannel in usersInChannel)
             {
                 if (userInChannel.Id != currentUserId)
                 {
                     ++otherUsersCount;
-                    if (Cache.Users.TryGetUser(guildId, userInChannel.Id, out var otherUser))
+                    if (Cache.Users.TryGetUser(guildId, userInChannel.Id, out var otherUser) && otherUser.CurrentLevel > 0)
                     {
-                        if(otherUser.CurrentLevel > 0)
-                        {
-                            scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
-                        }
+                        scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
                     }
                 }
             }
