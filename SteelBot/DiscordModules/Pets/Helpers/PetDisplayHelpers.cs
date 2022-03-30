@@ -152,7 +152,14 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     bonusSign = '+';
                 }
 
-                bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).AppendLine("`");
+                string bonusSuffix = "";
+                if(bonus.BonusType == BonusType.PetSlots && bonus.Value > 50)
+                {
+                    bonusValue = 50;
+                    bonusSuffix = " (Max +50 reached)";
+                }
+
+                bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
             }
             return bonuses;
         }

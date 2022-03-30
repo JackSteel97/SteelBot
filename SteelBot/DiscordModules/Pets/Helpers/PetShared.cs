@@ -87,7 +87,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static int GetPetCapacity(User user, double bonusCapacity)
         {
-            int result = 1 + Convert.ToInt32(Math.Floor(bonusCapacity));
+            // Restrict pet bonus slots to +50.
+            int result = 1 + Math.Min(50, Convert.ToInt32(Math.Floor(bonusCapacity)));
 
             if (user != default)
             {
