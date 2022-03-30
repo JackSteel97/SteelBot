@@ -16,6 +16,7 @@ namespace SteelBot.Helpers.Constants
             public static readonly DiscordButtonComponent MakePrimary = new(ButtonStyle.Success, InteractionIds.Pets.MakePrimary, "Make Primary", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.GlowingStar));
             public static readonly DiscordButtonComponent IncreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.IncreasePriority, "Move Up", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.UpButton));
             public static readonly DiscordButtonComponent DecreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.DecreasePriority, "Move Down", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.DownButton));
+            public static readonly DiscordButtonComponent MoveToBottom = new(ButtonStyle.Secondary, InteractionIds.Pets.MoveToBottom, "Move To Bottom", emoji: new DiscordComponentEmoji(EmojiConstants.Faces.Pleading));
             public static DiscordButtonComponent Manage(long petId, string name)
             {
                 return new DiscordButtonComponent(ButtonStyle.Primary, $"{InteractionIds.Pets.Manage}_{petId}", $"Manage {name}");
@@ -54,6 +55,7 @@ namespace SteelBot.Helpers.Constants
             public const string MakePrimary = "primary_pet";
             public const string IncreasePriority = "increase_priority_pet";
             public const string DecreasePriority = "decrease_priority_pet";
+            public const string MoveToBottom = "move_to_bottom_pet";
             public const string Treat = "treat_pet";
         }
 

@@ -74,10 +74,11 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, new DiscordComponent[]
                     {
-                        Interactions.Pets.Rename,
                         Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
                         Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
                         Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
+                        Interactions.Pets.MoveToBottom.Disable(pet.Priority == (ownedPetCount-1)),
+                        Interactions.Pets.Rename,
                         Interactions.Pets.Abandon,
                         Interactions.Confirmation.Cancel,
                     });
@@ -103,6 +104,9 @@ namespace SteelBot.DiscordModules.Pets.Services
                             break;
                         case InteractionIds.Pets.DecreasePriority:
                             await HandlePriorityDecrease(context, pet);
+                            break;
+                        case InteractionIds.Pets.MoveToBottom:
+                            await HandleMoveToBottom(context, pet);
                             break;
                         case InteractionIds.Pets.Abandon:
                             await HandlePetAbandon(context, pet);
@@ -149,6 +153,25 @@ namespace SteelBot.DiscordModules.Pets.Services
                 pet.Priority = 0;
                 await Cache.Pets.UpdatePet(pet);
                 await context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet));
+            }
+        }
+
+        private async Task HandleMoveToBottom(CommandContext context, Pet pet)
+        {
+            int oldPriority = pet.Priority;
+            if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                foreach (var ownedPet in allPets)
+                {
+                    if (ownedPet.Priority > oldPriority)
+                    {
+                        --ownedPet.Priority;
+                        await Cache.Pets.UpdatePet(ownedPet);
+                    }
+                }
+                pet.Priority = allPets.Count-1;
+                await Cache.Pets.UpdatePet(pet);
+                await context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet));
             }
         }
 

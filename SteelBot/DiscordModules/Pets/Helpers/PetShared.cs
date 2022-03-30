@@ -75,7 +75,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     ++currentIndex;
                     capacity = baseCapacity + Convert.ToInt32(GetBonusValue(availablePets, BonusType.PetSlots));
                 }
-                var availableCount = Math.Min(capacity, orderedPets.Count);
+                var availableCount = Math.Max(1, Math.Min(capacity, orderedPets.Count));
                 disabledPets = orderedPets.Skip(availableCount).ToList();
             }
             else

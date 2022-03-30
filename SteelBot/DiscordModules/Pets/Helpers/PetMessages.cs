@@ -60,15 +60,21 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public static DiscordMessageBuilder GetMoveToBottomSuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved to the bottom of your pet list.");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public static DiscordMessageBuilder GetPriorityIncreaseSuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved up in the priority order of your pets.");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved up in your pet list.");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
         public static DiscordMessageBuilder GetPriorityDecreaseSuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved down in the priority order of your pets.");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved down in your pet list.");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
