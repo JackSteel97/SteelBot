@@ -108,18 +108,33 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return false;
         }
 
-        public static bool PetXpChanged(Pet pet)
+        public static bool PetXpChanged(Pet pet, StringBuilder changes)
         {
+            List<PetBonus> newBonuses = new List<PetBonus>();
             bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, out var newLevel);
             if (levelledUp)
             {
+                changes.Append("Your pet ").Append(Formatter.Italic(pet.GetName())).Append(" advanced to level ").Append(Formatter.Bold(newLevel.ToString())).AppendLine(" and improved their abilities!");
                 int nextLevel = pet.CurrentLevel + 1;
                 pet.CurrentLevel = newLevel;
                 for (int level = nextLevel; level <= pet.CurrentLevel; ++level)
                 {
-                    PetLevelledUp(pet, level);
+                    var newBonus = PetLevelledUp(pet, level);
+                    if (newBonus != null) {
+                        newBonuses.Add(newBonus);
+                    }
                 }
             }
+
+            if(newBonuses.Count > 0)
+            {
+                changes.AppendLine(Formatter.Bold("Learned New Bonuses:"));
+                foreach(var newBonus in newBonuses)
+                {
+                   PetDisplayHelpers.AppendBonusDisplay(changes, newBonus);
+                }
+            }
+
             return levelledUp;
         }
 
@@ -177,16 +192,15 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return disconnectedXpPerMin;
         }
 
-        public static async Task SendPetLevelledUpMessage(Pet pet, Guild guild, DiscordGuild discordGuild)
+        public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, ulong userId)
         {
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
             if (channel != null)
             {
                 var message = new DiscordMessageBuilder()
-                    .WithContent(pet.OwnerDiscordId.ToMention())
-                    .WithEmbed(EmbedGenerator.Info($"Your pet {Formatter.Italic(pet.GetName())} advanced to level {Formatter.Bold(pet.CurrentLevel.ToString())} and updated their abilities!",
-                    "Pet Level Up",
-                    "Use the Pet Bonuses command to view their improved bonuses"));
+                    .WithContent(userId.ToMention())
+                    .WithEmbed(EmbedGenerator.Info(changes.ToString(),
+                    "Pet Level Up"));
 
                 await channel.SendMessageAsync(message);
             }
@@ -303,20 +317,23 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return (petPriority - (int)bonusCapacity) * NewPetSlotUnlockLevels;
         }
 
-        private static void PetLevelledUp(Pet pet, int level)
+        private static PetBonus PetLevelledUp(Pet pet, int level)
         {
+            PetBonus newBonus = null;
             if (level == 10 || level % 25 == 0)
             {
                 // New bonuses gained at level 10, 25, 50, 75, etc...
-                GivePetNewBonus(pet);
+                newBonus = GivePetNewBonus(pet);
             }
             ImproveCurrentPetBonuses(pet);
+            return newBonus;
         }
 
-        private static void GivePetNewBonus(Pet pet)
+        private static PetBonus GivePetNewBonus(Pet pet)
         {
             var bonus = PetFactory.GenerateBonus(pet);
             pet.AddBonus(bonus);
+            return bonus;
         }
 
         private static void ImproveCurrentPetBonuses(Pet pet)

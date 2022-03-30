@@ -14,6 +14,7 @@ using SteelBot.Services;
 using SteelBot.DiscordModules.Pets.Models;
 using DSharpPlus.Interactivity.Extensions;
 using SteelBot.DiscordModules.Pets.Enums;
+using System.Text;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -134,22 +135,28 @@ namespace SteelBot.DiscordModules.Pets
 
         public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild)
         {
+            StringBuilder changes = new StringBuilder();
             foreach (var pet in pets)
             {
-                bool levelledUp = PetShared.PetXpChanged(pet);
+                bool levelledUp = PetShared.PetXpChanged(pet, changes);
                 await Cache.Pets.UpdatePet(pet);
-                if (levelledUp && sourceGuild != default)
+                if (levelledUp)
                 {
-                    await SendPetLevelledUpMessage(pet, sourceGuild);
+                    changes.AppendLine();
                 }
+            }
+
+            if (changes.Length > 0 && sourceGuild != default && pets.Count > 0)
+            {
+                await SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId);
             }
         }
 
-        private async Task SendPetLevelledUpMessage(Pet pet, DiscordGuild discordGuild)
+        private async Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
             {
-                await PetShared.SendPetLevelledUpMessage(pet, guild, discordGuild);
+                await PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId);
             }
         }
     }

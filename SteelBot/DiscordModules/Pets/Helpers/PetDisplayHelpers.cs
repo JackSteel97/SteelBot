@@ -103,6 +103,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             });
         }
 
+        public static StringBuilder AppendBonusDisplay(StringBuilder builder, PetBonus bonus)
+        {
+            return AppendBonus(builder, bonus);
+        }
+
         private static string GetAge(DateTime birthdate)
         {
             var age = DateTime.UtcNow - birthdate;

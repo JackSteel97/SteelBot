@@ -10,6 +10,7 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
 using System;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Services
@@ -71,12 +72,13 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var xpGain = RandomNumberGenerator.GetInt32(100, upperBound);
                 pet.EarnedXp += xpGain;
 
-                bool levelledUp = PetShared.PetXpChanged(pet);
+                var changes = new StringBuilder();
+                bool levelledUp = PetShared.PetXpChanged(pet, changes);
                 await Cache.Pets.UpdatePet(pet);
                 await context.Channel.SendMessageAsync(PetMessages.GetPetTreatedMessage(pet, xpGain));
                 if (levelledUp && Cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
                 {
-                    await PetShared.SendPetLevelledUpMessage(pet, guild, context.Guild);
+                    await PetShared.SendPetLevelledUpMessage(changes, guild, context.Guild, context.Member.Id);
                 }
             }
         }
