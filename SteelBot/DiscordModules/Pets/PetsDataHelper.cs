@@ -15,6 +15,10 @@ using SteelBot.DiscordModules.Pets.Models;
 using DSharpPlus.Interactivity.Extensions;
 using SteelBot.DiscordModules.Pets.Enums;
 using System.Text;
+using DSharpPlus.EventArgs;
+using SteelBot.Helpers.Constants;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -25,18 +29,21 @@ namespace SteelBot.DiscordModules.Pets
         private readonly PetManagementService ManagementService;
         private readonly PetTreatingService TreatingService;
         private readonly ErrorHandlingService ErrorHandlingService;
+        private readonly ILogger<PetsDataHelper> Logger;
 
         public PetsDataHelper(DataCache cache,
             PetBefriendingService petBefriendingService,
             PetManagementService petManagementService,
             PetTreatingService petTreatingService,
-            ErrorHandlingService errorHandlingService)
+            ErrorHandlingService errorHandlingService,
+            ILogger<PetsDataHelper> logger)
         {
             Cache = cache;
             BefriendingService = petBefriendingService;
             ManagementService = petManagementService;
             TreatingService = petTreatingService;
             ErrorHandlingService = errorHandlingService;
+            Logger = logger;
         }
 
         public async Task HandleSearch(CommandContext context)
@@ -72,6 +79,26 @@ namespace SteelBot.DiscordModules.Pets
             catch (Exception e)
             {
                 await ErrorHandlingService.Log(e, nameof(HandleTreat));
+            }
+        }
+
+        public async Task HandleNamingPet(ModalSubmitEventArgs args)
+        {
+            var result = args.Values.Keys.FirstOrDefault();
+            if(result != default && PetShared.TryGetPetIdFromComponentId(result, out long petId))
+            {
+                var newName = args.Values[result];
+                if (!string.IsNullOrWhiteSpace(newName)
+                    && Cache.Pets.TryGetPet(args.Interaction.User.Id, petId, out var pet)
+                    && pet.OwnerDiscordId == args.Interaction.User.Id
+                    && newName != pet.Name)
+                {
+                    Logger.LogInformation("User {UserId} is attempting to rename pet {PetId} from {OldName} to {NewName}", pet.OwnerDiscordId, pet.RowId, pet.Name, newName);
+                    pet.Name = newName;
+                    await Cache.Pets.UpdatePet(pet);
+
+                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet)));
+                }
             }
         }
 

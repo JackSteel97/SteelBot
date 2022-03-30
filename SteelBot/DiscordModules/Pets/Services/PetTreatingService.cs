@@ -50,7 +50,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 if (!string.IsNullOrWhiteSpace(resultId))
                 {
                     // Figure out which pet they want to manage.
-                    if (PetShared.TryGetPetIdFromPetSelectorButton(resultId, out long petId))
+                    if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
                     {
                         await HandleTreatGiven(context, petId);
                     }

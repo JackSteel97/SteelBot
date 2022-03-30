@@ -51,7 +51,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 if (!string.IsNullOrWhiteSpace(resultId))
                 {
                     // Figure out which pet they want to manage.
-                    if (PetShared.TryGetPetIdFromPetSelectorButton(resultId, out var petId))
+                    if (PetShared.TryGetPetIdFromComponentId(resultId, out var petId))
                     {
                         await HandleManagePet(context, petId);
                     }
@@ -90,11 +90,11 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
-                    await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                    await message.ModifyAsync(initialResponseBuilder);
                     switch (result.Result.Id)
                     {
                         case InteractionIds.Pets.Rename:
-                            await HandleRenamingPet(context, pet);
+                            await PetModals.NamePet(result.Result.Interaction, pet);
                             break;
                         case InteractionIds.Pets.MakePrimary:
                             await HandleMakePrimary(context, pet);
@@ -121,19 +121,6 @@ namespace SteelBot.DiscordModules.Pets.Services
             else
             {
                 await context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true);
-            }
-        }
-
-        private async Task HandleRenamingPet(CommandContext context, Pet pet)
-        {
-            var message = PetMessages.GetRenameRequestMessage(pet);
-            await context.Channel.SendMessageAsync(message);
-            (bool nameChanged, ulong nameMessageId) = await PetShared.HandleNamingPet(context, pet);
-            if (nameChanged)
-            {
-                await Cache.Pets.UpdatePet(pet);
-                var successMessage = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"Renamed to {Formatter.Italic(pet.Name)}")).WithReply(nameMessageId, true);
-                await context.Channel.SendMessageAsync(successMessage);
             }
         }
 

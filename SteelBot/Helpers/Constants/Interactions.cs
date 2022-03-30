@@ -17,13 +17,19 @@ namespace SteelBot.Helpers.Constants
             public static readonly DiscordButtonComponent IncreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.IncreasePriority, "Move Up", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.UpButton));
             public static readonly DiscordButtonComponent DecreasePriority = new(ButtonStyle.Secondary, InteractionIds.Pets.DecreasePriority, "Move Down", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.DownButton));
             public static readonly DiscordButtonComponent MoveToBottom = new(ButtonStyle.Secondary, InteractionIds.Pets.MoveToBottom, "Move To Bottom", emoji: new DiscordComponentEmoji(EmojiConstants.Faces.Pleading));
+
+            public static TextInputComponent NameInput(long petId)
+            {
+                return new TextInputComponent("Name", $"{InteractionIds.Pets.NameInput}:{petId}", "Name this pet...", min_length: 1, max_length: 70);
+            }
+
             public static DiscordButtonComponent Manage(long petId, string name)
             {
-                return new DiscordButtonComponent(ButtonStyle.Primary, $"{InteractionIds.Pets.Manage}_{petId}", $"Manage {name}");
+                return new DiscordButtonComponent(ButtonStyle.Primary, $"{InteractionIds.Pets.Manage}:{petId}", $"Manage {name}");
             }
             public static DiscordButtonComponent Treat(long petId, string name)
             {
-                return new DiscordButtonComponent(ButtonStyle.Success, $"{InteractionIds.Pets.Treat}_{petId}", $"Treat {name}");
+                return new DiscordButtonComponent(ButtonStyle.Success, $"{InteractionIds.Pets.Treat}:{petId}", $"Treat {name}");
             }
         }
 
@@ -43,6 +49,11 @@ namespace SteelBot.Helpers.Constants
 
     public static class InteractionIds
     {
+        public static class Modals
+        {
+            public const string PetNameEntry = "name_entry_pet";
+        }
+
         public static class Pets
         {
             public const string Befriend = "befriend_pet";
@@ -57,6 +68,7 @@ namespace SteelBot.Helpers.Constants
             public const string DecreasePriority = "decrease_priority_pet";
             public const string MoveToBottom = "move_to_bottom_pet";
             public const string Treat = "treat_pet";
+            public const string NameInput = "name_input_pet";
         }
 
         public static class Confirmation

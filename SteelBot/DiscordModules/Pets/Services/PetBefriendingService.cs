@@ -43,11 +43,11 @@ namespace SteelBot.DiscordModules.Pets.Services
                 return;
             }
 
-            (bool befriendAttempt, Pet pet) = await HandleInitialSearchSuccess(context);
+            (bool befriendAttempt, Pet pet, DiscordInteraction interaction) = await HandleInitialSearchSuccess(context);
             bool newPet = false;
             if (befriendAttempt)
             {
-                newPet = await HandleBefriendAttempt(context, pet);
+                newPet = await HandleBefriendAttempt(context, pet, interaction);
             }
 
             if (newPet)
@@ -56,9 +56,10 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
         }
 
-        private async Task<(bool befriendAttempt, Pet pet)> HandleInitialSearchSuccess(CommandContext context)
+        private async Task<(bool befriendAttempt, Pet pet, DiscordInteraction interaction)> HandleInitialSearchSuccess(CommandContext context)
         {
             bool befriendAttempt = false;
+            DiscordInteraction interaction = null;
 
             var foundPet = PetFactory.Generate();
             var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: false);
@@ -77,8 +78,9 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (!result.TimedOut)
             {
                 initialResponseBuilder.ClearComponents();
-                await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(initialResponseBuilder));
+                await message.ModifyAsync(initialResponseBuilder);
                 befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
+                interaction = result.Result.Interaction;
             }
             else
             {
@@ -86,10 +88,10 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
             }
 
-            return (befriendAttempt, foundPet);
+            return (befriendAttempt, foundPet, interaction);
         }
 
-        private async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet)
+        private async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet, DiscordInteraction interaction)
         {
             bool befriendSuccess = false;
             if (HasSpaceForAnotherPet(context.Member) && BefriendSuccess(context.Member, pet))
@@ -98,8 +100,8 @@ namespace SteelBot.DiscordModules.Pets.Services
                 pet.OwnerDiscordId = context.Member.Id;
                 pet.Priority = numberOfOwnedPets;
                 pet.RowId = await Cache.Pets.InsertPet(pet);
-                await HandleBefriendSuccess(context, pet);
-                await Cache.Pets.UpdatePet(pet);
+
+                await PetModals.NamePet(interaction, pet);
                 befriendSuccess = true;
             }
             else
@@ -108,13 +110,6 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await context.Channel.SendMessageAsync(response);
             }
             return befriendSuccess;
-        }
-
-        public static async Task HandleBefriendSuccess(CommandContext context, Pet pet)
-        {
-            var successMessage = PetMessages.GetBefriendSuccessMessage(pet).WithReply(context.Message.Id, mention: true);
-            await context.Channel.SendMessageAsync(successMessage);
-            await PetShared.HandleNamingPet(context, pet);
         }
 
         private bool SearchSuccess(DiscordMember userSearching)

@@ -16,7 +16,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
     {
         public static DiscordMessageBuilder GetPetOwnedSuccessMessage(DiscordMember owner, Pet pet)
         {
-            var nameInsert = !string.IsNullOrWhiteSpace(pet.Name) ? Formatter.Italic(pet.Name) : "";
+            var nameInsert = !string.IsNullOrWhiteSpace(pet.Name) ? Formatter.Italic(pet.Name) : Formatter.Italic(pet.Species.GetName());
             var embedBuilder = new DiscordEmbedBuilder()
                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
                .WithTitle("Congrats")
@@ -54,6 +54,12 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public static DiscordMessageBuilder GetNamingSuccessMessage(Pet pet)
+        {
+            var embedBuilder = EmbedGenerator.Success($"You named this pet {pet.Species.GetName()} {Formatter.Italic(pet.GetName())}");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public static DiscordMessageBuilder GetMakePrimarySuccessMessage(Pet pet)
         {
             var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} Is now your primary pet and will receive a larger share of XP!");
@@ -81,12 +87,6 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static DiscordMessageBuilder GetAbandonSuccessMessage(Pet pet)
         {
             var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been released into the wild, freeing up a pet slot.");
-            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
-        }
-
-        public static DiscordMessageBuilder GetNamingTimedOutMessage(Pet pet)
-        {
-            var embedBuilder = EmbedGenerator.Info($"You can give your pet {pet.Species.GetName()} a name later instead.", "Looks like you're busy");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 

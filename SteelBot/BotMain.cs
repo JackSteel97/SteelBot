@@ -27,6 +27,7 @@ using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.DiscordModules.WordGuesser;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Constants;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -96,10 +97,22 @@ namespace SteelBot
             Client.GuildCreated += HandleJoiningGuild;
             Client.GuildDeleted += HandleLeavingGuild;
             Client.GuildMemberRemoved += HandleGuildMemberRemoved;
+            Client.ModalSubmitted += HandleModalSubmitted;
             //Client.GuildMemberAdded += HandleGuildMemberAdded; // TODO: Implement properly
 
             Commands.CommandErrored += HandleCommandErrored;
             Commands.CommandExecuted += HandleCommandExecuted;
+        }
+
+        private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
+        {
+            switch (e.Interaction.Data.CustomId)
+            {
+                case InteractionIds.Modals.PetNameEntry:
+                    _ = DataHelpers.Pets.HandleNamingPet(e);
+                    break;
+            }
+            return Task.CompletedTask;
         }
 
         private void InitCommands()
