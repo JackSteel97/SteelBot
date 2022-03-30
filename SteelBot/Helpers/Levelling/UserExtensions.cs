@@ -177,7 +177,7 @@ namespace SteelBot.Helpers.Levelling
             if (scalingFactor != 0)
             {
                 var baseXp = LevellingMaths.GetDurationXp(deafenedXp, user.TimeSpentDeafened, LevelConfig.DeafenedXpPerMin);
-                var bonusAppliedXp = LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.DeafenedPenaltyXp);
+                var bonusAppliedXp = LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.DeafenedPenaltyXP);
                 user.DeafenedXpEarned += LevellingMaths.ApplyScalingFactor(bonusAppliedXp, scalingFactor);
             }
         }

@@ -236,7 +236,7 @@ namespace SteelBot.DiscordModules.Stats
                 velocity.Message = LevellingMaths.ApplyPetBonuses(levelConfig.MessageXp, availablePets, BonusType.MessageXP);
                 velocity.Voice = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentInVoice, availablePets, BonusType.VoiceXP, levelConfig.VoiceXpPerMin);
                 velocity.Muted = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentMuted, availablePets, BonusType.MutedPenaltyXP, levelConfig.MutedXpPerMin);
-                velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenaltyXp, levelConfig.DeafenedXpPerMin);
+                velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenaltyXP, levelConfig.DeafenedXpPerMin);
                 velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.StreamingXP, levelConfig.StreamingXpPerMin);
                 velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.VideoXP, levelConfig.VideoXpPerMin);
 

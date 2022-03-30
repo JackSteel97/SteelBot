@@ -11,10 +11,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
         StreamingXP = 1 << 2,
         VideoXP = 1 << 3,
         MutedPenaltyXP = 1 << 4,
-        DeafenedPenaltyXp = 1 << 5,
+        DeafenedPenaltyXP = 1 << 5,
         SearchSuccessRate = 1 << 6,
         BefriendSuccessRate = 1 << 7,
         PetSlots = 1 << 8,
+        PetSharedXP = 1 << 9,
         AllXP = MessageXP | VoiceXP | StreamingXP | VideoXP
     }
 
@@ -22,7 +23,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
     {
         public static bool IsNegative(this BonusType type)
         {
-            return type.HasFlag(BonusType.MutedPenaltyXP) || type.HasFlag(BonusType.DeafenedPenaltyXp);
+            return type.HasFlag(BonusType.MutedPenaltyXP) || type.HasFlag(BonusType.DeafenedPenaltyXP);
         }
 
         public static bool IsPercentage(this BonusType type)

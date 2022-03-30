@@ -1,5 +1,6 @@
 ﻿using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using SteelBot.DiscordModules.Pets.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -79,10 +80,10 @@ namespace SteelBot.Helpers.Levelling
             return Convert.ToUInt64(Math.Round(totalXp, MidpointRounding.AwayFromZero));
         }
 
-        public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> availablePets, BonusType requiredBonus)
+        public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> activePets, BonusType requiredBonus)
         {
             double multiplier = 1;
-            foreach (var pet in availablePets)
+            foreach (var pet in activePets)
             {
                 foreach (var bonus in pet.Bonuses)
                 {
@@ -95,7 +96,10 @@ namespace SteelBot.Helpers.Levelling
 
             var multipliedXp = Math.Round(baseXp * multiplier);
             var earnedXp = Convert.ToUInt64(Math.Max(0, multipliedXp)); // Prevent negative from massive negative bonuses.
-            IncrementPetXp(earnedXp, availablePets);
+            if(earnedXp > 0)
+            {
+                IncrementPetXp(earnedXp, activePets);
+            }
             return earnedXp;
         }
 
@@ -104,22 +108,18 @@ namespace SteelBot.Helpers.Levelling
             return Convert.ToUInt64(Math.Ceiling(xp * scalingFactor));
         }
 
-        public static void IncrementPetXp(ulong userEarnedXp, List<Pet> pets)
+        public static void IncrementPetXp(ulong userEarnedXp, List<Pet> activePets)
         {
-            const double percentageForPrimary = 0.5;
-            const double percentageForOthers = 0.01;
+            const double maximumPercentage = 0.5;
+            const double minimumPercentage = 0.01;
+            var sharedXpMultiplier = PetShared.GetBonusValue(activePets, BonusType.PetSharedXP);
 
-            foreach (var pet in pets)
+            foreach (var pet in activePets)
             {
-                double earnedXp;
-                if (pet.IsPrimary)
-                {
-                    earnedXp = userEarnedXp * percentageForPrimary;
-                }
-                else
-                {
-                    earnedXp = userEarnedXp * percentageForOthers;
-                }
+                var priorityDivisor = Math.Pow(pet.Priority + 1, 2);
+                double thisPercentage = Math.Max((maximumPercentage / priorityDivisor) * sharedXpMultiplier, minimumPercentage);
+                double earnedXp = userEarnedXp * thisPercentage;
+
                 pet.EarnedXp += earnedXp;
             }
         }
