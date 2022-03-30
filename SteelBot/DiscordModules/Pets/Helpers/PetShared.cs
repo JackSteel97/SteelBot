@@ -62,8 +62,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static List<Pet> GetAvailablePets(User user, List<Pet> allPets, out List<Pet> disabledPets)
         {
-            int baseCapacity = GetPetCapacity(user, 0);
-            int capacity = baseCapacity;
+            int capacity = GetPetCapacity(user, 0);
             var availablePets = new List<Pet>();
             if (allPets.Count > 0)
             {
@@ -74,7 +73,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 {
                     availablePets.Add(orderedPets[currentIndex]);
                     ++currentIndex;
-                    capacity = baseCapacity + Convert.ToInt32(GetBonusValue(availablePets, BonusType.PetSlots));
+                    capacity = GetPetCapacity(user, GetBonusValue(availablePets, BonusType.PetSlots));
                 }
                 var availableCount = Math.Max(1, Math.Min(capacity, orderedPets.Count));
                 disabledPets = orderedPets.Skip(availableCount).ToList();
@@ -220,6 +219,13 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     }
                 }
             }
+
+            if(targetType == BonusType.PetSlots && multiplier > 50)
+            {
+                // Cap at 50.
+                multiplier = 50;
+            }
+
             return multiplier;
         }
 

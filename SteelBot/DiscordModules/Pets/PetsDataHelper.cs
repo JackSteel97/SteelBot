@@ -98,8 +98,12 @@ namespace SteelBot.DiscordModules.Pets
                     await Cache.Pets.UpdatePet(pet);
 
                     await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet)));
+                    args.Handled = true;
+                    return;
                 }
             }
+
+            await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
         }
 
         public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
