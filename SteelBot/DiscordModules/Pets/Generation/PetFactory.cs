@@ -109,7 +109,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
         private static Rarity GetBaseRarity()
         {
             const int maxBound = 1000;
-            const double MythicalChance = 1;//0.001;
+            const double MythicalChance = 0.001;
             const double LegendaryChance = 0.02;
             const double EpicChance = 0.08;
             const double RareChance = 0.20;

@@ -109,6 +109,7 @@ namespace SteelBot
                 Services = ServiceProvider,
                 PrefixResolver = ResolvePrefix,
                 EnableDms = false,
+                CommandExecutor = new DSharpPlus.CommandsNext.Executors.AsynchronousCommandExecutor()
             });
 
             Commands.RegisterCommands<ConfigCommands>();
@@ -142,7 +143,7 @@ namespace SteelBot
                 ButtonBehavior = ButtonPaginationBehavior.DeleteButtons,
 
                 // Default timeout for other actions to 2 minutes.
-                Timeout = TimeSpan.FromMinutes(2)
+                Timeout = TimeSpan.FromMinutes(2),
             });
         }
 
