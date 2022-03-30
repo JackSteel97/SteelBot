@@ -85,7 +85,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             else
             {
                 await message.DeleteAsync();
-                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet), mention: true);
+                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet));
             }
 
             return (befriendAttempt, foundPet, interaction);
