@@ -62,25 +62,25 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static DiscordMessageBuilder GetMakePrimarySuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} Is now your primary pet and will receive a larger share of XP!");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} Is now your primary pet and will receive a much larger share of XP!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
         public static DiscordMessageBuilder GetMoveToBottomSuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved to the bottom of your pet list.");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved to the bottom of your pet list and will receive a much smaller share of XP.");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
         public static DiscordMessageBuilder GetPriorityIncreaseSuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved up in your pet list.");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved up in your pet list and will receive a larger share of XP.");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
         public static DiscordMessageBuilder GetPriorityDecreaseSuccessMessage(Pet pet)
         {
-            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved down in your pet list.");
+            var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} has been moved down in your pet list and will receive a smaller share of XP.");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
