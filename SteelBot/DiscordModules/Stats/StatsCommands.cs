@@ -26,7 +26,7 @@ namespace SteelBot.DiscordModules.Stats
     [RequireGuild]
     public class StatsCommands : TypingCommandModule
     {
-        private readonly HashSet<string> AllowedMetrics = new HashSet<string>() { "xp", "level", "message count", "message length", "afk", "voice", "muted", "deafened", "last active", "stream", "video" };
+        private readonly HashSet<string> AllowedMetrics = new() { "xp", "level", "message count", "message length", "afk", "voice", "muted", "deafened", "last active", "stream", "video" };
         private readonly DataHelpers DataHelper;
         private readonly LevelCardGenerator LevelCardGenerator;
         private readonly AppConfigurationService AppConfigurationService;
@@ -148,8 +148,8 @@ namespace SteelBot.DiscordModules.Stats
                 .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.VoiceXpEarned.ToString("N0")))
                 .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.StreamingXpEarned.ToString("N0")))
                 .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.VideoXpEarned.ToString("N0")))
-                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode($"-{user.MutedXpEarned.ToString("N0")}"))
-                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned.ToString("N0")}"))
+                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode($"-{user.MutedXpEarned:N0}"))
+                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned:N0}"))
                 .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
                 .Append(Formatter.Bold("Offline ")).AppendLine(Formatter.InlineCode(user.DisconnectedXpEarned.ToString("N0")))
                 .AppendLine()
@@ -261,7 +261,7 @@ namespace SteelBot.DiscordModules.Stats
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedUsers, 5, (builder, user, index) =>
             {
                 return builder
-                    .AppendLine($"**{(index + 1).Ordinalize()}** - <@{user.DiscordId}>")
+                    .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToMention())
                     .AppendLine(metricValues[index]);
             });
 
@@ -304,9 +304,9 @@ namespace SteelBot.DiscordModules.Stats
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 5, (builder, user, index) =>
             {
                 return builder
-                    .AppendLine($"**{(index + 1).Ordinalize()}** - <@{user.DiscordId}>")
-                    .AppendLine($"Level `{user.CurrentLevel}`")
-                    .AppendLine($"XP `{$"{user.TotalXp:n0}"}`");
+                    .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToMention())
+                    .Append("Level `").Append(user.CurrentLevel).AppendLine("`")
+                    .Append("XP `").Append(user.TotalXp.ToString("N0")).AppendLine("`");
             });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
@@ -337,10 +337,8 @@ namespace SteelBot.DiscordModules.Stats
             }
 
             // Sort by xp.
-            guildUsers.Sort((u1, u2) =>
-            {
-                return u2.TotalXp.CompareTo(u1.TotalXp);
-            });
+            guildUsers.Sort((u1, u2) => u2.TotalXp.CompareTo(u1.TotalXp));
+
             // Get top x.
             List<User> orderedByXp = guildUsers.GetRange(0, top);
 
@@ -352,17 +350,17 @@ namespace SteelBot.DiscordModules.Stats
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 2, (builder, user, index) =>
             {
                 return builder
-                    .AppendLine($"**__{(index + 1).Ordinalize()}__** - <@{user.DiscordId}> - **Level** `{user.CurrentLevel}`")
-                    .AppendLine($"**__Messages__**")
-                    .AppendLine($"{EmojiConstants.Numbers.HashKeycap} - **Count** `{user.MessageCount:N0}`")
-                    .AppendLine($"{EmojiConstants.Objects.Ruler} - **Average Length** `{user.GetAverageMessageLength()} Characters`")
+                    .Append("**__").Append((index + 1).Ordinalize()).Append("__** - <@").Append(user.DiscordId).Append("> - **Level** `").Append(user.CurrentLevel).AppendLine("`")
+                    .AppendLine("**__Messages__**")
+                    .Append(EmojiConstants.Numbers.HashKeycap).Append(" - **Count** `").AppendFormat("{0:N0}", user.MessageCount).AppendLine("`")
+                    .Append(EmojiConstants.Objects.Ruler).Append(" - **Average Length** `").Append(user.GetAverageMessageLength()).AppendLine(" Characters`")
                     .AppendLine("**__Durations__**")
-                    .AppendLine($"{EmojiConstants.Objects.Microphone} - **Voice** `{user.TimeSpentInVoice.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Objects.Television} - **Streaming** `{user.TimeSpentStreaming.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Objects.Camera} - **Video** `{user.TimeSpentOnVideo.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Objects.MutedSpeaker} - **Muted** `{user.TimeSpentMuted.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Objects.BellWithSlash} - **Deafened** `{user.TimeSpentDeafened.Humanize(3)}`")
-                    .AppendLine($"{EmojiConstants.Symbols.Zzz} - **AFK** `{user.TimeSpentAfk.Humanize(3)}`");
+                    .Append(EmojiConstants.Objects.Microphone).Append(" - **Voice** `").Append(user.TimeSpentInVoice.Humanize(3)).AppendLine("`")
+                    .Append(EmojiConstants.Objects.Television).Append(" - **Streaming** `").Append(user.TimeSpentStreaming.Humanize(3)).AppendLine("`")
+                    .Append(EmojiConstants.Objects.Camera).Append(" - **Video** `").Append(user.TimeSpentOnVideo.Humanize(3)).AppendLine("`")
+                    .Append(EmojiConstants.Objects.MutedSpeaker).Append(" - **Muted** `").Append(user.TimeSpentMuted.Humanize(3)).AppendLine("`")
+                    .Append(EmojiConstants.Objects.BellWithSlash).Append(" - **Deafened** `").Append(user.TimeSpentDeafened.Humanize(3)).AppendLine("`")
+                    .Append(EmojiConstants.Symbols.Zzz).Append(" - **AFK** `").Append(user.TimeSpentAfk.Humanize(3)).AppendLine("`");
             });
 
             InteractivityExtension interactivity = context.Client.GetInteractivity();
@@ -393,7 +391,6 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Offline", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);
 
             await context.RespondAsync(embed);
-
         }
     }
 }

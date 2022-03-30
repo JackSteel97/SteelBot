@@ -131,7 +131,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
         {
-            BonusTotals bonusTotals = new BonusTotals(pet);
+            var bonusTotals = new BonusTotals(pet);
             AppendBonuses(bonuses, bonusTotals);
 
             return bonuses;

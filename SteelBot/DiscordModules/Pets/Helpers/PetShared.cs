@@ -111,7 +111,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static bool PetXpChanged(Pet pet, StringBuilder changes)
         {
-            List<PetBonus> newBonuses = new List<PetBonus>();
+            var newBonuses = new List<PetBonus>();
             bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, out var newLevel);
             if (levelledUp)
             {
@@ -225,7 +225,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static List<PetWithActivation> Recombine(List<Pet> availablePets, List<Pet> disabledPets)
         {
-            List<PetWithActivation> combinedPets = new List<PetWithActivation>(availablePets.Count + disabledPets.Count);
+            var combinedPets = new List<PetWithActivation>(availablePets.Count + disabledPets.Count);
             if (availablePets.Count > 0)
             {
                 combinedPets.AddRange(availablePets.ConvertAll(p => new PetWithActivation(p, true)));

@@ -15,7 +15,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
     {
         private readonly ILogger<PetFactory> Logger;
 
-        private readonly Dictionary<Rarity, List<Species>> SpeciesByRarity = new Dictionary<Rarity, List<Species>>();
+        private readonly Dictionary<Rarity, List<Species>> SpeciesByRarity = new();
 
         public PetFactory(ILogger<PetFactory> logger)
         {
@@ -103,6 +103,8 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             var bonuses = BuildBonuses(pet);
             pet.AddBonuses(bonuses);
+
+            Logger.LogInformation("Generated a new pet with Base Rarity {BaseRarity} and Final Rarity {FinalRarity}", baseRarity.ToString(), finalRarity.ToString());
             return pet;
         }
 
@@ -305,7 +307,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private static T GetRandomEnumValue<T>(params T[] excluding)
         {
-            T result = default(T);
+            T result;
             var excludedValues = excluding.ToHashSet();
             do
             {

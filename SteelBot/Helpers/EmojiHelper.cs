@@ -166,44 +166,21 @@ namespace SteelBot.Helpers
     {
         public static string GetNumberEmoji(int number)
         {
-            switch (number)
+            return number switch
             {
-                case 0:
-                    return EmojiConstants.Numbers.NumberZero;
-
-                case 1:
-                    return EmojiConstants.Numbers.NumberOne;
-
-                case 2:
-                    return EmojiConstants.Numbers.NumberTwo;
-
-                case 3:
-                    return EmojiConstants.Numbers.NumberThree;
-
-                case 4:
-                    return EmojiConstants.Numbers.NumberFour;
-
-                case 5:
-                    return EmojiConstants.Numbers.NumberFive;
-
-                case 6:
-                    return EmojiConstants.Numbers.NumberSix;
-
-                case 7:
-                    return EmojiConstants.Numbers.NumberSeven;
-
-                case 8:
-                    return EmojiConstants.Numbers.NumberEight;
-
-                case 9:
-                    return EmojiConstants.Numbers.NumberNine;
-
-                case 10:
-                    return EmojiConstants.Numbers.NumberTen;
-
-                default:
-                    throw new ArgumentException("This number does not have an emoji equivalent", nameof(number));
-            }
+                0 => EmojiConstants.Numbers.NumberZero,
+                1 => EmojiConstants.Numbers.NumberOne,
+                2 => EmojiConstants.Numbers.NumberTwo,
+                3 => EmojiConstants.Numbers.NumberThree,
+                4 => EmojiConstants.Numbers.NumberFour,
+                5 => EmojiConstants.Numbers.NumberFive,
+                6 => EmojiConstants.Numbers.NumberSix,
+                7 => EmojiConstants.Numbers.NumberSeven,
+                8 => EmojiConstants.Numbers.NumberEight,
+                9 => EmojiConstants.Numbers.NumberNine,
+                10 => EmojiConstants.Numbers.NumberTen,
+                _ => throw new ArgumentException("This number does not have an emoji equivalent", nameof(number)),
+            };
         }
     }
 }

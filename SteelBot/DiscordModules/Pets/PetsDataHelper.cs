@@ -162,7 +162,7 @@ namespace SteelBot.DiscordModules.Pets
 
         public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild)
         {
-            StringBuilder changes = new StringBuilder();
+            var changes = new StringBuilder();
             foreach (var pet in pets)
             {
                 bool levelledUp = PetShared.PetXpChanged(pet, changes);

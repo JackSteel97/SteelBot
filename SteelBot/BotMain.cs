@@ -62,7 +62,7 @@ namespace SteelBot
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Logger.LogInformation($"Starting Bot Version {AppConfigurationService.Version} ({AppConfigurationService.Environment})");
+            Logger.LogInformation("Starting Bot Version {Version} ({Environment})", AppConfigurationService.Version, AppConfigurationService.Environment);
 
             Console.CancelKeyPress += async (s, a) => await ShutdownDiscordClient();
 
