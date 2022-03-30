@@ -34,7 +34,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [GroupCommand]
         [Description("Show all your owned pets")]
-        [Cooldown(2, 60, CooldownBucketType.User)]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public Task GetPets(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -46,7 +46,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("manage")]
         [Description("Manage your owned pets")]
-        [Cooldown(3, 60, CooldownBucketType.User)]
+        [Cooldown(10, 60, CooldownBucketType.User)]
         public Task ManagePets(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
@@ -81,7 +81,7 @@ namespace SteelBot.DiscordModules.Pets
         [Command("Bonus")]
         [Aliases("Bonuses", "b")]
         [Description("View the bonuses from all your pets available in this server")]
-        [Cooldown(2, 60, CooldownBucketType.User)]
+        [Cooldown(3, 60, CooldownBucketType.User)]
         public Task Bonuses(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
