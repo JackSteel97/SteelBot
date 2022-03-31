@@ -246,7 +246,7 @@ namespace SteelBot.DiscordModules.Stats
             return velocity;
         }
 
-        private async Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
+        private Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild) && Cache.Users.TryGetUser(discordGuild.Id, discordUser.Id, out User user))
             {
@@ -254,9 +254,10 @@ namespace SteelBot.DiscordModules.Stats
 
                 if (channel != null)
                 {
-                    await channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
+                    _ = channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
                 }
             }
+            return Task.CompletedTask;
         }
     }
 }

@@ -44,8 +44,10 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 var bonusCapacity = PetShared.GetBonusValue(availablePets, Enums.BonusType.PetSlots);
                 var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
+                var baseCapacity = PetShared.GetPetCapacity(user, 0);
+
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
-                    (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, maxCapacity),
+                    (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                     (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
 
                 var resultId = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);

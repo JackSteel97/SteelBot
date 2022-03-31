@@ -126,7 +126,8 @@ namespace SteelBot.DiscordModules.Pets
 
                 var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
                 var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
-                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, maxCapacity));
+                var baseCapacity = PetShared.GetPetCapacity(user, 0);
+                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
                 var interactivity = context.Client.GetInteractivity();
                 await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
             }
@@ -146,8 +147,9 @@ namespace SteelBot.DiscordModules.Pets
                 if (combinedPets.Count > 0)
                 {
                     var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
-                    var capacity = PetShared.GetPetCapacity(user, bonusCapacity);
-                    var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, capacity);
+                    var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
+                    var baseCapacity = PetShared.GetPetCapacity(user, 0);
+                    var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, baseCapacity, maxCapacity);
 
                     var interactivity = context.Client.GetInteractivity();
                     return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
@@ -185,12 +187,13 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
-        private async Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId)
+        private Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
             {
-                await PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId);
+                _ = PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId);
             }
+            return Task.CompletedTask;
         }
     }
 }

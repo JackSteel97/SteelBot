@@ -45,14 +45,14 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double maxCapacity)
+        public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double baseCapacity, double maxCapacity)
         {
             builder.AppendLine(Formatter.Bold(pet.GetName()))
                 .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
 
             if (!active)
             {
-                var levelRequired = GetRequiredLevelForPet(pet.Priority, maxCapacity);
+                var levelRequired = GetRequiredLevelForPet(pet.Priority, baseCapacity, maxCapacity);
                 builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
             }
 
@@ -75,6 +75,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     ++currentIndex;
                     capacity = GetPetCapacity(user, GetBonusValue(availablePets, BonusType.PetSlots));
                 }
+                availablePets = availablePets.Take(capacity).ToList();
                 var availableCount = Math.Max(1, Math.Min(capacity, orderedPets.Count));
                 disabledPets = orderedPets.Skip(availableCount).ToList();
             }
@@ -237,9 +238,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return combinedPets;
         }
 
-        public static int GetRequiredLevelForPet(int petPriority, double capacity)
+        public static int GetRequiredLevelForPet(int petPriority, double baseCapacity, double totalCapacity)
         {
-            return (petPriority - (int)capacity) * NewPetSlotUnlockLevels;
+            var currentLevelBracket = (baseCapacity - 1) * NewPetSlotUnlockLevels;
+            var extraRequiredLevels = ((petPriority+1) - totalCapacity) * NewPetSlotUnlockLevels;
+            return Convert.ToInt32(currentLevelBracket + extraRequiredLevels);
         }
 
         private static PetBonus PetLevelledUp(Pet pet, int level)
