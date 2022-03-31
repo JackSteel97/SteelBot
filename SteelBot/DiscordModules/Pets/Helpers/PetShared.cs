@@ -45,14 +45,14 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double bonusCapacity)
+        public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double maxCapacity)
         {
             builder.AppendLine(Formatter.Bold(pet.GetName()))
                 .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
 
             if (!active)
             {
-                var levelRequired = GetRequiredLevelForPet(pet.Priority, bonusCapacity);
+                var levelRequired = GetRequiredLevelForPet(pet.Priority, maxCapacity);
                 builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
             }
 
@@ -94,7 +94,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 result += (user.CurrentLevel / NewPetSlotUnlockLevels);
             }
-            return Math.Max(result, 0);
+            return Math.Max(result, 1);
         }
 
         public static bool TryGetPetIdFromComponentId(string buttonId, out long petId)
@@ -220,12 +220,6 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 }
             }
 
-            if(targetType == BonusType.PetSlots && multiplier > 50)
-            {
-                // Cap at 50.
-                multiplier = 50;
-            }
-
             return multiplier;
         }
 
@@ -243,9 +237,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return combinedPets;
         }
 
-        public static int GetRequiredLevelForPet(int petPriority, double bonusCapacity)
+        public static int GetRequiredLevelForPet(int petPriority, double capacity)
         {
-            return (petPriority - (int)bonusCapacity) * NewPetSlotUnlockLevels;
+            return (petPriority - (int)capacity) * NewPetSlotUnlockLevels;
         }
 
         private static PetBonus PetLevelledUp(Pet pet, int level)

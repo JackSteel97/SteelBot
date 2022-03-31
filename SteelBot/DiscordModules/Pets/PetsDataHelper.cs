@@ -125,7 +125,8 @@ namespace SteelBot.DiscordModules.Pets
                 }
 
                 var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
-                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, bonusCapacity));
+                var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
+                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, maxCapacity));
                 var interactivity = context.Client.GetInteractivity();
                 await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
             }
@@ -145,7 +146,8 @@ namespace SteelBot.DiscordModules.Pets
                 if (combinedPets.Count > 0)
                 {
                     var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
-                    var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, bonusCapacity);
+                    var capacity = PetShared.GetPetCapacity(user, bonusCapacity);
+                    var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, capacity);
 
                     var interactivity = context.Client.GetInteractivity();
                     return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);

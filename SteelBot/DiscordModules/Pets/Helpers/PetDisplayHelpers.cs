@@ -56,7 +56,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return embedBuilder;
         }
 
-        public static List<Page> GetPetBonusesSummary(List<PetWithActivation> allPets, string username, string avatarUrl, double bonusCapacity)
+        public static List<Page> GetPetBonusesSummary(List<PetWithActivation> allPets, string username, string avatarUrl, double maxCapacity)
         {
             var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
                 .WithTitle($"{username} Pet's Active Bonuses")
@@ -95,7 +95,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 builder.Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
                 if (!petWithActivation.Active)
                 {
-                    var levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, bonusCapacity);
+                    var levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, maxCapacity);
                     builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
                 }
                 builder.AppendLine();
@@ -160,8 +160,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 string bonusSuffix = "";
                 if(bonus.BonusType == BonusType.PetSlots && bonus.Value > 50)
                 {
-                    bonusValue = 50;
-                    bonusSuffix = " (Max +50 reached)";
+                    bonusSuffix = " (Capped at +50)";
                 }
 
                 bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
