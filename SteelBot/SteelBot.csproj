@@ -17,9 +17,9 @@
 	<ItemGroup>
 		<PackageReference Include="AlphaVantage.Net.Forex" Version="2.0.2" />
 		<PackageReference Include="AlphaVantage.Net.Stocks" Version="2.0.2" />
-		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01088" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01088" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01088" />
+		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01105" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01105" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01105" />
 		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">
 			<PrivateAssets>all</PrivateAssets>
