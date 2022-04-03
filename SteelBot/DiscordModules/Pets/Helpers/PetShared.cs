@@ -75,8 +75,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     ++currentIndex;
                     capacity = GetPetCapacity(user, GetBonusValue(availablePets, BonusType.PetSlots));
                 }
-                availablePets = availablePets.Take(capacity).ToList();
                 var availableCount = Math.Max(1, Math.Min(capacity, orderedPets.Count));
+                if (availableCount != availablePets.Count)
+                {
+                    availablePets = availablePets.Take(availableCount).ToList();
+                }
                 disabledPets = orderedPets.Skip(availableCount).ToList();
             }
             else
@@ -109,8 +112,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return false;
         }
 
-        public static bool PetXpChanged(Pet pet, StringBuilder changes)
+        public static bool PetXpChanged(Pet pet, StringBuilder changes, out bool shouldPingOwner)
         {
+            shouldPingOwner = false;
             var newBonuses = new List<PetBonus>();
             bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, out var newLevel);
             if (levelledUp)
@@ -121,18 +125,20 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 for (int level = nextLevel; level <= pet.CurrentLevel; ++level)
                 {
                     var newBonus = PetLevelledUp(pet, level);
-                    if (newBonus != null) {
+                    if (newBonus != null)
+                    {
                         newBonuses.Add(newBonus);
                     }
                 }
             }
 
-            if(newBonuses.Count > 0)
+            if (newBonuses.Count > 0)
             {
+                shouldPingOwner = true;
                 changes.AppendLine(Formatter.Bold("Learned New Bonuses:"));
-                foreach(var newBonus in newBonuses)
+                foreach (var newBonus in newBonuses)
                 {
-                   PetDisplayHelpers.AppendBonusDisplay(changes, newBonus);
+                    PetDisplayHelpers.AppendBonusDisplay(changes, newBonus);
                 }
             }
 
@@ -157,15 +163,24 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return disconnectedXpPerMin;
         }
 
-        public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, ulong userId)
+        public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, ulong userId, bool pingUser)
         {
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
             if (channel != null)
             {
-                var message = new DiscordMessageBuilder()
-                    .WithContent(userId.ToMention())
-                    .WithEmbed(EmbedGenerator.Info(changes.ToString(),
-                    "Pet Level Up"));
+                var message = new DiscordMessageBuilder();
+
+                if (pingUser)
+                {
+                    message = message.WithContent(userId.ToMention());
+                }
+                else
+                {
+                    changes.Insert(0, userId.ToMention() + Environment.NewLine);
+                }
+
+                message = message.WithEmbed(EmbedGenerator.Info(changes.ToString(),
+                            "Pet Level Up"));
 
                 await channel.SendMessageAsync(message);
             }
@@ -190,15 +205,15 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             sb.Append('[');
             if (progressedCharacterCount > 0)
             {
-                for(int i = 0; i < progressedCharacterCount; ++i)
+                for (int i = 0; i < progressedCharacterCount; ++i)
                 {
                     sb.Append(progressCharacter);
                 }
             }
 
-            if(remainingCharacters > 0)
+            if (remainingCharacters > 0)
             {
-                for(int i =0; i< remainingCharacters; ++i)
+                for (int i = 0; i < remainingCharacters; ++i)
                 {
                     sb.Append(remainingCharacter);
                 }
@@ -241,7 +256,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static int GetRequiredLevelForPet(int petPriority, double baseCapacity, double totalCapacity)
         {
             var currentLevelBracket = (baseCapacity - 1) * NewPetSlotUnlockLevels;
-            var extraRequiredLevels = ((petPriority+1) - totalCapacity) * NewPetSlotUnlockLevels;
+            var extraRequiredLevels = ((petPriority + 1) - totalCapacity) * NewPetSlotUnlockLevels;
             return Convert.ToInt32(currentLevelBracket + extraRequiredLevels);
         }
 

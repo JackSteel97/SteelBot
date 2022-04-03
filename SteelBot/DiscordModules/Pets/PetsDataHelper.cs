@@ -171,27 +171,32 @@ namespace SteelBot.DiscordModules.Pets
         public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild)
         {
             var changes = new StringBuilder();
+            bool pingOwner = false;
             foreach (var pet in pets)
             {
-                bool levelledUp = PetShared.PetXpChanged(pet, changes);
+                bool levelledUp = PetShared.PetXpChanged(pet, changes, out var shouldPingOwner);
                 await Cache.Pets.UpdatePet(pet);
                 if (levelledUp)
                 {
+                    if (shouldPingOwner)
+                    {
+                        pingOwner = true;
+                    }
                     changes.AppendLine();
                 }
             }
 
             if (changes.Length > 0 && sourceGuild != default && pets.Count > 0)
             {
-                await SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId);
+                await SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId, pingOwner);
             }
         }
 
-        private Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId)
+        private Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
             {
-                _ = PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId);
+                _ = PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId, pingOwner);
             }
             return Task.CompletedTask;
         }
