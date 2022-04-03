@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
+using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
@@ -22,23 +23,27 @@ namespace SteelBot.DiscordModules.Pets.Services
     {
         private readonly DataCache Cache;
         private readonly PetFactory PetFactory;
+        private readonly ILogger<PetBefriendingService> Logger;
 
-        public PetBefriendingService(DataCache cache, PetFactory petFactory)
+        public PetBefriendingService(DataCache cache, PetFactory petFactory, ILogger<PetBefriendingService> logger)
         {
             Cache = cache;
             PetFactory = petFactory;
+            Logger = logger;
         }
 
         public async Task Search(CommandContext context)
         {
             if (!HasSpaceForAnotherPet(context.Member))
             {
+                Logger.LogInformation("User {UserId} cannot search for a new pet because their pet slots are already full", context.Member.Id);
                 await context.RespondAsync(EmbedGenerator.Warning($"You don't have enough room for another pet{Environment.NewLine}Use `Pet Manage` to release one of your existing pets to make room"), mention: true);
                 return;
             }
 
             if (!SearchSuccess(context.Member))
             {
+                Logger.LogInformation("User {UserId} failed to find anything when searching for a new pet", context.Member.Id);
                 await context.RespondAsync(EmbedGenerator.Info($"You didn't find anything this time!{Environment.NewLine}Try again later", "Nothing Found"), mention: true);
                 return;
             }
@@ -72,6 +77,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     Interactions.Pets.Leave
                 });
 
+            Logger.LogInformation("Sending pet found message to User {UserId} in Guild {GuildId}", context.User.Id, context.Guild.Id);
             var message = await context.RespondAsync(initialResponseBuilder, mention: true);
             var result = await message.WaitForButtonAsync(context.Member);
 
@@ -84,6 +90,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
             else
             {
+                Logger.LogInformation("Pet found message timed out waiting for a user response from User {UserId} in Guild {GuildId}", context.User.Id, context.Guild.Id);
                 await message.DeleteAsync();
                 await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet));
             }
@@ -93,6 +100,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task<bool> HandleBefriendAttempt(CommandContext context, Pet pet, DiscordInteraction interaction)
         {
+            Logger.LogInformation("User {UserId} in Guild {GuildId} is attempting to befriend a {Rarity} pet", context.User.Id, context.Guild.Id, pet.Rarity);
             bool befriendSuccess = false;
             if (HasSpaceForAnotherPet(context.Member) && BefriendSuccess(context.Member, pet))
             {
@@ -100,6 +108,8 @@ namespace SteelBot.DiscordModules.Pets.Services
                 pet.OwnerDiscordId = context.Member.Id;
                 pet.Priority = numberOfOwnedPets;
                 pet.RowId = await Cache.Pets.InsertPet(pet);
+
+                Logger.LogInformation("User {UserId} in Guild {GuildId} successfully befriended a {Rarity} pet with Id {PetId}", context.User.Id, context.Guild.Id, pet.Rarity, pet.RowId);
 
                 await PetModals.NamePet(interaction, pet);
                 befriendSuccess = true;
