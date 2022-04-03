@@ -111,6 +111,9 @@ namespace SteelBot
                 case InteractionIds.Modals.PetNameEntry:
                     _ = DataHelpers.Pets.HandleNamingPet(e);
                     break;
+                case InteractionIds.Modals.PetMove:
+                    _ = DataHelpers.Pets.HandleMovingPet(e);
+                    break;
             }
             return Task.CompletedTask;
         }

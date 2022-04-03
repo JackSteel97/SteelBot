@@ -54,6 +54,7 @@ namespace SteelBot.Helpers
             public const string BackwardArrow = "\u25C0\uFE0F";
             public const string ForwardArrow = "\u25B6\uFE0F";
             public const string StopButton = "\u23F9\uFE0F";
+            public const string LeftRightArrow = "\u2194\uFE0F";
         }
         public static class Faces
         {

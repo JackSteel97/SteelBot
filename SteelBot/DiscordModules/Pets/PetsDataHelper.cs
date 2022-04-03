@@ -85,7 +85,7 @@ namespace SteelBot.DiscordModules.Pets
         public async Task HandleNamingPet(ModalSubmitEventArgs args)
         {
             var result = args.Values.Keys.FirstOrDefault();
-            if(result != default && PetShared.TryGetPetIdFromComponentId(result, out long petId))
+            if (result != default && PetShared.TryGetPetIdFromComponentId(result, out long petId))
             {
                 var newName = args.Values[result];
                 if (!string.IsNullOrWhiteSpace(newName)
@@ -106,6 +106,28 @@ namespace SteelBot.DiscordModules.Pets
             await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
         }
 
+        public async Task HandleMovingPet(ModalSubmitEventArgs args)
+        {
+            var result = args.Values.Keys.FirstOrDefault();
+            if (result != default && PetShared.TryGetPetIdFromComponentId(result, out long petId))
+            {
+                var newPositionText = args.Values[result];
+
+                if (!string.IsNullOrWhiteSpace(newPositionText)
+                    && int.TryParse(newPositionText, out var newPosition)
+                    && Cache.Pets.TryGetPet(args.Interaction.User.Id, petId, out var petBeingMoved)
+                    && newPosition - 1 != petBeingMoved.Priority)
+                {
+                    var newPriority = newPosition - 1;
+                    Logger.LogInformation("User {UserId} is attempting to move Pet {PetId} from position {CurrentPriority} to {NewPriority}", petBeingMoved.OwnerDiscordId, petBeingMoved.RowId, petBeingMoved.Priority, newPriority);
+
+                    await ManagementService.MovePetToPosition(petBeingMoved, newPriority);
+                }
+            }
+
+            await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+        }
+
         public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
         {
             if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user)
@@ -118,7 +140,8 @@ namespace SteelBot.DiscordModules.Pets
                 var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets, target.DisplayName)
                     .WithThumbnail(target.AvatarUrl);
 
-                if (combinedPets.Count == 0) {
+                if (combinedPets.Count == 0)
+                {
                     baseEmbed.WithDescription("You currently own no pets.");
                     await context.RespondAsync(baseEmbed);
                     return;

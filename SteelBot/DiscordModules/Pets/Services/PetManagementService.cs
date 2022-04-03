@@ -35,7 +35,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets);
 
-                if(combinedPets.Count == 0)
+                if (combinedPets.Count == 0)
                 {
                     baseEmbed.WithDescription("You currently own no pets.");
                     await context.RespondAsync(baseEmbed);
@@ -66,6 +66,43 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
         }
 
+        public async Task MovePetToPosition(Pet petBeingMoved, int newPriority)
+        {
+            if (Cache.Pets.TryGetUsersPets(petBeingMoved.OwnerDiscordId, out var allPets))
+            {
+                if(newPriority < 0 || newPriority > allPets.Count-1)
+                {
+                    // Invalid target position.
+                    return;
+                }
+
+                int oldPriority = petBeingMoved.Priority;
+
+                foreach (var ownedPet in allPets)
+                {
+                    if (ownedPet.RowId != petBeingMoved.RowId)
+                    {
+                        // "Remove" behaviour
+                        if (ownedPet.Priority > oldPriority)
+                        {
+                            ownedPet.Priority--;
+                        }
+
+                        // "Insert" behaviour
+                        if (ownedPet.Priority >= newPriority)
+                        {
+                            ownedPet.Priority++;
+                        }
+
+                        await Cache.Pets.UpdatePet(ownedPet);
+                    }
+                }
+
+                petBeingMoved.Priority = newPriority;
+                await Cache.Pets.UpdatePet(petBeingMoved);
+            }
+        }
+
         private async Task HandleManagePet(CommandContext context, long petId)
         {
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
@@ -79,6 +116,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     {
                         Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
                         Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
+                        Interactions.Pets.MoveToPosition.Disable(ownedPetCount <= 1),
                         Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
                         Interactions.Pets.MoveToBottom.Disable(pet.Priority == (ownedPetCount-1)),
                         Interactions.Pets.Rename,
@@ -113,6 +151,9 @@ namespace SteelBot.DiscordModules.Pets.Services
                             break;
                         case InteractionIds.Pets.Abandon:
                             await HandlePetAbandon(context, pet);
+                            break;
+                        case InteractionIds.Pets.MoveToButton:
+                            await PetModals.MovePet(result.Result.Interaction, pet, ownedPetCount);
                             break;
                     }
                 }
@@ -170,10 +211,10 @@ namespace SteelBot.DiscordModules.Pets.Services
                         await Cache.Pets.UpdatePet(ownedPet);
                     }
                 }
-                pet.Priority = allPets.Count-1;
+                pet.Priority = allPets.Count - 1;
                 await Cache.Pets.UpdatePet(pet);
                 await context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet));
-                
+
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
@@ -202,7 +243,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 --pet.Priority;
                 await Cache.Pets.UpdatePet(pet);
                 await context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet));
-                
+
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
@@ -238,6 +279,10 @@ namespace SteelBot.DiscordModules.Pets.Services
                     _ = context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity));
                 }
             }
+        }
+
+        private async Task HandleMovePosition(CommandContext context, DiscordInteraction interaction, Pet pet)
+        {
         }
 
         private async Task HandlePetAbandon(CommandContext context, Pet pet)
