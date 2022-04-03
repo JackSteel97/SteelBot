@@ -60,6 +60,12 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
+        public static DiscordMessageBuilder GetPetCapacityDecreasedMessage(int oldCapacity, int newCapacity)
+        {
+            var embedBuilder = EmbedGenerator.Warning($"This re-ordering of your pets has caused your active pet slots to decrease from `{oldCapacity}` to `{newCapacity}`.{Environment.NewLine}{Environment.NewLine}To fix this, bring some pets with positive pet slots to the top, or send ones with negative slots to the bottom.");
+            return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
         public static DiscordMessageBuilder GetMakePrimarySuccessMessage(Pet pet)
         {
             var embedBuilder = EmbedGenerator.Success($"{Formatter.Bold(pet.GetName())} Is now your primary pet and will receive a much larger share of XP!");

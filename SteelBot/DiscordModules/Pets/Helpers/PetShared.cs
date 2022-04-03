@@ -89,6 +89,18 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return availablePets;
         }
 
+        public static int GetPetCapacityFromAllPets(User user, List<Pet> allPets)
+        {
+            var activePets = GetAvailablePets(user, allPets, out _);
+            return GetPetCapacity(user, activePets);
+        }
+
+        public static int GetPetCapacity(User user, List<Pet> activePets)
+        {
+            var bonusCapacity = GetBonusValue(activePets, BonusType.PetSlots);
+            return GetPetCapacity(user, bonusCapacity);
+        }
+
         public static int GetPetCapacity(User user, double bonusCapacity)
         {
             // Restrict pet bonus slots to +50.
