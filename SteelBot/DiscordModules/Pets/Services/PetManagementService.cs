@@ -281,10 +281,6 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
         }
 
-        private async Task HandleMovePosition(CommandContext context, DiscordInteraction interaction, Pet pet)
-        {
-        }
-
         private async Task HandlePetAbandon(CommandContext context, Pet pet)
         {
             if (await InteractivityHelper.GetConfirmation(context, "Pet Release"))
