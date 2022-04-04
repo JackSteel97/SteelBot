@@ -63,7 +63,7 @@ namespace SteelBot
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .WriteTo.File("SteelBotLog.txt", rollingInterval: RollingInterval.Day);
+                .WriteTo.File("Logs/SteelBotLog.txt", rollingInterval: RollingInterval.Day);
 #if DEBUG
             loggerConfig.WriteTo.Console();
 #endif
