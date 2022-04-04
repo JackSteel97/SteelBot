@@ -104,7 +104,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             var bonuses = BuildBonuses(pet);
             pet.AddBonuses(bonuses);
 
-            Logger.LogInformation("Generated a new pet with Base Rarity {BaseRarity} and Final Rarity {FinalRarity}", baseRarity.ToString(), finalRarity.ToString());
+            Logger.LogDebug("Generated a new pet with Base Rarity {BaseRarity} and Final Rarity {FinalRarity}", baseRarity.ToString(), finalRarity.ToString());
             return pet;
         }
 
