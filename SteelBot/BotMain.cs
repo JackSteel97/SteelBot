@@ -26,8 +26,10 @@ using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.DiscordModules.WordGuesser;
+using SteelBot.DSharpPlusOverrides;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -125,7 +127,7 @@ namespace SteelBot
                 Services = ServiceProvider,
                 PrefixResolver = ResolvePrefix,
                 EnableDms = false,
-                CommandExecutor = new DSharpPlus.CommandsNext.Executors.AsynchronousCommandExecutor()
+                CommandExecutor = new ErrorHandlingAsynchronousCommandExecutor(ErrorHandlingService)
             });
 
             Commands.RegisterCommands<ConfigCommands>();
@@ -222,19 +224,23 @@ namespace SteelBot
             return Task.CompletedTask;
         }
 
-        private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
+        private Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
+                try
                 {
-                    await DataHelpers.Stats.HandleVoiceStateChange(args);
+                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
+                    {
+                        await DataHelpers.Stats.HandleVoiceStateChange(args);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
-            }
+                catch (Exception ex)
+                {
+                    await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
+                }
+            });
+            return Task.CompletedTask;
         }
 
         private async Task HandleJoiningGuild(DiscordClient client, GuildCreateEventArgs args)
@@ -251,26 +257,31 @@ namespace SteelBot
             }
         }
 
-        private async Task HandleLeavingGuild(DiscordClient client, GuildDeleteEventArgs args)
+        private Task HandleLeavingGuild(DiscordClient client, GuildDeleteEventArgs args)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                var usersInGuild = Cache.Users.GetUsersInGuild(args.Guild.Id);
-                foreach (var user in usersInGuild)
+                try
                 {
-                    await Cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
+                    var usersInGuild = Cache.Users.GetUsersInGuild(args.Guild.Id);
+                    foreach (var user in usersInGuild)
+                    {
+                        await Cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
+                    }
+                    await Cache.Guilds.RemoveGuild(args.Guild.Id);
                 }
-                await Cache.Guilds.RemoveGuild(args.Guild.Id);
-            }
-            catch (Exception ex)
-            {
-                await ErrorHandlingService.Log(ex, nameof(HandleLeavingGuild));
-            }
+                catch (Exception ex)
+                {
+                    await ErrorHandlingService.Log(ex, nameof(HandleLeavingGuild));
+                }
+            });
+            return Task.CompletedTask;
         }
 
         private Task HandleCommandErrored(CommandsNextExtension ext, CommandErrorEventArgs args)
         {
-            _ = Task.Run(async () =>
+            // TODO: This is awful, refactor.
+            Task.Run(async () =>
             {
                 if (args.Exception is ChecksFailedException ex)
                 {
@@ -307,17 +318,17 @@ namespace SteelBot
                     await ErrorHandlingService.Log(args.Exception, args.Context.Message.Content);
                     await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
                 }
-            });
+            }).FireAndForget(ErrorHandlingService);
             return Task.CompletedTask;
         }
 
         private Task HandleCommandExecuted(CommandsNextExtension ext, CommandExecutionEventArgs args)
         {
-            _ = Task.Run(async () =>
+            Task.Run(async () =>
             {
                 Interlocked.Increment(ref AppConfigurationService.HandledCommands);
                 await Cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
-            });
+            }).FireAndForget(ErrorHandlingService);
 
             return Task.CompletedTask;
         }
@@ -326,11 +337,8 @@ namespace SteelBot
         {
             try
             {
-                _ = Task.Run(async () =>
-                {
-                    var msg = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("This is a tester welcome message", $"Welcome to {args.Guild.Name}!", "Thanks for joining."));
-                    await args.Member.SendMessageAsync(msg);
-                });
+                var msg = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("This is a tester welcome message", $"Welcome to {args.Guild.Name}!", "Thanks for joining."));
+                await args.Member.SendMessageAsync(msg);
             }
             catch (Exception ex)
             {

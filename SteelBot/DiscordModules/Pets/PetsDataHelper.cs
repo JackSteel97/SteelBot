@@ -97,13 +97,13 @@ namespace SteelBot.DiscordModules.Pets
                     pet.Name = newName;
                     await Cache.Pets.UpdatePet(pet);
 
-                    await args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet)));
+                    args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet))).FireAndForget(ErrorHandlingService);
                     args.Handled = true;
                     return;
                 }
             }
 
-            await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(ErrorHandlingService); ;
         }
 
         public async Task HandleMovingPet(ModalSubmitEventArgs args)
@@ -125,7 +125,7 @@ namespace SteelBot.DiscordModules.Pets
                 }
             }
 
-            await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(ErrorHandlingService);
         }
 
         public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
@@ -156,7 +156,7 @@ namespace SteelBot.DiscordModules.Pets
             }
             else
             {
-                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
+                context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true).FireAndForget(ErrorHandlingService);
             }
         }
 
@@ -211,17 +211,16 @@ namespace SteelBot.DiscordModules.Pets
 
             if (changes.Length > 0 && sourceGuild != default && pets.Count > 0)
             {
-                await SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId, pingOwner);
+                SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId, pingOwner);
             }
         }
 
-        private Task SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
+        private void SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
             {
-                _ = PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId, pingOwner);
+                PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId, pingOwner).FireAndForget(ErrorHandlingService);
             }
-            return Task.CompletedTask;
         }
     }
 }

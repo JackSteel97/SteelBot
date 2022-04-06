@@ -8,6 +8,7 @@ using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
+using SteelBot.Services;
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,10 +19,12 @@ namespace SteelBot.DiscordModules.Pets.Services
     public class PetTreatingService
     {
         private readonly DataCache Cache;
+        private readonly ErrorHandlingService ErrorHandlingService;
 
-        public PetTreatingService(DataCache cache)
+        public PetTreatingService(DataCache cache, ErrorHandlingService errorHandlingService)
         {
             Cache = cache;
+            ErrorHandlingService = errorHandlingService;
         }
 
         public async Task Treat(CommandContext context)
@@ -78,10 +81,10 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var changes = new StringBuilder();
                 bool levelledUp = PetShared.PetXpChanged(pet, changes, out var shouldPingOwner);
                 await Cache.Pets.UpdatePet(pet);
-                await context.Channel.SendMessageAsync(PetMessages.GetPetTreatedMessage(pet, xpGain));
+                context.Channel.SendMessageAsync(PetMessages.GetPetTreatedMessage(pet, xpGain)).FireAndForget(ErrorHandlingService);
                 if (levelledUp && Cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
                 {
-                    await PetShared.SendPetLevelledUpMessage(changes, guild, context.Guild, context.Member.Id, shouldPingOwner);
+                    PetShared.SendPetLevelledUpMessage(changes, guild, context.Guild, context.Member.Id, shouldPingOwner).FireAndForget(ErrorHandlingService);
                 }
             }
         }

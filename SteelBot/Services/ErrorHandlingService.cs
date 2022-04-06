@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.Exceptions;
 using SteelBot.Helpers;
 using SteelBot.Services.Configuration;
 using System;
@@ -26,9 +27,26 @@ namespace SteelBot.Services
 
         public async Task Log(Exception e, string source)
         {
-            Logger.LogError(e, $"Source Method: [{source}]");
-            await Cache.Exceptions.InsertException(new ExceptionLog(e, source));
-            await SendMessageToJack(e, source);
+            try
+            {
+                Logger.LogError(e, "Source Method: {Source}", source);
+                if (e.InnerException != null)
+                {
+                    await Cache.Exceptions.InsertException(new ExceptionLog(e.InnerException, source));
+                    await SendMessageToJack(e.InnerException, source);
+                }
+
+                await Cache.Exceptions.InsertException(new ExceptionLog(e, source));
+
+                if (e is not FireAndForgetTaskException)
+                {
+                    await SendMessageToJack(e, source);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "An error occurred while attempting to log an error");
+            }
         }
 
         private async Task SendMessageToJack(Exception e, string source)

@@ -12,6 +12,7 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -23,12 +24,14 @@ namespace SteelBot.DiscordModules.Pets.Services
     {
         private readonly DataCache Cache;
         private readonly PetFactory PetFactory;
+        private readonly ErrorHandlingService ErrorHandlingService;
         private readonly ILogger<PetBefriendingService> Logger;
 
-        public PetBefriendingService(DataCache cache, PetFactory petFactory, ILogger<PetBefriendingService> logger)
+        public PetBefriendingService(DataCache cache, PetFactory petFactory, ErrorHandlingService errorHandlingService, ILogger<PetBefriendingService> logger)
         {
             Cache = cache;
             PetFactory = petFactory;
+            ErrorHandlingService = errorHandlingService;
             Logger = logger;
         }
 
@@ -84,15 +87,15 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (!result.TimedOut)
             {
                 initialResponseBuilder.ClearComponents();
-                await message.ModifyAsync(initialResponseBuilder);
+                message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
                 befriendAttempt = result.Result.Id == InteractionIds.Pets.Befriend;
                 interaction = result.Result.Interaction;
             }
             else
             {
                 Logger.LogInformation("Pet found message timed out waiting for a user response from User {UserId} in Guild {GuildId}", context.User.Id, context.Guild.Id);
-                await message.DeleteAsync();
-                await context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet));
+                message.DeleteAsync().FireAndForget(ErrorHandlingService);
+                context.RespondAsync(PetMessages.GetPetRanAwayMessage(foundPet)).FireAndForget(ErrorHandlingService);
             }
 
             return (befriendAttempt, foundPet, interaction);
@@ -117,7 +120,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             else
             {
                 var response = PetMessages.GetBefriendFailedMessage(pet).WithReply(context.Message.Id, mention: true);
-                await context.Channel.SendMessageAsync(response);
+                context.Channel.SendMessageAsync(response).FireAndForget(ErrorHandlingService);
             }
             return befriendSuccess;
         }

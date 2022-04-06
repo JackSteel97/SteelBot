@@ -12,7 +12,9 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Stats.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
+using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -28,14 +30,16 @@ namespace SteelBot.DiscordModules.Stats
         private readonly ILogger<StatsDataHelper> Logger;
         private readonly PetsDataHelper PetsDataHelper;
         private readonly RankRoleDataHelper RankRoleDataHelper;
+        private readonly ErrorHandlingService ErrorHandlingService;
 
-        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper, RankRoleDataHelper rankRoleDataHelper)
+        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper, RankRoleDataHelper rankRoleDataHelper, ErrorHandlingService errorHandlingService)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
             Logger = logger;
             PetsDataHelper = petsDataHelper;
             RankRoleDataHelper = rankRoleDataHelper;
+            ErrorHandlingService = errorHandlingService;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
@@ -57,7 +61,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 if (levelIncreased)
                 {
-                    await SendLevelUpMessage(args.Guild, args.Author);
+                    SendLevelUpMessage(args.Guild, args.Author);
                 }
             }
 
@@ -145,7 +149,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 if (levelIncreased)
                 {
-                    await SendLevelUpMessage(guild, discordUser);
+                    SendLevelUpMessage(guild, discordUser);
                 }
             }
 
@@ -246,7 +250,7 @@ namespace SteelBot.DiscordModules.Stats
             return velocity;
         }
 
-        private Task SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
+        private void SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild) && Cache.Users.TryGetUser(discordGuild.Id, discordUser.Id, out User user))
             {
@@ -254,10 +258,10 @@ namespace SteelBot.DiscordModules.Stats
 
                 if (channel != null)
                 {
-                    _ = channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"));
+                    channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
+                        .FireAndForget(ErrorHandlingService);
                 }
             }
-            return Task.CompletedTask;
         }
     }
 }

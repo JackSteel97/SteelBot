@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Nito.AsyncEx;
 using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.Services.Configuration;
@@ -16,6 +17,7 @@ namespace SteelBot.DataProviders.SubProviders
         private readonly ILogger<UsersProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
         private readonly AppConfigurationService AppConfigurationService;
+        private readonly AsyncReaderWriterLock Lock = new AsyncReaderWriterLock();
 
         /// <summary>
         /// Indexed on the user's discord id & guild id
@@ -34,39 +36,54 @@ namespace SteelBot.DataProviders.SubProviders
 
         private Dictionary<(ulong, ulong), User> LoadUserData()
         {
-            var result = new Dictionary<(ulong, ulong), User>();
-            Logger.LogInformation("Loading data from database: Users");
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
+            using (Lock.WriterLock())
             {
-                result = db.Users
-                    .Include(u => u.Guild)
-                    .Include(u => u.CurrentRankRole)
-                    .AsNoTracking()
-                    .ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
+                var result = new Dictionary<(ulong, ulong), User>();
+                Logger.LogInformation("Loading data from database: Users");
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                {
+                    result = db.Users
+                        .Include(u => u.Guild)
+                        .Include(u => u.CurrentRankRole)
+                        .AsNoTracking()
+                        .ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
+                }
+                return result;
             }
-            return result;
         }
 
         public bool BotKnowsUser(ulong guildId, ulong userId)
         {
-            return UsersByDiscordIdAndServer.ContainsKey((guildId, userId));
+            using (Lock.ReaderLock())
+            {
+                return BotKnowsUserCore(guildId, userId);
+            }
         }
 
         public bool TryGetUser(ulong guildId, ulong userId, out User user)
         {
-            return UsersByDiscordIdAndServer.TryGetValue((guildId, userId), out user);
+            using (Lock.ReaderLock())
+            {
+                return TryGetUserCore(guildId, userId, out user);
+            }
         }
 
         public List<User> GetAllUsers()
         {
-            return UsersByDiscordIdAndServer.Values.ToList();
+            using (Lock.ReaderLock())
+            {
+                return UsersByDiscordIdAndServer.Values.ToList();
+            }
         }
 
         public List<User> GetUsersInGuild(ulong guildId)
         {
-            ILookup<ulong, User> lookup = UsersByDiscordIdAndServer.ToLookup(u => u.Key.guildId, u => u.Value);
-            // Returns empty collection if guild id not found.
-            return lookup[guildId].ToList();
+            using (Lock.ReaderLock())
+            {
+                ILookup<ulong, User> lookup = UsersByDiscordIdAndServer.ToLookup(u => u.Key.guildId, u => u.Value);
+                // Returns empty collection if guild id not found.
+                return lookup[guildId].ToList();
+            }
         }
 
         /// <summary>
@@ -77,48 +94,54 @@ namespace SteelBot.DataProviders.SubProviders
         /// <param name="user">The internal model for the </param>
         public async Task InsertUser(ulong guildId, User user)
         {
-            if (!BotKnowsUser(guildId, user.DiscordId))
+            using (await Lock.WriterLockAsync())
             {
-                Logger.LogInformation($"Writing a new User [{user.DiscordId}] in Guild [{guildId}]");
+                if (!BotKnowsUserCore(guildId, user.DiscordId))
+                {
+                    Logger.LogInformation("Writing a new User {UserId} in Guild {GuildId}", user.DiscordId, guildId);
 
-                int writtenCount;
-                using (SteelBotContext db = DbContextFactory.CreateDbContext())
-                {
-                    db.Users.Add(user);
-                    writtenCount = await db.SaveChangesAsync();
-                }
+                    int writtenCount;
+                    using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                    {
+                        db.Users.Add(user);
+                        writtenCount = await db.SaveChangesAsync();
+                    }
 
-                if (writtenCount > 0)
-                {
-                    UsersByDiscordIdAndServer.Add((guildId, user.DiscordId), user);
-                }
-                else
-                {
-                    Logger.LogError($"Writing User [{user.DiscordId}] in Guild [{guildId}] to the database inserted no entities. The internal cache was not changed.");
+                    if (writtenCount > 0)
+                    {
+                        UsersByDiscordIdAndServer.Add((guildId, user.DiscordId), user);
+                    }
+                    else
+                    {
+                        Logger.LogError("Writing User {UserId} in Guild {GuildId} to the database inserted no entities. The internal cache was not changed.", user.DiscordId, guildId);
+                    }
                 }
             }
         }
 
         public async Task RemoveUser(ulong guildId, ulong userId)
         {
-            if(TryGetUser(guildId, userId, out User user))
+            using (await Lock.WriterLockAsync())
             {
-                Logger.LogInformation("Deleting a User [{UserId}] in Guild [{GuildId}]", userId, guildId);
+                if (TryGetUserCore(guildId, userId, out User user))
+                {
+                    Logger.LogInformation("Deleting a User [{UserId}] in Guild [{GuildId}]", userId, guildId);
 
-                int writtenCount;
-                using (SteelBotContext db = DbContextFactory.CreateDbContext())
-                {
-                    db.Users.Remove(user);
-                    writtenCount = await db.SaveChangesAsync();
-                }
+                    int writtenCount;
+                    using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                    {
+                        db.Users.Remove(user);
+                        writtenCount = await db.SaveChangesAsync();
+                    }
 
-                if (writtenCount > 0)
-                {
-                    UsersByDiscordIdAndServer.Remove((guildId, userId));
-                }
-                else
-                {
-                    Logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", userId, guildId);
+                    if (writtenCount > 0)
+                    {
+                        UsersByDiscordIdAndServer.Remove((guildId, userId));
+                    }
+                    else
+                    {
+                        Logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", userId, guildId);
+                    }
                 }
             }
         }
@@ -127,7 +150,7 @@ namespace SteelBot.DataProviders.SubProviders
         {
             if (TryGetUser(guildId, userId, out User user))
             {
-                Logger.LogInformation($"Updating RankRole for User [{userId}] in Guild [{guildId}] to [{newRole?.RoleName}]");
+                Logger.LogInformation("Updating RankRole for User {UserId} in Guild {GuildId} to {NewRole}", userId, guildId, newRole?.RoleName);
 
                 // Clone user to avoid making change to cache till db change confirmed.
                 User copyOfUser = user.Clone();
@@ -148,24 +171,37 @@ namespace SteelBot.DataProviders.SubProviders
 
         public async Task UpdateUser(ulong guildId, User newUser)
         {
-            int writtenCount;
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
+            using (await Lock.WriterLockAsync())
             {
-                // To prevent EF tracking issue, grab and alter existing value.
-                User original = db.Users.First(u => u.RowId == newUser.RowId);
-                db.Entry(original).CurrentValues.SetValues(newUser);
-                db.Users.Update(original);
-                writtenCount = await db.SaveChangesAsync();
-            }
+                int writtenCount;
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                {
+                    // To prevent EF tracking issue, grab and alter existing value.
+                    User original = db.Users.First(u => u.RowId == newUser.RowId);
+                    db.Entry(original).CurrentValues.SetValues(newUser);
+                    db.Users.Update(original);
+                    writtenCount = await db.SaveChangesAsync();
+                }
 
-            if (writtenCount > 0)
-            {
-                UsersByDiscordIdAndServer[(guildId, newUser.DiscordId)] = newUser;
+                if (writtenCount > 0)
+                {
+                    UsersByDiscordIdAndServer[(guildId, newUser.DiscordId)] = newUser;
+                }
+                else
+                {
+                    Logger.LogError("Updating User {UserId} in Guild {GuildId} did not alter any entities. The internal cache was not changed.", newUser.DiscordId, guildId);
+                }
             }
-            else
-            {
-                Logger.LogError($"Updating User [{newUser.DiscordId}] in Guild [{guildId}] did not alter any entities. The internal cache was not changed.");
-            }
+        }
+
+        private bool BotKnowsUserCore(ulong guildId, ulong userId)
+        {
+            return UsersByDiscordIdAndServer.ContainsKey((guildId, userId));
+        }
+
+        private bool TryGetUserCore(ulong guildId, ulong userId, out User user)
+        {
+            return UsersByDiscordIdAndServer.TryGetValue((guildId, userId), out user);
         }
     }
 }

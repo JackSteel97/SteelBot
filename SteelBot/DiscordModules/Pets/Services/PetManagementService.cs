@@ -8,6 +8,7 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +20,12 @@ namespace SteelBot.DiscordModules.Pets.Services
     public class PetManagementService
     {
         private readonly DataCache Cache;
+        private readonly ErrorHandlingService ErrorHandlingService;
 
-        public PetManagementService(DataCache cache)
+        public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService)
         {
             Cache = cache;
+            ErrorHandlingService = errorHandlingService;
         }
 
         public async Task Manage(CommandContext context)
@@ -62,7 +65,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
             else
             {
-                await context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true);
+                context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true).FireAndForget(ErrorHandlingService);
             }
         }
 
@@ -131,7 +134,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                 if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
-                    await message.ModifyAsync(initialResponseBuilder);
+                    message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
                     switch (result.Result.Id)
                     {
                         case InteractionIds.Pets.Rename:
@@ -185,12 +188,12 @@ namespace SteelBot.DiscordModules.Pets.Services
                 }
                 pet.Priority = 0;
                 await Cache.Pets.UpdatePet(pet);
-                await context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet));
+                context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
-                    _ = context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity));
+                    context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
                 }
             }
         }
@@ -213,12 +216,12 @@ namespace SteelBot.DiscordModules.Pets.Services
                 }
                 pet.Priority = allPets.Count - 1;
                 await Cache.Pets.UpdatePet(pet);
-                await context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet));
+                context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
-                    _ = context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity));
+                    context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
                 }
             }
         }
@@ -242,12 +245,12 @@ namespace SteelBot.DiscordModules.Pets.Services
                 }
                 --pet.Priority;
                 await Cache.Pets.UpdatePet(pet);
-                await context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet));
+                context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
-                    _ = context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity));
+                    context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
                 }
             }
         }
@@ -271,12 +274,12 @@ namespace SteelBot.DiscordModules.Pets.Services
                 }
                 ++pet.Priority;
                 await Cache.Pets.UpdatePet(pet);
-                await context.Channel.SendMessageAsync(PetMessages.GetPriorityDecreaseSuccessMessage(pet));
+                context.Channel.SendMessageAsync(PetMessages.GetPriorityDecreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
                 int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
-                    _ = context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity));
+                    context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
                 }
             }
         }
@@ -299,7 +302,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     }
                 }
 
-                await context.Channel.SendMessageAsync(PetMessages.GetAbandonSuccessMessage(pet));
+                context.Channel.SendMessageAsync(PetMessages.GetAbandonSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
             }
         }
     }
