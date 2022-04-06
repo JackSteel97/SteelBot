@@ -158,7 +158,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 }
 
                 string bonusSuffix = "";
-                if(bonus.BonusType == BonusType.PetSlots && bonus.Value > 50)
+                if(bonus.BonusType == BonusType.PetSlots && bonusValue > 50)
                 {
                     bonusSuffix = " (Capped at +50)";
                 }
