@@ -237,14 +237,19 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static double GetBonusValue(List<Pet> activePets, BonusType targetType)
         {
-            double multiplier = targetType.IsPercentage() ? 1 : 0;
+            bool isPercentage = targetType.IsPercentage();
+            double multiplier = isPercentage ? 1 : 0;
             foreach (var pet in activePets)
             {
                 foreach (var bonus in pet.Bonuses)
                 {
                     if (bonus.BonusType.HasFlag(targetType))
                     {
-                        multiplier += bonus.Value;
+                        var value = bonus.Value;
+                        if (!isPercentage) {
+                            value = Math.Floor(bonus.Value);
+                        }
+                        multiplier += value;
                     }
                 }
             }

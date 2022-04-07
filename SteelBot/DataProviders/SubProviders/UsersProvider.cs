@@ -180,7 +180,7 @@ namespace SteelBot.DataProviders.SubProviders
                     // To prevent EF tracking issue, grab and alter existing value.
                     User original = db.Users.First(u => u.RowId == newUser.RowId);
 
-                    var audit = new UserAudit(original, guildId, newUser.CurrentRankRole.RoleName);
+                    var audit = new UserAudit(original, guildId, newUser.CurrentRankRole?.RoleName);
                     db.UserAudits.Add(audit);
 
                     db.Entry(original).CurrentValues.SetValues(newUser);
