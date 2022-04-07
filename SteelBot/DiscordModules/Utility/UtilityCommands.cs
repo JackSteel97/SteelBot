@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
 using SteelBot.DataProviders;
@@ -10,6 +11,7 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -56,7 +58,8 @@ namespace SteelBot.DiscordModules.Utility
                 else if (channel.Value.Type == ChannelType.Voice)
                 {
                     ++voiceChannels;
-                }else if(channel.Value.Type == ChannelType.Category)
+                }
+                else if (channel.Value.Type == ChannelType.Category)
                 {
                     ++categories;
                 }
@@ -66,22 +69,22 @@ namespace SteelBot.DiscordModules.Utility
             var created = (context.Guild.CreationTimestamp - DateTime.UtcNow).Humanize(2, maxUnit: Humanizer.Localisation.TimeUnit.Year);
             var botAdded = (guild.BotAddedTo - DateTime.UtcNow).Humanize(2, maxUnit: Humanizer.Localisation.TimeUnit.Year);
             var levelAnnouncementChannel = guild.GetLevelAnnouncementChannel(context.Guild);
-            
+
             var rankRolesCount = 0;
             var selfRolesCount = 0;
             var triggersCount = 0;
 
-            if(Cache.RankRoles.TryGetGuildRankRoles(guild.DiscordId, out var rankRoles))
+            if (Cache.RankRoles.TryGetGuildRankRoles(guild.DiscordId, out var rankRoles))
             {
                 rankRolesCount = rankRoles.Count;
             }
 
-            if(Cache.SelfRoles.TryGetGuildRoles(guild.DiscordId, out var selfRoles))
+            if (Cache.SelfRoles.TryGetGuildRoles(guild.DiscordId, out var selfRoles))
             {
                 selfRolesCount = selfRoles.Count;
             }
 
-            if(Cache.Triggers.TryGetGuildTriggers(guild.DiscordId, out var triggers))
+            if (Cache.Triggers.TryGetGuildTriggers(guild.DiscordId, out var triggers))
             {
                 triggersCount = triggers.Count;
             }
@@ -249,6 +252,34 @@ namespace SteelBot.DiscordModules.Utility
                 await context.Channel.SendMessageAsync(shutdownGif);
                 ApplicationLifetime.StopApplication();
             }
+        }
+
+        [Command("logs")]
+        [Description("Send the current log file.")]
+        [RequireOwner]
+        public async Task GetLogs(CommandContext context)
+        {
+            var logDirectoryPath = Path.Combine(AppConfigurationService.BasePath, "Logs");
+            var logDirectory = new DirectoryInfo(logDirectoryPath);
+
+            var latestLogFile = logDirectory.GetFiles().OrderByDescending(x => x.LastWriteTimeUtc).FirstOrDefault();
+
+            if (latestLogFile != null)
+            {
+                using (var stream = File.Open(latestLogFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var fs = new MemoryStream())
+                    {
+                        await stream.CopyToAsync(fs);
+                        fs.Position = 0;
+                        var message = new DiscordMessageBuilder().WithFile(latestLogFile.Name, fs);
+                        await context.RespondAsync(message);
+                        return;
+                    }
+                }
+            }
+            await context.RespondAsync(EmbedGenerator.Warning("Something went wrong and I couldn't find the latest log file."));
+            return;
         }
     }
 }

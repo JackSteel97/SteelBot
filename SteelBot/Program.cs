@@ -60,10 +60,11 @@ namespace SteelBot
             UserExtensions.LevelConfig = appConfigurationService.Application.Levelling;
 
             // Logging setup.
+            const int fileSizeLimitBytes = 8 * 1000 * 1000;
             var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .WriteTo.File("Logs/SteelBotLog.txt", rollingInterval: RollingInterval.Day);
+                .WriteTo.File("Logs/SteelBotLog.txt", rollingInterval: RollingInterval.Day, fileSizeLimitBytes: fileSizeLimitBytes, rollOnFileSizeLimit: true);
 #if DEBUG
             loggerConfig.WriteTo.Console();
 #endif

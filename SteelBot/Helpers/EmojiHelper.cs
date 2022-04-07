@@ -60,6 +60,7 @@ namespace SteelBot.Helpers
         {
             public const string Hugging = "\uD83E\uDD17";
             public const string Pleading = "\uD83E\uDD7A";
+            public const string Flushed = "\uD83D\uDE33";
         }
 
         public static class RegionalIndicators
