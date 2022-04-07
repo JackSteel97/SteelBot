@@ -1,5 +1,6 @@
 ﻿using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace SteelBot.DiscordModules.Pets.Models
@@ -44,7 +45,13 @@ namespace SteelBot.DiscordModules.Pets.Models
         {
             if(Totals.TryGetValue(bonus.BonusType, out var bonusTotal))
             {
-                bonusTotal.Value += bonus.Value;
+                bool isPercentage = bonus.BonusType.IsPercentage();
+                var value = bonus.Value;
+                if (!isPercentage)
+                {
+                    value = Math.Round(bonus.Value);
+                }
+                bonusTotal.Value += value;
             }
             else
             {
@@ -57,6 +64,5 @@ namespace SteelBot.DiscordModules.Pets.Models
         {
             PassiveOffline += passiveXp;
         }
-
     }
 }

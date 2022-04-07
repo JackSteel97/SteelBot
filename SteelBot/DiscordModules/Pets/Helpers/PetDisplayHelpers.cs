@@ -145,7 +145,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             string bonusValueFormat = "P2";
             if (!bonus.BonusType.IsPercentage())
             {
-                bonusValue = Math.Floor(bonusValue);
+                bonusValue = Math.Round(bonusValue);
                 bonusValueFormat = "N0";
             }
 

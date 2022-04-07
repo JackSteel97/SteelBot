@@ -247,7 +247,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     {
                         var value = bonus.Value;
                         if (!isPercentage) {
-                            value = Math.Floor(bonus.Value);
+                            value = Math.Round(bonus.Value);
                         }
                         multiplier += value;
                     }
