@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using SteelBot.Database;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -178,12 +179,18 @@ namespace SteelBot.DataProviders.SubProviders
                 {
                     // To prevent EF tracking issue, grab and alter existing value.
                     User original = db.Users.First(u => u.RowId == newUser.RowId);
+
+                    var audit = new UserAudit(original, guildId, newUser.CurrentRankRole.RoleName);
+                    db.UserAudits.Add(audit);
+
                     db.Entry(original).CurrentValues.SetValues(newUser);
+                    original.LastUpdated = DateTime.UtcNow;
                     db.Users.Update(original);
                     writtenCount = await db.SaveChangesAsync();
                 }
 
-                if (writtenCount > 0)
+                // Both audit and actual written?
+                if (writtenCount > 1)
                 {
                     UsersByDiscordIdAndServer[(guildId, newUser.DiscordId)] = newUser;
                 }

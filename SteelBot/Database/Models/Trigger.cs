@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SteelBot.Database.Models.Users;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SteelBot.Database.Models

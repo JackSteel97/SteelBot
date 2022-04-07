@@ -8,6 +8,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using ScottPlot;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services.Configuration;

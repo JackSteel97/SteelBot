@@ -1,23 +1,10 @@
-﻿using SteelBot.Helpers;
-using SteelBot.Services.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace SteelBot.Database.Models
+namespace SteelBot.Database.Models.Users
 {
-    public class User
+    public class User : UserBase
     {
-        public long RowId { get; set; }
-        public ulong DiscordId { get; set; }
-        public long MessageCount { get; set; }
-        public ulong TotalMessageLength { get; set; }
-        public ulong TimeSpentInVoiceSeconds { get; set; }
-        public ulong TimeSpentMutedSeconds { get; set; }
-        public ulong TimeSpentDeafenedSeconds { get; set; }
-        public ulong TimeSpentStreamingSeconds { get; set; }
-        public ulong TimeSpentOnVideoSeconds { get; set; }
-        public ulong TimeSpentAfkSeconds { get; set; }
-        public ulong TimeSpentDisconnectedSeconds { get; set; }
         public DateTime UserFirstSeen { get; set; }
         public DateTime? MutedStartTime { get; set; }
         public DateTime? DeafenedStartTime { get; set; }
@@ -27,45 +14,13 @@ namespace SteelBot.Database.Models
         public DateTime? AfkStartTime { get; set; }
         public DateTime? DisconnectedStartTime { get; set; }
         public DateTime LastActivity { get; set; }
-
-        public long GuildRowId { get; set; }
-        public Guild Guild { get; set; }
-
-        public ulong MessageXpEarned { get; set; }
-        public ulong VoiceXpEarned { get; set; }
-        public ulong MutedXpEarned { get; set; }
-        public ulong DeafenedXpEarned { get; set; }
-        public ulong StreamingXpEarned { get; set; }
-        public ulong VideoXpEarned { get; set; }
-        public ulong DisconnectedXpEarned { get; set; }
-
-        public int CurrentLevel { get; set; }
-
         public DateTime? LastMessageSent { get; set; }
         public DateTime? LastXpEarningMessage { get; set; }
-
-        public long? CurrentRankRoleRowId { get; set; }
-
+        public Guild Guild { get; set; }
         public RankRole CurrentRankRole { get; set; }
         public List<Trigger> CreatedTriggers { get; set; }
         public StockPortfolio StockPortfolio { get; set; }
-
-        public ulong TotalXp
-        {
-            get
-            {
-                var positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned + DisconnectedXpEarned;
-                var negativeXp = MutedXpEarned + DeafenedXpEarned;
-                if(positiveXp >= negativeXp)
-                {
-                    return positiveXp - negativeXp;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
+        public DateTime? LastUpdated { get; set; }
 
         #region TimeSpan Computers
 
@@ -172,15 +127,6 @@ namespace SteelBot.Database.Models
         {
             User userCopy = (User)MemberwiseClone();
             return userCopy;
-        }
-
-        public long GetAverageMessageLength()
-        {
-            if (MessageCount > 0)
-            {
-                return Convert.ToInt64(TotalMessageLength) / MessageCount;
-            }
-            return 0;
         }
     }
 }

@@ -5,6 +5,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Users;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Models;

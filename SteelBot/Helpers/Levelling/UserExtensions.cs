@@ -1,6 +1,6 @@
 ﻿using DSharpPlus.Entities;
-using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Users;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Services.Configuration;

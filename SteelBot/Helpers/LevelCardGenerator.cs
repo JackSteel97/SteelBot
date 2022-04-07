@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services.Configuration;

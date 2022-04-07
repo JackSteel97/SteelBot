@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
 using System.Threading.Tasks;

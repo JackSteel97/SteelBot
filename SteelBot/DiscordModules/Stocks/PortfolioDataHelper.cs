@@ -6,6 +6,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Services;

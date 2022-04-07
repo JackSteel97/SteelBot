@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using System;

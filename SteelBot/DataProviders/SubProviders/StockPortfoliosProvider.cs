@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;

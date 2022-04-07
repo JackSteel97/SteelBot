@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using System;

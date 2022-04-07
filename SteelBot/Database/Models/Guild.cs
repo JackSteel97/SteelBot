@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Entities;
+using SteelBot.Database.Models.Users;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

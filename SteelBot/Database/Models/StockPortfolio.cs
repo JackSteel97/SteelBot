@@ -1,5 +1,6 @@
 ﻿using AlphaVantage.Net.Stocks;
 using ScottPlot;
+using SteelBot.Database.Models.Users;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;

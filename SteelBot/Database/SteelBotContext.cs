@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Users;
 using System;
 
 namespace SteelBot.Database
@@ -28,6 +29,7 @@ namespace SteelBot.Database
         public DbSet<Pet> Pets { get; set; }
         public DbSet<PetAttribute> PetAttributes { get; set; }
         public DbSet<PetBonus> PetBonuses { get; set; }
+        public DbSet<UserAudit> UserAudits { get; set; }
 
         public SteelBotContext(DbContextOptions<SteelBotContext> options) : base(options)
         {
@@ -63,6 +65,12 @@ namespace SteelBot.Database
                 entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
                 entity.HasOne(u => u.CurrentRankRole).WithMany(rr => rr.UsersWithRole).HasForeignKey(u => u.CurrentRankRoleRowId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
                 entity.HasOne(u => u.StockPortfolio).WithOne(pf => pf.Owner).HasForeignKey<StockPortfolio>(pf => pf.OwnerRowId);
+            });
+
+            modelBuilder.Entity<UserAudit>(entity =>
+            {
+                entity.HasKey(u => u.RowId);
+                entity.Ignore(u => u.TotalXp);
             });
 
             modelBuilder.Entity<SelfRole>(entity =>

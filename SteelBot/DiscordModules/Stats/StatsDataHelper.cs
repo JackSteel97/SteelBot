@@ -5,6 +5,7 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
