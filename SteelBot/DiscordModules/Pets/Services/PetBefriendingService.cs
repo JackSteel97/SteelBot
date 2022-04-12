@@ -1,5 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
@@ -14,7 +13,6 @@ using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 

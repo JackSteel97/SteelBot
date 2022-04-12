@@ -110,13 +110,13 @@ namespace SteelBot.Helpers.Levelling
 
         public static void IncrementPetXp(ulong userEarnedXp, List<Pet> activePets)
         {
-            const double maximumPercentage = 0.5;
+            const double maximumPercentage = 1;
             const double minimumPercentage = 0.01;
             var sharedXpMultiplier = PetShared.GetBonusValue(activePets, BonusType.PetSharedXP);
 
             foreach (var pet in activePets)
             {
-                var priorityDivisor = Math.Pow(pet.Priority + 1, 2);
+                var priorityDivisor = (pet.Priority + 1) * 2;
                 double thisPercentage = Math.Max((maximumPercentage / priorityDivisor) * sharedXpMultiplier, minimumPercentage);
                 double earnedXp = userEarnedXp * thisPercentage;
 
