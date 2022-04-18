@@ -30,17 +30,19 @@ namespace SteelBot.DiscordModules.Stats
         private readonly AppConfigurationService AppConfigurationService;
         private readonly ILogger<StatsDataHelper> Logger;
         private readonly PetsDataHelper PetsDataHelper;
-        private readonly RankRoleDataHelper RankRoleDataHelper;
-        private readonly ErrorHandlingService ErrorHandlingService;
+        private readonly LevelMessageSender LevelMessageSender;
 
-        public StatsDataHelper(DataCache cache, AppConfigurationService appConfigurationService, ILogger<StatsDataHelper> logger, PetsDataHelper petsDataHelper, RankRoleDataHelper rankRoleDataHelper, ErrorHandlingService errorHandlingService)
+        public StatsDataHelper(DataCache cache,
+            AppConfigurationService appConfigurationService,
+            ILogger<StatsDataHelper> logger,
+            PetsDataHelper petsDataHelper,
+            LevelMessageSender levelMessageSender)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
             Logger = logger;
             PetsDataHelper = petsDataHelper;
-            RankRoleDataHelper = rankRoleDataHelper;
-            ErrorHandlingService = errorHandlingService;
+            LevelMessageSender = levelMessageSender;
         }
 
         public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
@@ -62,7 +64,7 @@ namespace SteelBot.DiscordModules.Stats
 
                 if (levelIncreased)
                 {
-                    SendLevelUpMessage(args.Guild, args.Author);
+                    LevelMessageSender.SendLevelUpMessage(args.Guild, args.Author);
                 }
             }
 
@@ -84,114 +86,6 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentDeafened, user.TimeSpentInVoice):P2})`", true);
 
             return embedBuilder;
-        }
-
-        public async Task HandleVoiceStateChange(VoiceStateUpdateEventArgs args)
-        {
-            IReadOnlyList<DiscordMember> usersInChannel;
-            if (args.After != null && args.After.Channel != null)
-            {
-                // Joining voice channel.
-                usersInChannel = args.After.Channel.Users;
-            }
-            else if (args.Before != null && args.Before.Channel != null)
-            {
-                // Leaving voice channel.
-                usersInChannel = args.Before.Channel.Users;
-            }
-            else
-            {
-                usersInChannel = new List<DiscordMember>();
-            }
-
-            var scalingFactor = GetVoiceXpScalingFactor(args.Guild.Id, args.User.Id, usersInChannel);
-
-            // Update this user
-            if (await UpdateUserVoiceStats(args.Guild, args.User, args.After, scalingFactor))
-            {
-                await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, args.User.Id, args.Guild);
-            }
-
-            foreach (var userInChannel in usersInChannel)
-            {
-                if (userInChannel.Id != args.User.Id)
-                {
-                    var otherScalingFactor = GetVoiceXpScalingFactor(args.Guild.Id, userInChannel.Id, usersInChannel);
-                    // Update other users.
-                    if (await UpdateUserVoiceStats(args.Guild, userInChannel, userInChannel.VoiceState, otherScalingFactor))
-                    {
-                        await RankRoleDataHelper.UserLevelledUp(args.Guild.Id, userInChannel.Id, args.Guild);
-                    }
-                }
-            }
-        }
-
-        private async Task<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor)
-        {
-            ulong guildId = guild.Id;
-            ulong userId = discordUser.Id;
-            bool levelIncreased = false;
-
-            if (TryGetUser(guildId, userId, out User user))
-            {
-                Logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
-
-                User copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(guildId, userId, out _);
-                copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor);
-
-                if (scalingFactor != 0)
-                {
-                    levelIncreased = copyOfUser.UpdateLevel();
-                    await PetsDataHelper.PetXpUpdated(availablePets, guild);
-                }
-
-                await Cache.Users.UpdateUser(guildId, copyOfUser);
-
-                if (levelIncreased)
-                {
-                    SendLevelUpMessage(guild, discordUser);
-                }
-            }
-
-            return levelIncreased;
-        }
-
-        private double GetVoiceXpScalingFactor(ulong guildId, ulong currentUserId, IReadOnlyList<DiscordMember> usersInChannel)
-        {
-            Logger.LogInformation("Calculating Voice Xp scaling factor for User {UserId} in Guild {GuildId}", currentUserId, guildId);
-            int otherUsersCount = 0;
-            double scalingFactor = 0;
-
-            if (!Cache.Users.TryGetUser(guildId, currentUserId, out var thisUser))
-            {
-                Logger.LogWarning("Could not retrieve data for User {UserId} in Guild {GuildId}", currentUserId, guildId);
-                return scalingFactor;
-            }
-
-            foreach (var userInChannel in usersInChannel)
-            {
-                if (userInChannel.Id != currentUserId)
-                {
-                    ++otherUsersCount;
-                    if (Cache.Users.TryGetUser(guildId, userInChannel.Id, out var otherUser) && otherUser.CurrentLevel > 0)
-                    {
-                        scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
-                    }
-                }
-            }
-
-            if (otherUsersCount > 0)
-            {
-                // Take average scaling factor.
-                scalingFactor /= otherUsersCount;
-                var groupBonus = (otherUsersCount - 1) / 10D;
-                scalingFactor += groupBonus;
-            }
-
-            Logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor}", currentUserId, guildId, scalingFactor);
-
-            return scalingFactor;
         }
 
         /// <summary>
@@ -249,20 +143,6 @@ namespace SteelBot.DiscordModules.Stats
                 velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
             }
             return velocity;
-        }
-
-        private void SendLevelUpMessage(DiscordGuild discordGuild, DiscordUser discordUser)
-        {
-            if (Cache.Guilds.TryGetGuild(discordGuild.Id, out Guild guild) && Cache.Users.TryGetUser(discordGuild.Id, discordUser.Id, out User user))
-            {
-                DiscordChannel channel = guild.GetLevelAnnouncementChannel(discordGuild);
-
-                if (channel != null)
-                {
-                    channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
-                        .FireAndForget(ErrorHandlingService);
-                }
-            }
         }
     }
 }

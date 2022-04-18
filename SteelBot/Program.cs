@@ -28,12 +28,13 @@ using System.IO;
 using System.Reflection;
 using Serilog;
 using System.Threading.Tasks;
+using SteelBot.Channels.Voice;
 
 namespace SteelBot
 {
     public static class Program
     {
-        private const string Environment = "Test";
+        private const string Environment = "Development";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
@@ -162,6 +163,11 @@ namespace SteelBot
             serviceProvider.AddTransient<PetManagementService>();
             serviceProvider.AddTransient<PetTreatingService>();
             serviceProvider.AddSingleton<ErrorHandlingService>();
+            serviceProvider.AddSingleton<CancellationService>();
+
+            serviceProvider.AddSingleton<VoiceStateChannel>();
+            serviceProvider.AddSingleton<VoiceStateChangeHandler>();
+            serviceProvider.AddSingleton<LevelMessageSender>();
         }
 
         public static async Task Main(string[] args)

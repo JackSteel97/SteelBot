@@ -1,4 +1,29 @@
-﻿using DSharpPlus;
+﻿/*
+ * Colin the Coding Cat blesses this file.
+                    .               ,.
+                  T."-._..---.._,-"/|
+                  l|"-.  _.v._   (" |
+                  [l /.'_ \; _~"-.`-t
+                  Y " _(o} _{o)._ ^.|
+                  j  T  ,-<v>-.  T  ]
+                  \  l ( /-^-\ ) !  !
+                   \. \.  "~"  ./  /c-..,__
+                     ^r- .._ .- .-"  `- .  ~"--.
+                      > \.                      \
+                      ]   ^.                     \
+                      3  .  ">            .       Y
+         ,.__.--._   _j   \ ~   .         ;       |
+        (    ~"-._~"^._\   ^.    ^._      I     . l
+         "-._ ___ ~"-,_7    .Z-._   7"   Y      ;  \        _
+            /"   "~-(r r  _/_--._~-/    /      /,.--^-._   / Y
+            "-._    '"~~~>-._~]>--^---./____,.^~        ^.^  !
+                ~--._    '   Y---.                        \./
+                     ~~--._  l_   )                        \
+                           ~-._~~~---._,____..---           \
+                               ~----"~       \
+                                              \
+*/
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
@@ -10,6 +35,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SteelBot.Channels.Voice;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
@@ -49,8 +75,21 @@ namespace SteelBot
         private CommandsNextExtension Commands;
         private readonly UserTrackingService UserTrackingService;
         private readonly ErrorHandlingService ErrorHandlingService;
+        private readonly CancellationService CancellationService;
 
-        public BotMain(AppConfigurationService appConfigurationService, ILogger<BotMain> logger, DiscordClient client, IServiceProvider serviceProvider, DataHelpers dataHelpers, DataCache cache, UserTrackingService userTrackingService, ErrorHandlingService errorHandlingService)
+        // Channels
+        private readonly VoiceStateChannel VoiceStateChannel;
+
+        public BotMain(AppConfigurationService appConfigurationService,
+            ILogger<BotMain> logger,
+            DiscordClient client,
+            IServiceProvider serviceProvider,
+            DataHelpers dataHelpers,
+            DataCache cache,
+            UserTrackingService userTrackingService,
+            ErrorHandlingService errorHandlingService,
+            VoiceStateChannel voiceStateChannel,
+            CancellationService cancellationService)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -60,6 +99,8 @@ namespace SteelBot
             Cache = cache;
             UserTrackingService = userTrackingService;
             ErrorHandlingService = errorHandlingService;
+            VoiceStateChannel = voiceStateChannel;
+            CancellationService = cancellationService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -74,6 +115,8 @@ namespace SteelBot
             InitInteractivity();
             Logger.LogInformation("Initialising Event Handlers");
             InitHandlers();
+            Logger.LogInformation("Starting Event Handler Channels");
+            StartChannels();
 
             Logger.LogInformation("Starting Client");
             return Client.ConnectAsync(new DiscordActivity("+Help", ActivityType.ListeningTo));
@@ -81,6 +124,7 @@ namespace SteelBot
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            CancellationService.Cancel();
             await ShutdownDiscordClient();
             await DataHelpers.Stats.DisconnectAllUsers();
         }
@@ -89,6 +133,11 @@ namespace SteelBot
         {
             Logger.LogInformation("Disconnecting Client");
             await Client.DisconnectAsync();
+        }
+
+        private void StartChannels()
+        {
+            VoiceStateChannel.Start(CancellationService.Token);
         }
 
         private void InitHandlers()
@@ -224,23 +273,19 @@ namespace SteelBot
             return Task.CompletedTask;
         }
 
-        private Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
+        private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
         {
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                if (args?.Guild != null)
                 {
-                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
-                    {
-                        await DataHelpers.Stats.HandleVoiceStateChange(args);
-                    }
+                    await VoiceStateChannel.WriteChange(new VoiceStateChange(args), CancellationService.Token);
                 }
-                catch (Exception ex)
-                {
-                    await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
-                }
-            });
-            return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                await ErrorHandlingService.Log(ex, nameof(HandleVoiceStateChange));
+            }
         }
 
         private async Task HandleJoiningGuild(DiscordClient client, GuildCreateEventArgs args)
