@@ -215,6 +215,56 @@ namespace SteelBot.DiscordModules.Pets
             }
         }
 
+        public async Task Reorder(CommandContext context, string input)
+        {
+            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
+                && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
+            {
+                var names = input.ToLower().Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                if(names.Length != allPets.Count)
+                {
+                    await context.RespondAsync(EmbedGenerator.Error($"You entered {names.Length} pet names, but you have {allPets.Count} pets"));
+                    return;
+                }
+
+                // Check for duplicates.
+                HashSet<string> existingNames = new HashSet<string>();
+                foreach(var name in names)
+                {
+                    if (!existingNames.Contains(name))
+                    {
+                        existingNames.Add(name);
+                    }
+                    else
+                    {
+                        await context.RespondAsync(EmbedGenerator.Error($"You specified more than one pet with the name **{name}**, unable to determine the intended order."));
+                        return;
+                    }
+                }
+
+                for(int newPos = 0; newPos < allPets.Count; newPos++)
+                {
+                    var foundPet = allPets.Find(x=>x.GetName().Equals(names[newPos], StringComparison.OrdinalIgnoreCase));
+                    if(foundPet != null)
+                    {
+                        foundPet.Priority = newPos;
+                    }
+                    else
+                    {
+                        await context.RespondAsync(EmbedGenerator.Error($"You don't have a pet with the name **{names[newPos]}**."));
+                        return;
+                    }
+                }
+
+                foreach(var pet in allPets)
+                {
+                    await Cache.Pets.UpdatePet(pet);
+                }
+
+                await context.RespondAsync(EmbedGenerator.Success("Your pets have been re-ordered to the order specified."));
+            }
+        }
+
         private void SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
         {
             if (Cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))

@@ -20,7 +20,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             string name;
             if (includeName)
             {
-                name = $"{pet.Name ?? $"Unamed {pet.Species.GetName()}"} - ";
+                name = $"{pet.GetName()} - ";
             }
             else
             {
