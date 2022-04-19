@@ -35,6 +35,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SteelBot.Channels.Message;
 using SteelBot.Channels.Voice;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
@@ -79,6 +80,7 @@ namespace SteelBot
 
         // Channels
         private readonly VoiceStateChannel VoiceStateChannel;
+        private readonly MessagesChannel IncomingMessageChannel;
 
         public BotMain(AppConfigurationService appConfigurationService,
             ILogger<BotMain> logger,
@@ -89,7 +91,8 @@ namespace SteelBot
             UserTrackingService userTrackingService,
             ErrorHandlingService errorHandlingService,
             VoiceStateChannel voiceStateChannel,
-            CancellationService cancellationService)
+            CancellationService cancellationService,
+            MessagesChannel incomingMessageChannel)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -101,6 +104,7 @@ namespace SteelBot
             ErrorHandlingService = errorHandlingService;
             VoiceStateChannel = voiceStateChannel;
             CancellationService = cancellationService;
+            IncomingMessageChannel = incomingMessageChannel;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -124,9 +128,9 @@ namespace SteelBot
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            CancellationService.Cancel();
             await ShutdownDiscordClient();
             await DataHelpers.Stats.DisconnectAllUsers();
+            CancellationService.Cancel();
         }
 
         private async Task ShutdownDiscordClient()
@@ -138,6 +142,7 @@ namespace SteelBot
         private void StartChannels()
         {
             VoiceStateChannel.Start(CancellationService.Token);
+            IncomingMessageChannel.Start(CancellationService.Token);
         }
 
         private void InitHandlers()
@@ -216,13 +221,7 @@ namespace SteelBot
 
         private Task<int> ResolvePrefix(DiscordMessage msg)
         {
-            string guildsPrefix = DataHelpers.Config.GetPrefix(msg.Channel.GuildId.Value);
-
-            int prefixFound = msg.GetStringPrefixLength(guildsPrefix);
-            if (prefixFound == -1)
-            {
-                prefixFound = msg.GetMentionPrefixLength(Client.CurrentUser);
-            }
+            var prefixFound = PrefixResolver.Resolve(msg, Client.CurrentUser, DataHelpers.Config);
             return Task.FromResult(prefixFound);
         }
 
@@ -247,37 +246,27 @@ namespace SteelBot
             return Task.CompletedTask;
         }
 
-        private Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
+        private async Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
         {
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                if (args?.Guild != null && args.Author.Id != client.CurrentUser.Id && !PrefixResolver.IsPrefixedCommand(args.Message, Client.CurrentUser, DataHelpers.Config))
                 {
-                    // Only pay attention to guild messages.
-                    if (args.Guild != null && await UserTrackingService.TrackUser(args.Guild.Id, args.Author, args.Guild, client))
-                    {
-                        bool levelUp = await DataHelpers.Stats.HandleNewMessage(args);
-                        if (levelUp)
-                        {
-                            await DataHelpers.RankRoles.UserLevelledUp(args.Guild.Id, args.Author.Id, args.Guild);
-                        }
-                        await DataHelpers.Triggers.HandleNewMessage(args.Guild.Id, args.Channel, args.Message.Content);
-                    }
+                    // Only non-commands count for message stats.
+                    await IncomingMessageChannel.WriteMessage(new IncomingMessage(args), CancellationService.Token);
                 }
-                catch (Exception ex)
-                {
-                    await ErrorHandlingService.Log(ex, nameof(HandleMessageCreated));
-                }
-            });
-
-            return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                await ErrorHandlingService.Log(ex, nameof(HandleMessageCreated));
+            }
         }
 
         private async Task HandleVoiceStateChange(DiscordClient client, VoiceStateUpdateEventArgs args)
         {
             try
             {
-                if (args?.Guild != null)
+                if (args?.Guild != null && args.User.Id != client.CurrentUser.Id)
                 {
                     await VoiceStateChannel.WriteChange(new VoiceStateChange(args), CancellationService.Token);
                 }
@@ -290,7 +279,6 @@ namespace SteelBot
 
         private async Task HandleJoiningGuild(DiscordClient client, GuildCreateEventArgs args)
         {
-            // Don't offload to a Task.run because this happens rarely and needs to happen before any commands from a new guild can be processed.
             try
             {
                 var joinedGuild = new Guild(args.Guild.Id);

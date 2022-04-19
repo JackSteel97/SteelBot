@@ -7,8 +7,6 @@ using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.Voice
@@ -21,7 +19,11 @@ namespace SteelBot.Channels.Voice
         private readonly LevelMessageSender _levelMessageSender;
         private readonly RankRoleDataHelper _rankRoleDataHelper;
 
-        public VoiceStateChangeHandler(ILogger<VoiceStateChangeHandler> logger, UsersProvider usersCache, PetsDataHelper petsDataHelper, LevelMessageSender levelMessageSender, RankRoleDataHelper rankRoleDataHelper)
+        public VoiceStateChangeHandler(ILogger<VoiceStateChangeHandler> logger,
+            UsersProvider usersCache,
+            PetsDataHelper petsDataHelper,
+            LevelMessageSender levelMessageSender,
+            RankRoleDataHelper rankRoleDataHelper)
         {
             _logger = logger;
             _usersCache = usersCache;
@@ -42,7 +44,7 @@ namespace SteelBot.Channels.Voice
             // Update other users in the channel.
             foreach(var userInChannel in usersInChannel)
             {
-                if(userInChannel.Id != changeArgs.User.Id)
+                if(userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
                 {
                     var otherScalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
                     await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherScalingFactor);
@@ -50,7 +52,7 @@ namespace SteelBot.Channels.Voice
             }
         }
 
-        private async Task UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor)
+        private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor)
         {
             if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor))
             {
@@ -93,7 +95,7 @@ namespace SteelBot.Channels.Voice
 
             foreach (var userInChannel in usersInChannel)
             {
-                if (userInChannel.Id != currentUserId)
+                if (userInChannel.Id != currentUserId && !userInChannel.IsBot)
                 {
                     ++otherUsersCount;
                     if (_usersCache.TryGetUser(guildId, userInChannel.Id, out var otherUser) && otherUser.CurrentLevel > 0)
@@ -116,7 +118,7 @@ namespace SteelBot.Channels.Voice
             return scalingFactor;
         }
 
-        private async Task<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor)
+        private async ValueTask<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor)
         {
             ulong guildId = guild.Id;
             ulong userId = discordUser.Id;
@@ -124,7 +126,7 @@ namespace SteelBot.Channels.Voice
 
             if (_usersCache.TryGetUser(guildId, userId, out var user))
             {
-                _logger.LogInformation("Updating voice state for User [{UserId}] in Guild [{GuildId}]", userId, guildId);
+                _logger.LogInformation("Updating voice state for User {UserId} in Guild {GuildId}", userId, guildId);
 
                 var copyOfUser = user.Clone();
                 var availablePets = _petsDataHelper.GetAvailablePets(guildId, userId, out _);

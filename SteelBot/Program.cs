@@ -29,6 +29,7 @@ using System.Reflection;
 using Serilog;
 using System.Threading.Tasks;
 using SteelBot.Channels.Voice;
+using SteelBot.Channels.Message;
 
 namespace SteelBot
 {
@@ -168,6 +169,9 @@ namespace SteelBot
             serviceProvider.AddSingleton<VoiceStateChannel>();
             serviceProvider.AddSingleton<VoiceStateChangeHandler>();
             serviceProvider.AddSingleton<LevelMessageSender>();
+
+            serviceProvider.AddSingleton<MessagesChannel>();
+            serviceProvider.AddSingleton<IncomingMessageHandler>();
         }
 
         public static async Task Main(string[] args)

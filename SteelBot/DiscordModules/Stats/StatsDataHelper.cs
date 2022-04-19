@@ -30,45 +30,16 @@ namespace SteelBot.DiscordModules.Stats
         private readonly AppConfigurationService AppConfigurationService;
         private readonly ILogger<StatsDataHelper> Logger;
         private readonly PetsDataHelper PetsDataHelper;
-        private readonly LevelMessageSender LevelMessageSender;
 
         public StatsDataHelper(DataCache cache,
             AppConfigurationService appConfigurationService,
             ILogger<StatsDataHelper> logger,
-            PetsDataHelper petsDataHelper,
-            LevelMessageSender levelMessageSender)
+            PetsDataHelper petsDataHelper)
         {
             Cache = cache;
             AppConfigurationService = appConfigurationService;
             Logger = logger;
             PetsDataHelper = petsDataHelper;
-            LevelMessageSender = levelMessageSender;
-        }
-
-        public async Task<bool> HandleNewMessage(MessageCreateEventArgs args)
-        {
-            bool levelIncreased = false;
-            if (TryGetUser(args.Guild.Id, args.Author.Id, out User user))
-            {
-                Logger.LogInformation("Updating message counters for User [{UserId}] in Guild [{GuildId}]", args.Author.Id, args.Guild.Id);
-                // Clone user to avoid making change to cache till db change confirmed.
-                User copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(args.Guild.Id, args.Author.Id, out _);
-                if (copyOfUser.NewMessage(args.Message.Content.Length, availablePets))
-                {
-                    // Xp has changed.
-                    levelIncreased = copyOfUser.UpdateLevel();
-                    await PetsDataHelper.PetXpUpdated(availablePets, args.Guild);
-                }
-                await Cache.Users.UpdateUser(args.Guild.Id, copyOfUser);
-
-                if (levelIncreased)
-                {
-                    LevelMessageSender.SendLevelUpMessage(args.Guild, args.Author);
-                }
-            }
-
-            return levelIncreased;
         }
 
         public DiscordEmbedBuilder GetStatsEmbed(User user, string username)
