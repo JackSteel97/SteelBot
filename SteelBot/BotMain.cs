@@ -147,7 +147,6 @@ namespace SteelBot
 
         private void InitHandlers()
         {
-            Client.MessageReactionAdded += HandleReactionAdded;
             Client.MessageCreated += HandleMessageCreated;
             Client.VoiceStateUpdated += HandleVoiceStateChange;
             Client.GuildCreated += HandleJoiningGuild;
@@ -185,7 +184,8 @@ namespace SteelBot
             });
 
             Commands.RegisterCommands<ConfigCommands>();
-            Commands.RegisterCommands<PollsCommands>();
+            // TODO: Rewrite polls.
+            //Commands.RegisterCommands<PollsCommands>();
             Commands.RegisterCommands<RolesCommands>();
             Commands.RegisterCommands<StatsCommands>();
             Commands.RegisterCommands<UtilityCommands>();
@@ -225,33 +225,13 @@ namespace SteelBot
             return Task.FromResult(prefixFound);
         }
 
-        private Task HandleReactionAdded(DiscordClient client, MessageReactionAddEventArgs args)
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    if (args.Guild != null &&
-                        await UserTrackingService.TrackUser(args.Guild.Id, args.User, args.Guild, client))
-                    {
-                        await DataHelpers.Polls.HandleMessageReaction(args, Client.CurrentUser.Id);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await ErrorHandlingService.Log(ex, nameof(HandleReactionAdded));
-                }
-            });
-
-            return Task.CompletedTask;
-        }
-
         private async Task HandleMessageCreated(DiscordClient client, MessageCreateEventArgs args)
         {
             try
             {
                 if (args?.Guild != null && args.Author.Id != client.CurrentUser.Id && !PrefixResolver.IsPrefixedCommand(args.Message, Client.CurrentUser, DataHelpers.Config))
                 {
+                    // TODO: Atomic updates for user properties rather than updating the entire object.
                     // Only non-commands count for message stats.
                     await IncomingMessageChannel.WriteMessage(new IncomingMessage(args), CancellationService.Token);
                 }
