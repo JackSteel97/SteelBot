@@ -74,6 +74,22 @@ namespace SteelBot.DiscordModules.Pets
             await DataHelpers.Pets.HandleSearch(context);
         }
 
+        [Command("Order")]
+        [Description("Order your pets by listing their names in a pipe-separated list")]
+        [Cooldown(2, 60, CooldownBucketType.User)]
+        public async Task Order(CommandContext context, [RemainingText] string input)
+        {
+            Logger.LogInformation("User [{UserId}] requested to re-order their pets in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                await DataHelpers.Pets.Reorder(context, input.Trim('\"'));
+            }
+            else
+            {
+                await context.RespondAsync(EmbedGenerator.Warning("Please enter your pet names, separated by pipes `|`"));
+            }
+        }
+
         [Command("Bonus")]
         [Aliases("Bonuses", "b")]
         [Description("View the bonuses from all your pets available in this server")]
