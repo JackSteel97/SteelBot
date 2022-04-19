@@ -41,6 +41,7 @@ namespace SteelBot.Channels.Message
             _userTrackingService = userTrackingService;
             _discordClient = discordClient;
             _incomingMessageHandler = incomingMessageHandler;
+            _voiceStateChangeHanlder = voiceStateChangeHanlder;
 
             var options = new BoundedChannelOptions(MaxCapacity)
             {
@@ -49,7 +50,6 @@ namespace SteelBot.Channels.Message
             };
 
             _channel = Channel.CreateBounded<IncomingMessage>(options);
-            _voiceStateChangeHanlder = voiceStateChangeHanlder;
         }
 
         public async ValueTask WriteMessage(IncomingMessage message, CancellationToken token)
