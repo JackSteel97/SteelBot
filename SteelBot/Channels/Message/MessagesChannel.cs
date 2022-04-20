@@ -28,13 +28,15 @@ namespace SteelBot.Channels.Message
         private readonly DiscordClient _discordClient;
         private readonly IncomingMessageHandler _incomingMessageHandler;
         private readonly VoiceStateChangeHandler _voiceStateChangeHanlder;
+        private readonly UserLockingService _userLockingService;
 
         public MessagesChannel(ILogger<MessagesChannel> logger,
             ErrorHandlingService errorHandlingService,
             UserTrackingService userTrackingService,
             DiscordClient discordClient,
             IncomingMessageHandler incomingMessageHandler,
-            VoiceStateChangeHandler voiceStateChangeHanlder)
+            VoiceStateChangeHandler voiceStateChangeHanlder,
+            UserLockingService userLockingService)
         {
             _logger = logger;
             _errorHandlingService = errorHandlingService;
@@ -42,6 +44,7 @@ namespace SteelBot.Channels.Message
             _discordClient = discordClient;
             _incomingMessageHandler = incomingMessageHandler;
             _voiceStateChangeHanlder = voiceStateChangeHanlder;
+            _userLockingService = userLockingService;
 
             var options = new BoundedChannelOptions(MaxCapacity)
             {
@@ -99,13 +102,16 @@ namespace SteelBot.Channels.Message
 
         private async ValueTask HandleMessage(IncomingMessage message)
         {
-            if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild, _discordClient))
+            using(await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
             {
-                await _incomingMessageHandler.HandleMessage(message);
+                if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild, _discordClient))
+                {
+                    await _incomingMessageHandler.HandleMessage(message);
 
-                // The user here is already coming from a Guild so we can safely cast to a member.
-                var member = (DiscordMember)message.User;
-                await _voiceStateChangeHanlder.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
+                    // The user here is already coming from a Guild so we can safely cast to a member.
+                    var member = (DiscordMember)message.User;
+                    await _voiceStateChangeHanlder.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
+                }
             }
         }
     }

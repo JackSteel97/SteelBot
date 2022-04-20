@@ -172,6 +172,8 @@ namespace SteelBot
 
             serviceProvider.AddSingleton<MessagesChannel>();
             serviceProvider.AddSingleton<IncomingMessageHandler>();
+
+            serviceProvider.AddSingleton<UserLockingService>();
         }
 
         public static async Task Main(string[] args)

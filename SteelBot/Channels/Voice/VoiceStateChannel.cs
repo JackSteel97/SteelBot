@@ -23,18 +23,21 @@ namespace SteelBot.Channels.Voice
         private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
         private readonly UserTrackingService _userTrackingService;
         private readonly DiscordClient _discordClient;
+        private readonly UserLockingService _userLockingService;
 
         public VoiceStateChannel(ILogger<VoiceStateChannel> logger,
             ErrorHandlingService errorHandlingService,
             VoiceStateChangeHandler voiceStateChangeHandler,
             UserTrackingService userTrackingService,
-            DiscordClient discordClient)
+            DiscordClient discordClient,
+            UserLockingService userLockingService)
         {
             _logger = logger;
             _errorHandlingService = errorHandlingService;
             _voiceStateChangeHandler = voiceStateChangeHandler;
             _userTrackingService = userTrackingService;
             _discordClient = discordClient;
+            _userLockingService = userLockingService;
 
             var options = new BoundedChannelOptions(MaxCapacity)
             {
@@ -92,9 +95,12 @@ namespace SteelBot.Channels.Voice
 
         private async ValueTask HandleMessage(VoiceStateChange message)
         {
-            if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild, _discordClient))
+            using (await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
             {
-                await _voiceStateChangeHandler.HandleVoiceStateChange(message);
+                if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild, _discordClient))
+                {
+                    await _voiceStateChangeHandler.HandleVoiceStateChange(message);
+                }
             }
         }
     }
