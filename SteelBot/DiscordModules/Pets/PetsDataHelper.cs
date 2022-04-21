@@ -196,7 +196,6 @@ namespace SteelBot.DiscordModules.Pets
             foreach (var pet in pets)
             {
                 bool levelledUp = PetShared.PetXpChanged(pet, changes, out var shouldPingOwner);
-                await Cache.Pets.UpdatePet(pet);
                 if (levelledUp)
                 {
                     if (shouldPingOwner)
@@ -206,6 +205,8 @@ namespace SteelBot.DiscordModules.Pets
                     changes.AppendLine();
                 }
             }
+
+            await Cache.Pets.UpdatePets(pets);
 
             if (changes.Length > 0 && sourceGuild != default && pets.Count > 0)
             {
@@ -254,10 +255,7 @@ namespace SteelBot.DiscordModules.Pets
                     }
                 }
 
-                foreach(var pet in allPets)
-                {
-                    await Cache.Pets.UpdatePet(pet);
-                }
+                await Cache.Pets.UpdatePets(allPets);
 
                 await context.RespondAsync(EmbedGenerator.Success("Your pets have been re-ordered to the order specified."));
             }

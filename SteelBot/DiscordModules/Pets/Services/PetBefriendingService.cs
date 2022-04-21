@@ -68,7 +68,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             DiscordInteraction interaction = null;
 
             var foundPet = PetFactory.Generate();
-            var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: true);
+            var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: false);
 
             var initialResponseBuilder = new DiscordMessageBuilder()
                 .WithContent("You found a new potential friend!")

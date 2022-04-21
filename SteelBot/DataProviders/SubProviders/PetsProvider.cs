@@ -127,7 +127,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         public async Task RemovePet(ulong userDiscordId, long petId)
         {
-            using(await Lock.WriterLockAsync())
+            using (await Lock.WriterLockAsync())
             {
                 if (TryGetPetCore(userDiscordId, petId, out var pet))
                 {
@@ -152,9 +152,44 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
+        public async Task UpdatePets(IEnumerable<Pet> pets)
+        {
+            using (await Lock.WriterLockAsync())
+            {
+                int writtenCount;
+                using (SteelBotContext db = DbContextFactory.CreateDbContext())
+                {
+                    foreach (var newPet in pets)
+                    {
+                        // To prevent EF tracking issue, grab and alter existing value.
+                        var original = db.Pets.Include(x => x.Bonuses).First(u => u.RowId == newPet.RowId);
+                        db.Entry(original).CurrentValues.SetValues(newPet);
+
+                        // The above doesn't update navigation properties. We must manually update any navigation properties we need to like this.
+                        original.Bonuses = newPet.Bonuses;
+
+                        db.Pets.Update(original);
+                    }
+                    writtenCount = await db.SaveChangesAsync();
+                }
+
+                if (writtenCount > 0)
+                {
+                    foreach (var newPet in pets)
+                    {
+                        UpdateInCache(newPet);
+                    }
+                }
+                else
+                {
+                    Logger.LogError("Updating A collection of Pets did not alter any entities. The internal cache was not changed.");
+                }
+            }
+        }
+
         public async Task UpdatePet(Pet newPet)
         {
-            using(await Lock.WriterLockAsync())
+            using (await Lock.WriterLockAsync())
             {
                 int writtenCount;
                 using (SteelBotContext db = DbContextFactory.CreateDbContext())
