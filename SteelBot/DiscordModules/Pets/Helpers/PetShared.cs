@@ -96,7 +96,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return GetPetCapacity(user, activePets);
         }
 
-        public static int GetPetCapacity(User user, List<Pet> activePets)
+        private static int GetPetCapacity(User user, List<Pet> activePets)
         {
             var bonusCapacity = GetBonusValue(activePets, BonusType.PetSlots);
             return GetPetCapacity(user, bonusCapacity);
