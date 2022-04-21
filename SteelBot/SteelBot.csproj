@@ -8,7 +8,7 @@
 		<Company />
 		<Copyright>Copyright Jack Steel</Copyright>
 		<NeutralLanguage>English</NeutralLanguage>
-		<Version>0.8.5.7</Version>
+		<Version>0.8.5.8</Version>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DebugType>portable</DebugType>
 		<ImplicitUsings>disable</ImplicitUsings>
@@ -17,11 +17,11 @@
 	<ItemGroup>
 		<PackageReference Include="AlphaVantage.Net.Forex" Version="2.0.2" />
 		<PackageReference Include="AlphaVantage.Net.Stocks" Version="2.0.2" />
-		<PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01107" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01107" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01107" />
+		<PackageReference Include="DSharpPlus" Version="4.3.0-nightly-01121" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.3.0-nightly-01121" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="4.3.0-nightly-01121" />
 		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.3">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -31,7 +31,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
 		<PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
 		<PackageReference Include="RestSharp" Version="107.3.0" />
 		<PackageReference Include="ScottPlot" Version="4.1.34" />
 		<PackageReference Include="Serilog" Version="2.10.0" />
