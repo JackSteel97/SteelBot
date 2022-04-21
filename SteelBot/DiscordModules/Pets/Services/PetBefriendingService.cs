@@ -126,6 +126,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         private bool SearchSuccess(DiscordMember userSearching)
         {
             var probability = GetSearchSuccessProbability(userSearching);
+            Logger.LogDebug("Search success probability for User {UserId} is {Probability}", userSearching.Id, probability);
             return MathsHelper.TrueWithProbability(probability);
         }
 
@@ -170,6 +171,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser))
             {
                 var probability = GetBefriendSuccessProbability(dbUser, target);
+                Logger.LogDebug("Befriend success probability for User {UserId} and Pet Rarity {Rarity} is {Probability}", user.Id, target.Rarity, probability);
                 return MathsHelper.TrueWithProbability(probability);
             }
             return false;
