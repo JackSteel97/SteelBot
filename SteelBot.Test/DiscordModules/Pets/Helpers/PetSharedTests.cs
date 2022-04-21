@@ -99,12 +99,52 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         [InlineData(60, 4)]
         [InlineData(80, 5)]
         [InlineData(100, 6)]
-        public void GetPetCapacityFromAllPets_NoPets(int level, int expectedCapacity)
+        public void GetPetCapacity_NoPets(int level, int expectedCapacity)
         {
             var user = GetUser(level);
             var pets = new List<Pet>();
 
-            var actualCapacity = PetShared.GetPetCapacityFromAllPets(user, pets);
+            var actualCapacity = PetShared.GetPetCapacity(user, pets);
+
+            actualCapacity.Should().Be(expectedCapacity);
+        }
+
+        [Theory]
+        [InlineData(1, 1, 2)]
+        [InlineData(10,1,  2)]
+        [InlineData(20,1,  3)]
+        [InlineData(30,1,  3)]
+        [InlineData(40,1,  4)]
+        [InlineData(50,1,  4)]
+        [InlineData(60,1,  5)]
+        [InlineData(80,1,  6)]
+        [InlineData(100,1, 7)]
+        public void GetPetCapacity_OnePet(int level, int bonusPetSlots, int expectedCapacity)
+        {
+            var user = GetUser(level);
+            var pets = GetPets_OnePet(bonusPetSlots);
+
+            var actualCapacity = PetShared.GetPetCapacity(user, pets);
+
+            actualCapacity.Should().Be(expectedCapacity);
+        }
+
+        [Theory]
+        [InlineData(1, 1)]
+        [InlineData(10, 1)]
+        [InlineData(20, 1)]
+        [InlineData(30, 1)]
+        [InlineData(40, 1)]
+        [InlineData(50, 1)]
+        [InlineData(60, 2)]
+        [InlineData(80, 3)]
+        [InlineData(100, 4)]
+        public void GetPetCapacity_LastNegatives(int level, int expectedCapacity)
+        {
+            var user = GetUser(level);
+            var pets = GetPets_LastNegatives();
+
+            var actualCapacity = PetShared.GetPetCapacity(user, pets);
 
             actualCapacity.Should().Be(expectedCapacity);
         }
@@ -119,32 +159,12 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         [InlineData(60, 5)]
         [InlineData(80, 6)]
         [InlineData(100, 7)]
-        public void GetPetCapacityFromAllPets_OnePet(int level, int expectedCapacity)
+        public void GetPetCapacityFromAllPets_AtCapacityWithLastNegatives(int level, int expectedCapacity)
         {
             var user = GetUser(level);
-            var pets = GetPets_OnePet(1);
+            var pets = GetPets_AtCapacityWithLastNegatives();
 
-            var actualCapacity = PetShared.GetPetCapacityFromAllPets(user, pets);
-
-            actualCapacity.Should().Be(expectedCapacity);
-        }
-
-        [Theory]
-        [InlineData(1, 1)]
-        [InlineData(10, 1)]
-        [InlineData(20, 2)]
-        [InlineData(30, 2)]
-        [InlineData(40, 3)]
-        [InlineData(50, 3)]
-        [InlineData(60, 4)]
-        [InlineData(80, 5)]
-        [InlineData(100, 6)]
-        public void GetPetCapacityFromAllPets_LastNegatives(int level, int expectedCapacity)
-        {
-            var user = GetUser(level);
-            var pets = GetPets_LastNegatives();
-
-            var actualCapacity = PetShared.GetPetCapacityFromAllPets(user, pets);
+            var actualCapacity = PetShared.GetPetCapacity(user, pets);
 
             actualCapacity.Should().Be(expectedCapacity);
         }

@@ -137,7 +137,7 @@ namespace SteelBot.DiscordModules.Pets
 
                 List<PetWithActivation> combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
-                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets, target.DisplayName)
+                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, pets, disabledPets.Count>0, target.DisplayName)
                     .WithThumbnail(target.AvatarUrl);
 
                 if (combinedPets.Count == 0)
@@ -147,9 +147,8 @@ namespace SteelBot.DiscordModules.Pets
                     return;
                 }
 
-                var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
-                var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
-                var baseCapacity = PetShared.GetPetCapacity(user, 0);
+                var maxCapacity = PetShared.GetPetCapacity(user, pets);
+                var baseCapacity = PetShared.GetBasePetCapacity(user);
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
                 var interactivity = context.Client.GetInteractivity();
                 await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
@@ -169,9 +168,8 @@ namespace SteelBot.DiscordModules.Pets
                 var combinedPets = PetShared.Recombine(availablePets, disabledPets);
                 if (combinedPets.Count > 0)
                 {
-                    var bonusCapacity = PetShared.GetBonusValue(availablePets, BonusType.PetSlots);
-                    var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
-                    var baseCapacity = PetShared.GetPetCapacity(user, 0);
+                    var maxCapacity = PetShared.GetPetCapacity(user, pets);
+                    var baseCapacity = PetShared.GetBasePetCapacity(user);
                     var pages = PetDisplayHelpers.GetPetBonusesSummary(combinedPets, discordMember.DisplayName, discordMember.AvatarUrl, baseCapacity, maxCapacity);
 
                     var interactivity = context.Client.GetInteractivity();

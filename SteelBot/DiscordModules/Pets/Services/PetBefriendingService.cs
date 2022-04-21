@@ -150,15 +150,15 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             if (Cache.Users.TryGetUser(user.Guild.Id, user.Id, out var dbUser))
             {
-                double bonusCapacity = 0;
+                int capacity;
                 if (Cache.Pets.TryGetUsersPets(user.Id, out var allPets))
                 {
-                    var activePets = PetShared.GetAvailablePets(dbUser, allPets, out _);
-
-                    bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
+                    capacity = PetShared.GetPetCapacity(dbUser, allPets);
                 }
-
-                var capacity = PetShared.GetPetCapacity(dbUser, bonusCapacity);
+                else
+                {
+                    capacity = PetShared.GetBasePetCapacity(dbUser);
+                }
 
                 return allPets.Count < capacity;
             }
@@ -179,18 +179,21 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             const double baseRate = 0.1;
             int ownedPetCount = 0;
-            double bonusCapacity = 0;
             double bonusMultiplier = 1;
+            double petCapacity;
             if (Cache.Pets.TryGetUsersPets(user.DiscordId, out var allPets))
             {
                 var activePets = PetShared.GetAvailablePets(user, allPets, out _);
-                bonusCapacity = PetShared.GetBonusValue(activePets, BonusType.PetSlots);
                 bonusMultiplier = PetShared.GetBonusValue(activePets, BonusType.BefriendSuccessRate);
                 ownedPetCount = allPets.Count;
+                petCapacity = PetShared.GetPetCapacity(user, allPets);
+            }
+            else
+            {
+                petCapacity = PetShared.GetBasePetCapacity(user);
             }
 
             var rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity + 1);
-            var petCapacity = (double)PetShared.GetPetCapacity(user, bonusCapacity);
             var currentRate = baseRate + ((petCapacity - ownedPetCount) / (petCapacity + rarityModifier));
             return currentRate * bonusMultiplier;
         }

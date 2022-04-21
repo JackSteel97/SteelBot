@@ -36,18 +36,10 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
                 var combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
-                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets);
+                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
 
-                if (combinedPets.Count == 0)
-                {
-                    baseEmbed.WithDescription("You currently own no pets.");
-                    await context.RespondAsync(baseEmbed);
-                    return;
-                }
-
-                var bonusCapacity = PetShared.GetBonusValue(availablePets, Enums.BonusType.PetSlots);
-                var maxCapacity = PetShared.GetPetCapacity(user, bonusCapacity);
-                var baseCapacity = PetShared.GetPetCapacity(user, 0);
+                var maxCapacity = PetShared.GetPetCapacity(user, allPets);
+                var baseCapacity = PetShared.GetBasePetCapacity(user);
 
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                     (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
@@ -73,7 +65,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             if (Cache.Pets.TryGetUsersPets(petBeingMoved.OwnerDiscordId, out var allPets))
             {
-                if(newPriority < 0 || newPriority > allPets.Count-1)
+                if (newPriority < 0 || newPriority > allPets.Count - 1)
                 {
                     // Invalid target position.
                     return;
@@ -177,7 +169,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                int originalCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int originalCapacity = PetShared.GetPetCapacity(user, allPets);
                 foreach (var ownedPet in allPets)
                 {
                     if (ownedPet.Priority < oldPriority)
@@ -190,7 +182,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await Cache.Pets.UpdatePet(pet);
                 context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
-                int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int newCapacity = PetShared.GetPetCapacity(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
                     context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
@@ -204,7 +196,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                int originalCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int originalCapacity = PetShared.GetPetCapacity(user, allPets);
 
                 foreach (var ownedPet in allPets)
                 {
@@ -218,7 +210,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await Cache.Pets.UpdatePet(pet);
                 context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
-                int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int newCapacity = PetShared.GetPetCapacity(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
                     context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
@@ -232,7 +224,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                int originalCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int originalCapacity = PetShared.GetPetCapacity(user, allPets);
 
                 foreach (var ownedPet in allPets)
                 {
@@ -247,7 +239,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await Cache.Pets.UpdatePet(pet);
                 context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
-                int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int newCapacity = PetShared.GetPetCapacity(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
                     context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);
@@ -261,7 +253,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                int originalCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int originalCapacity = PetShared.GetPetCapacity(user, allPets);
 
                 foreach (var ownedPet in allPets)
                 {
@@ -276,7 +268,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 await Cache.Pets.UpdatePet(pet);
                 context.Channel.SendMessageAsync(PetMessages.GetPriorityDecreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
 
-                int newCapacity = PetShared.GetPetCapacityFromAllPets(user, allPets);
+                int newCapacity = PetShared.GetPetCapacity(user, allPets);
                 if (newCapacity < originalCapacity)
                 {
                     context.Channel.SendMessageAsync(PetMessages.GetPetCapacityDecreasedMessage(originalCapacity, newCapacity)).FireAndForget(ErrorHandlingService);

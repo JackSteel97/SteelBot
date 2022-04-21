@@ -25,22 +25,20 @@ namespace SteelBot.DiscordModules.Pets.Helpers
     {
         private const int NewPetSlotUnlockLevels = 20;
 
-        public static DiscordEmbedBuilder GetOwnedPetsBaseEmbed(User user, List<Pet> availablePets, List<Pet> disabledPets, string username = "Your")
+        public static DiscordEmbedBuilder GetOwnedPetsBaseEmbed(User user, List<Pet> allPets, bool hasDisabledPets, string username = "Your")
         {
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
                 .WithTitle($"{username} Owned Pets");
 
-            if (disabledPets.Count > 0)
+            if (hasDisabledPets)
             {
                 embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
             }
 
-            var bonusCapacity = GetBonusValue(availablePets, BonusType.PetSlots);
-            var petCapacity = GetPetCapacity(user, bonusCapacity);
-            var ownedPets = availablePets.Count + disabledPets.Count;
+            var petCapacity = GetPetCapacity(user, allPets);
             embedBuilder
-                .AddField("Pet Slots", $"{ownedPets} / {petCapacity}")
+                .AddField("Pet Slots", $"{allPets.Count} / {petCapacity}")
                 .WithTimestamp(DateTime.Now);
 
             return embedBuilder;
@@ -63,55 +61,45 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static List<Pet> GetAvailablePets(User user, List<Pet> allPets, out List<Pet> disabledPets)
         {
-            int capacity = GetPetCapacity(user, 0);
             var availablePets = new List<Pet>();
+            disabledPets = new List<Pet>();
             if (allPets.Count > 0)
             {
-                var orderedPets = allPets.OrderBy(p => p.Priority).ToList();
+                int capacity = GetPetCapacity(user, allPets);
+                var orderedPets = allPets.OrderBy(x => x.Priority).ToList();
 
-                int currentIndex = 0;
-                while (availablePets.Count < capacity && currentIndex < orderedPets.Count)
+                if(orderedPets.Count > capacity)
                 {
-                    availablePets.Add(orderedPets[currentIndex]);
-                    ++currentIndex;
-                    capacity = GetPetCapacity(user, GetBonusValue(availablePets, BonusType.PetSlots));
+                    availablePets = orderedPets.GetRange(0, capacity);
+                    disabledPets = orderedPets.GetRange(capacity, orderedPets.Count - capacity);
                 }
-                var availableCount = Math.Max(1, Math.Min(capacity, orderedPets.Count));
-                if (availableCount != availablePets.Count)
+                else
                 {
-                    availablePets = availablePets.Take(availableCount).ToList();
+                    availablePets = orderedPets;
                 }
-                disabledPets = orderedPets.Skip(availableCount).ToList();
-            }
-            else
-            {
-                disabledPets = new List<Pet>();
             }
             return availablePets;
         }
 
-        public static int GetPetCapacityFromAllPets(User user, List<Pet> allPets)
+        public static int GetPetCapacity(User user, List<Pet> allPets)
         {
-            var activePets = GetAvailablePets(user, allPets, out _);
-            return GetPetCapacity(user, activePets);
+            int baseCapacity = GetBasePetCapacity(user);
+            int bonusCapacity = (int)Math.Round(GetBonusValue(allPets, BonusType.PetSlots));
+            int cappedBonusCapacity = Math.Min(50, bonusCapacity); // Cap at +50.
+            int summedCapacity = baseCapacity + cappedBonusCapacity;
+            int actualCapacity = Math.Max(1, summedCapacity); // Can't go less than 1 slot.
+            return actualCapacity;
         }
 
-        private static int GetPetCapacity(User user, List<Pet> activePets)
+        public static int GetBasePetCapacity(User user)
         {
-            var bonusCapacity = GetBonusValue(activePets, BonusType.PetSlots);
-            return GetPetCapacity(user, bonusCapacity);
-        }
-
-        public static int GetPetCapacity(User user, double bonusCapacity)
-        {
-            // Restrict pet bonus slots to +50.
-            int result = 1 + Math.Min(50, Convert.ToInt32(Math.Floor(bonusCapacity)));
+            int result = 1;
 
             if (user != default)
             {
                 result += (user.CurrentLevel / NewPetSlotUnlockLevels);
             }
-            return Math.Max(result, 1);
+            return result;
         }
 
         public static bool TryGetPetIdFromComponentId(string buttonId, out long petId)
@@ -274,7 +262,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static int GetRequiredLevelForPet(int petPriority, double baseCapacity, double totalCapacity)
         {
             var currentLevelBracket = (baseCapacity - 1) * NewPetSlotUnlockLevels;
-            var extraRequiredLevels = ((petPriority + 1) - totalCapacity) * NewPetSlotUnlockLevels;
+            var extraRequiredLevels = (petPriority + 1 - totalCapacity) * NewPetSlotUnlockLevels;
             return Convert.ToInt32(currentLevelBracket + extraRequiredLevels);
         }
 
