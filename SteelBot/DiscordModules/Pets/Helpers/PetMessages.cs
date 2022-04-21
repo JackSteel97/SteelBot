@@ -4,6 +4,7 @@ using Humanizer;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,9 +97,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
-        public static DiscordMessageBuilder GetPetTreatedMessage(Pet pet, int xpGain)
+        public static DiscordMessageBuilder GetPetTreatedMessage(Pet pet, long xpGain)
         {
-            var embedBuilder = EmbedGenerator.Info($"{Formatter.Bold(pet.GetName())} Greatly enjoyed their treat and gained {xpGain} XP", "Tasty!");
+            var embedBuilder = EmbedGenerator.Info($"{Formatter.Bold(pet.GetName())} Greatly enjoyed their treat and gained {xpGain.KiloFormat()} XP", "Tasty!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
         }
 
