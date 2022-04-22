@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
 using SteelBot.Database.Models.Users;
@@ -46,7 +47,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double baseCapacity, double maxCapacity)
         {
-            builder.AppendLine(Formatter.Bold(pet.GetName()))
+            builder.Append(Formatter.Bold((pet.Priority+1).Ordinalize())).Append(" - ").AppendLine(Formatter.Bold(pet.GetName()))
                 .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
 
             if (!active)

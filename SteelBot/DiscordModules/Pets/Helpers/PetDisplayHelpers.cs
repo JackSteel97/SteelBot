@@ -92,7 +92,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return PaginationHelper.GenerateEmbedPages(embedBuilder, allPets, 5, (builder, petWithActivation, _) =>
             {
                 var pet = petWithActivation.Pet;
-                builder.Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
+                builder.AppendLine(Formatter.Bold((pet.Priority+1).Ordinalize()))
+                .Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
                 if (!petWithActivation.Active)
                 {
                     var levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, baseCapacity, maxCapacity);
