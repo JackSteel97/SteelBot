@@ -77,6 +77,7 @@ namespace SteelBot
         private readonly UserTrackingService UserTrackingService;
         private readonly ErrorHandlingService ErrorHandlingService;
         private readonly CancellationService CancellationService;
+        private readonly UserLockingService UserLockingService;
 
         // Channels
         private readonly VoiceStateChannel VoiceStateChannel;
@@ -92,7 +93,8 @@ namespace SteelBot
             ErrorHandlingService errorHandlingService,
             VoiceStateChannel voiceStateChannel,
             CancellationService cancellationService,
-            MessagesChannel incomingMessageChannel)
+            MessagesChannel incomingMessageChannel,
+            UserLockingService userLockingService)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -105,6 +107,7 @@ namespace SteelBot
             VoiceStateChannel = voiceStateChannel;
             CancellationService = cancellationService;
             IncomingMessageChannel = incomingMessageChannel;
+            UserLockingService = userLockingService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -272,7 +275,7 @@ namespace SteelBot
 
         private Task HandleLeavingGuild(DiscordClient client, GuildDeleteEventArgs args)
         {
-            _ = Task.Run(async () =>
+            Task.Run(async () =>
             {
                 try
                 {
@@ -287,7 +290,7 @@ namespace SteelBot
                 {
                     await ErrorHandlingService.Log(ex, nameof(HandleLeavingGuild));
                 }
-            });
+            }).FireAndForget(ErrorHandlingService);
             return Task.CompletedTask;
         }
 
@@ -359,17 +362,25 @@ namespace SteelBot
             }
         }
 
-        private async Task HandleGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs args)
+        private Task HandleGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs args)
         {
-            try
+            Task.Run(async () =>
             {
-                // Delete user data.
-                await Cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
-            }
-            catch (Exception ex)
-            {
-                await ErrorHandlingService.Log(ex, nameof(HandleGuildMemberRemoved));
-            }
+                try
+                {
+                    using(await UserLockingService.WriterLockAsync(args.Guild.Id, args.Member.Id))
+                    {
+                        // Delete user data.
+                        await Cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await ErrorHandlingService.Log(ex, nameof(HandleGuildMemberRemoved));
+                }
+            }).FireAndForget(ErrorHandlingService);
+
+            return Task.CompletedTask;
         }
     }
 }
