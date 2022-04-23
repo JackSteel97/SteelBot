@@ -152,8 +152,13 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        public async Task UpdatePets(IEnumerable<Pet> pets)
+        public async Task UpdatePets(ICollection<Pet> pets)
         {
+            if(pets?.Count == 0)
+            {
+                return;
+            }
+
             using (await Lock.WriterLockAsync())
             {
                 int writtenCount;
