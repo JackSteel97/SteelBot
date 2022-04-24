@@ -2,28 +2,13 @@
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Voice;
-using SteelBot.DiscordModules.Config;
-using SteelBot.Helpers;
-using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.Message
 {
-    public class MessagesChannel
+    public class MessagesChannel : BaseChannel<IncomingMessage>
     {
-        private const int MaxCapacity = 10_000;
-        private bool _started = false;
-
-        private readonly Channel<IncomingMessage> _channel;
-        private readonly ILogger<MessagesChannel> _logger;
-        private readonly ErrorHandlingService _errorHandlingService;
         private readonly UserTrackingService _userTrackingService;
         private readonly DiscordClient _discordClient;
         private readonly IncomingMessageHandler _incomingMessageHandler;
@@ -36,73 +21,18 @@ namespace SteelBot.Channels.Message
             DiscordClient discordClient,
             IncomingMessageHandler incomingMessageHandler,
             VoiceStateChangeHandler voiceStateChangeHanlder,
-            UserLockingService userLockingService)
+            UserLockingService userLockingService) : base(logger, errorHandlingService, "Messages")
         {
-            _logger = logger;
-            _errorHandlingService = errorHandlingService;
             _userTrackingService = userTrackingService;
             _discordClient = discordClient;
             _incomingMessageHandler = incomingMessageHandler;
             _voiceStateChangeHanlder = voiceStateChangeHanlder;
             _userLockingService = userLockingService;
-
-            var options = new BoundedChannelOptions(MaxCapacity)
-            {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = true,
-            };
-
-            _channel = Channel.CreateBounded<IncomingMessage>(options);
         }
 
-        public async ValueTask WriteMessage(IncomingMessage message, CancellationToken token)
+        protected override async ValueTask HandleMessage(IncomingMessage message)
         {
-            try
-            {
-                await _channel.Writer.WriteAsync(message, token);
-            }
-            catch (ChannelClosedException e)
-            {
-                _logger.LogWarning("Attempt to write to a closed messages channel could not complete because the channel has been closed: {Exception}", e.ToString());
-            }
-            catch (OperationCanceledException e)
-            {
-                _logger.LogWarning("Attempt to write to a messages channel was cancelled with exception {Exception}", e.ToString());
-            }
-        }
-
-        public void Start(CancellationToken token)
-        {
-            if (!_started)
-            {
-                _started = true;
-                StartConsumer(token).FireAndForget(_errorHandlingService);
-            }
-        }
-
-        private async Task StartConsumer(CancellationToken token)
-        {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    var message = await _channel.Reader.ReadAsync(token);
-                    await HandleMessage(message);
-                }
-            }
-            catch (ChannelClosedException e)
-            {
-                _logger.LogWarning("Attempt to read from a closed messages channel could not complete because the channel has been closed: {Exception}", e.ToString());
-            }
-            catch (OperationCanceledException e)
-            {
-                _logger.LogWarning("Attempt to read from a messages channel was cancelled with exception {Exception}", e.ToString());
-            }
-        }
-
-        private async ValueTask HandleMessage(IncomingMessage message)
-        {
-            using(await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
+            using (await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
             {
                 if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild, _discordClient))
                 {
