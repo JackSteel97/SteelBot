@@ -10,12 +10,12 @@ namespace SteelBot.Database.Models
         [MaxLength(255)]
         public string RoleName { get; set; }
 
+        public ulong DiscordRoleId { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         [MaxLength(255)]
         public string Description { get; set; }
-
-        public bool Hidden { get; set; }
         public long GuildRowId { get; set; }
         public Guild Guild { get; set; }
 
@@ -25,13 +25,13 @@ namespace SteelBot.Database.Models
         /// </summary>
         public SelfRole() { }
 
-        public SelfRole(string roleName, long guildRowId, string description, bool hidden)
+        public SelfRole(ulong discordId, string roleName, long guildRowId, string description)
         {
+            DiscordRoleId = discordId;
             RoleName = roleName;
             CreatedAt = DateTime.UtcNow;
             GuildRowId = guildRowId;
             Description = description;
-            Hidden = hidden;
         }
     }
 }

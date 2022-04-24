@@ -128,43 +128,16 @@ namespace SteelBot.DiscordModules.Roles
         [Description("Sets the given role as a self role that users can join themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
         [Cooldown(10, 60, CooldownBucketType.Guild)]
-        public async Task SetSelfRole(CommandContext context, string roleName, string description, bool hidden = false)
+        public Task SetSelfRole(CommandContext context, string roleName, string description)
         {
-            if (roleName.Length > 255)
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("The role name must be 255 characters or less."));
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(roleName))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("No valid role name provided."));
-                return;
-            }
-            if (description.Length > 255)
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("The role description must be 255 characters or less."));
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("No valid description provided."));
-                return;
-            }
-            DiscordRole discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-            if (discordRole == default)
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error("You must create the role in the server first."));
-                return;
-            }
-            if (DataHelpers.Roles.IsSelfRole(context.Guild.Id, roleName))
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Warning($"The self role **{roleName}** already exists. Delete it first if you want to change it."));
-                return;
-            }
+            return DataHelpers.Roles.CreateRole(context, roleName, description);
+        }
 
-            string roleMention = discordRole.IsMentionable ? discordRole.Mention : discordRole.Name;
-            await DataHelpers.Roles.CreateSelfRole(context.Guild.Id, roleName, description, hidden);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role {roleMention} created!"));
+        [Command("Set")]
+        [Priority(10)]
+        public Task SetSelfRole(CommandContext context, DiscordRole role, string description)
+        {
+            return DataHelpers.Roles.CreateRole(context, role, description);
         }
 
         [Command("Remove")]
@@ -172,10 +145,16 @@ namespace SteelBot.DiscordModules.Roles
         [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
         [RequireUserPermissions(Permissions.ManageRoles)]
         [Cooldown(10, 60, CooldownBucketType.Guild)]
-        public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
+        public Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
-            await DataHelpers.Roles.DeleteSelfRole(context.Guild.Id, roleName);
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Self Role **{roleName}** deleted!"));
+           return DataHelpers.Roles.RemoveRole(context, roleName);
+        }
+
+        [Command("Remove")]
+        [Priority(10)]
+        public Task RemoveSelfRole(CommandContext context, DiscordRole role)
+        {
+            return DataHelpers.Roles.RemoveRole(context, role);
         }
     }
 }

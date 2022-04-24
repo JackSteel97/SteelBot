@@ -33,10 +33,10 @@ namespace SteelBot.Channels.SelfRole
                     await _selfRoleMembershipService.Leave();
                     break;
                 case SelfRoleActionType.Create:
-                    await _selfRoleCreationService.Create();
+                    await _selfRoleCreationService.Create(message);
                     break;
                 case SelfRoleActionType.Delete:
-                    await _selfRoleCreationService.Remove();
+                    await _selfRoleCreationService.Remove(message);
                     break;
             }
         }

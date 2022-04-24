@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,14 +14,14 @@ namespace SteelBot.DataProviders.SubProviders
         private readonly ILogger<SelfRolesProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
 
-        private readonly Dictionary<ulong, Dictionary<string, SelfRole>> SelfRolesByGuildAndRole;
+        private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, SelfRole>> SelfRolesByGuildAndId;
 
         public SelfRolesProvider(ILogger<SelfRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
 
-            SelfRolesByGuildAndRole = new Dictionary<ulong, Dictionary<string, SelfRole>>();
+            SelfRolesByGuildAndId = new ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, SelfRole>>();
             LoadSelfRoleData();
         }
 
@@ -42,63 +43,73 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void AddRoleToInternalCache(ulong guildId, SelfRole role)
         {
-            if (!SelfRolesByGuildAndRole.TryGetValue(guildId, out Dictionary<string, SelfRole> roles))
+            var guildRoles = SelfRolesByGuildAndId.GetOrAdd(guildId, _ => new ConcurrentDictionary<ulong, SelfRole>());
+
+            guildRoles.TryAdd(role.DiscordRoleId, role);
+        }
+
+        private void RemoveRoleFromInternalCache(ulong guildId, ulong roleId)
+        {
+            if (SelfRolesByGuildAndId.TryGetValue(guildId, out var roles))
             {
-                roles = new Dictionary<string, SelfRole>();
-                SelfRolesByGuildAndRole.Add(guildId, roles);
-            }
-            if (!roles.ContainsKey(role.RoleName.ToLower()))
-            {
-                roles.Add(role.RoleName.ToLower(), role);
+                roles.TryRemove(roleId, out _);
             }
         }
 
-        private void RemoveRoleFromInternalCache(ulong guildId, string roleName)
+        public bool BotKnowsRole(ulong guildId, ulong roleId)
         {
-            if (SelfRolesByGuildAndRole.TryGetValue(guildId, out Dictionary<string, SelfRole> roles))
+            if (SelfRolesByGuildAndId.TryGetValue(guildId, out var roles))
             {
-                if (roles.ContainsKey(roleName.ToLower()))
-                {
-                    roles.Remove(roleName.ToLower());
-                }
-            }
-        }
-
-        public bool BotKnowsRole(ulong guildId, string roleName)
-        {
-            if (SelfRolesByGuildAndRole.TryGetValue(guildId, out Dictionary<string, SelfRole> roles))
-            {
-                return roles.ContainsKey(roleName.ToLower());
+                return roles.ContainsKey(roleId);
             }
             return false;
         }
 
-        public bool TryGetRole(ulong guildId, string roleName, out SelfRole role)
+        public bool TryGetRole(ulong guildId, ulong roleId, out SelfRole role)
         {
-            if (SelfRolesByGuildAndRole.TryGetValue(guildId, out Dictionary<string, SelfRole> roles))
+            if (SelfRolesByGuildAndId.TryGetValue(guildId, out var roles))
             {
-                return roles.TryGetValue(roleName.ToLower(), out role);
+                return roles.TryGetValue(roleId, out role);
             }
             role = null;
             return false;
         }
 
-        public bool TryGetGuildRoles(ulong guildId, out Dictionary<string, SelfRole> roles)
+        public bool TryGetRole(ulong guildId, string roleName, out SelfRole role)
         {
-            return SelfRolesByGuildAndRole.TryGetValue(guildId, out roles);
+            if(SelfRolesByGuildAndId.TryGetValue(guildId, out var guildRoles))
+            {
+                role = guildRoles.Values.FirstOrDefault(x => x.RoleName.Equals(roleName, System.StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                role = null;
+            }
+            return role != null;
+        }
+
+        public bool TryGetGuildRoles(ulong guildId, out List<SelfRole> roles)
+        {
+            if(SelfRolesByGuildAndId.TryGetValue(guildId, out var indexedRoles))
+            {
+                roles = indexedRoles.Values.ToList();
+                return true;
+            }
+            roles = new List<SelfRole>();
+            return false;
         }
 
         public async Task AddRole(ulong guildId, SelfRole role)
         {
-            if (!BotKnowsRole(guildId, role.RoleName))
+            if (!BotKnowsRole(guildId, role.DiscordRoleId))
             {
                 await InsertSelfRole(guildId, role);
             }
         }
 
-        public async Task RemoveRole(ulong guildId, string roleName)
+        public async Task RemoveRole(ulong guildId, ulong roleId)
         {
-            if (TryGetRole(guildId, roleName, out SelfRole role))
+            if (TryGetRole(guildId, roleId, out SelfRole role))
             {
                 await DeleteSelfRole(guildId, role);
             }
@@ -106,7 +117,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         private async Task InsertSelfRole(ulong guildId, SelfRole role)
         {
-            Logger.LogInformation($"Writing a new Self Role [{role.RoleName}] for Guild [{guildId}] to the database.");
+            Logger.LogInformation("Writing a new Self Role {RoleName} for Guild {GuildId} to the database", role.RoleName, guildId);
 
             int writtenCount;
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
@@ -121,13 +132,13 @@ namespace SteelBot.DataProviders.SubProviders
             }
             else
             {
-                Logger.LogError($"Writing Self Role [{role.RoleName}] for Guild [{guildId}] to the database inserted no entities. The internal cache was not changed.");
+                Logger.LogError("Writing Self Role {RoleName} for Guild {GuildId} to the database inserted no entities. The internal cache was not changed", role.RoleName, guildId);
             }
         }
 
         private async Task DeleteSelfRole(ulong guildId, SelfRole role)
         {
-            Logger.LogInformation($"Deleting Self Role [{role.RoleName}] for Guild [{guildId}] from the database.");
+            Logger.LogInformation("Deleting Self Role {RoleName} for Guild {GuildId} from the database", role.RoleName, guildId);
 
             int writtenCount;
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
@@ -138,11 +149,11 @@ namespace SteelBot.DataProviders.SubProviders
 
             if (writtenCount > 0)
             {
-                RemoveRoleFromInternalCache(guildId, role.RoleName);
+                RemoveRoleFromInternalCache(guildId, role.DiscordRoleId);
             }
             else
             {
-                Logger.LogWarning($"Deleting Self Role [{role.RoleName}] for Guild [{guildId}] from the database deleted no entities. The internal cache was not changed.");
+                Logger.LogWarning("Deleting Self Role {RoleName} for Guild {GuildId} from the database deleted no entities. The internal cache was not changed", role.RoleName, guildId);
             }
         }
     }

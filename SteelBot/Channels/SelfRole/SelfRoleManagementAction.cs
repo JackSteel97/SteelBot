@@ -18,9 +18,32 @@ namespace SteelBot.Channels.SelfRole
 
     public class SelfRoleManagementAction
     {
-        public SelfRoleActionType Action { get; set; }
-        public DiscordMember Member { get; set; }
-        public string RoleName { get; set; }
-        public string Description { get; set; }
+        public SelfRoleActionType Action { get; init; }
+        public DiscordMember Member { get; init; }
+        public DiscordMessage SourceMessage { get; init; }
+        public string RoleName { get; init; }
+        public string Description { get; init; }
+
+        public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage, string roleName, string description)
+        {
+            Action = action;
+            Member = member;
+            SourceMessage = sourceMessage;
+            RoleName = roleName;
+            Description = description;
+        }
+
+        public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage, string roleName)
+        {
+            Action = action;
+            Member = member;
+            SourceMessage = sourceMessage;
+            RoleName = roleName;
+        }
+
+        public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder msg)
+        {
+            return SourceMessage.RespondAsync(msg);
+        }
     }
 }

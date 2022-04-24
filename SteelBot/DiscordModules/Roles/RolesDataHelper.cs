@@ -1,9 +1,12 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
+using SteelBot.Channels.SelfRole;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.Roles.Services;
 using SteelBot.Helpers;
+using SteelBot.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,11 +19,40 @@ namespace SteelBot.DiscordModules.Roles
         private readonly ILogger<RolesDataHelper> Logger;
         private readonly DataCache Cache;
 
-        public RolesDataHelper(ILogger<RolesDataHelper> logger, DataCache cache)
+        private readonly SelfRoleManagementChannel SelfRoleManagementChannel;
+        private readonly CancellationService CancellationService;
+
+        public RolesDataHelper(ILogger<RolesDataHelper> logger, DataCache cache, SelfRoleManagementChannel selfRoleManagementChannel, CancellationService cancellationService)
         {
             Logger = logger;
             Cache = cache;
+            SelfRoleManagementChannel = selfRoleManagementChannel;
+            CancellationService = cancellationService;
         }
+
+        public Task CreateRole(CommandContext context, DiscordRole role, string description)
+        {
+            return CreateRole(context, role.Name, description);
+        }
+
+        public async Task CreateRole(CommandContext context, string roleName, string description)
+        {
+            var change = new SelfRoleManagementAction(SelfRoleActionType.Create, context.Member, context.Message, roleName, description);
+            await SelfRoleManagementChannel.WriteChange(change, CancellationService.Token);
+        }
+
+        public Task RemoveRole(CommandContext context, DiscordRole role)
+        {
+            return RemoveRole(context, role.Name);
+        }
+
+        public async Task RemoveRole(CommandContext context, string roleName)
+        {
+            var change = new SelfRoleManagementAction(SelfRoleActionType.Delete, context.Member, context.Message, roleName);
+            await SelfRoleManagementChannel.WriteChange(change, CancellationService.Token);
+        }
+
+        // <=================> OLD <========================>
 
         public async Task JoinRole(CommandContext context, DiscordRole role)
         {
