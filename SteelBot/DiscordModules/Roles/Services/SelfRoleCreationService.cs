@@ -7,9 +7,7 @@ using SteelBot.DiscordModules.Roles.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles.Services
@@ -37,9 +35,9 @@ namespace SteelBot.DiscordModules.Roles.Services
             if (request.Action != SelfRoleActionType.Create) throw new ArgumentException($"Unexpected management action send to {nameof(Create)}");
 
             _logger.LogInformation("Request to create self role {RoleName} in Guild {GuildId} received", request.RoleName, request.Member.Guild.Id);
-            if (ValidateCreationRequest(request, out var discordRoleMention))
+            if (ValidateCreationRequest(request, out var discordRole))
             {
-                await CreateSelfRole(request, discordRoleMention);
+                await CreateSelfRole(request, discordRole);
             }
             else
             {
@@ -49,7 +47,7 @@ namespace SteelBot.DiscordModules.Roles.Services
 
         public async ValueTask Remove(SelfRoleManagementAction request)
         {
-            if (request.Action != SelfRoleActionType.Delete) throw new ArgumentException($"Unexpected management action send to {nameof(Create)}");
+            if (request.Action != SelfRoleActionType.Delete) throw new ArgumentException($"Unexpected management action send to {nameof(Remove)}");
 
             _logger.LogInformation("Request to remove self role {RoleName} in Guild {GuildId} received", request.RoleName, request.Member.Guild.Id);
             if(_selfRolesProvider.TryGetRole(request.Member.Guild.Id, request.RoleName, out var role))
@@ -70,8 +68,7 @@ namespace SteelBot.DiscordModules.Roles.Services
                 var role = new SelfRole(discordRole.Id, request.RoleName, guild.RowId, request.Description);
                 await _selfRolesProvider.AddRole(guild.DiscordId, role);
 
-                var roleMention = GetMention(discordRole);
-                request.RespondAsync(SelfRoleMessages.RoleCreatedSuccess(roleMention)).FireAndForget(_errorHandlingService);
+                request.RespondAsync(SelfRoleMessages.RoleCreatedSuccess(discordRole.Mention)).FireAndForget(_errorHandlingService);
             }
             else
             {
@@ -116,19 +113,13 @@ namespace SteelBot.DiscordModules.Roles.Services
             }
             else if (_selfRolesProvider.BotKnowsRole(request.Member.Guild.Id, discordRole.Id))
             {
-                var discordRoleMention = GetMention(discordRole);
-                request.RespondAsync(SelfRoleMessages.RoleAlreadyExists(discordRoleMention));
+                request.RespondAsync(SelfRoleMessages.RoleAlreadyExists(discordRole.Mention));
             }
             else
             {
                 valid = true;
             }
             return valid;
-        }
-
-        private static string GetMention(DiscordRole role)
-        {
-            return role.IsMentionable? role.Mention: role.Name;
         }
     }
 }

@@ -24,13 +24,13 @@ namespace SteelBot.Channels.SelfRole
             switch (message.Action)
             {
                 case SelfRoleActionType.Join:
-                    await _selfRoleMembershipService.Join();
+                    await _selfRoleMembershipService.Join(message);
                     break;
                 case SelfRoleActionType.JoinAll:
-                    await _selfRoleMembershipService.JoinAll();
+                    await _selfRoleMembershipService.JoinAll(message);
                     break;
                 case SelfRoleActionType.Leave:
-                    await _selfRoleMembershipService.Leave();
+                    await _selfRoleMembershipService.Leave(message);
                     break;
                 case SelfRoleActionType.Create:
                     await _selfRoleCreationService.Create(message);

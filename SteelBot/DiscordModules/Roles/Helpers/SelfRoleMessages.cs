@@ -2,10 +2,7 @@
 using DSharpPlus.Entities;
 using SteelBot.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles.Helpers
 {
@@ -68,7 +65,7 @@ namespace SteelBot.DiscordModules.Roles.Helpers
 
         public static DiscordMessageBuilder InvalidRole(string role, bool deletedReminder = false)
         {
-            const string deletedReminderMessage = "\n**Make sure the server role has not been deleted.**";
+            const string deletedReminderMessage = "\n**Make sure the self role has not been removed.**";
             return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error($"{role} is not a valid self role.{(deletedReminder ? deletedReminderMessage : string.Empty)}"));
         }
 
@@ -80,6 +77,11 @@ namespace SteelBot.DiscordModules.Roles.Helpers
         public static DiscordMessageBuilder JoinedRoleSuccess(string user, string role)
         {
             return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"{user} joined {role}"));
+        }
+
+        public static DiscordMessageBuilder JoinedRolesSuccess(StringBuilder joinedRoles)
+        {
+            return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success(joinedRoles.ToString(), "Joined Roles"));
         }
 
         public static DiscordMessageBuilder LeftRoleSuccess(string user, string role)

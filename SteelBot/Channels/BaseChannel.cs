@@ -33,7 +33,7 @@ namespace SteelBot.Channels
             _channel = Channel.CreateBounded<TMsg>(options);
         }
 
-        public async ValueTask WriteChange(TMsg change, CancellationToken token)
+        public async ValueTask Write(TMsg change, CancellationToken token)
         {
             try
             {

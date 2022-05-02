@@ -236,7 +236,7 @@ namespace SteelBot
                 {
                     // TODO: Atomic updates for user properties rather than updating the entire object.
                     // Only non-commands count for message stats.
-                    await IncomingMessageChannel.WriteMessage(new IncomingMessage(args), CancellationService.Token);
+                    await IncomingMessageChannel.Write(new IncomingMessage(args), CancellationService.Token);
                 }
             }
             catch (Exception ex)
@@ -251,7 +251,7 @@ namespace SteelBot
             {
                 if (args?.Guild != null && args.User.Id != client.CurrentUser.Id)
                 {
-                    await VoiceStateChannel.WriteChange(new VoiceStateChange(args), CancellationService.Token);
+                    await VoiceStateChannel.Write(new VoiceStateChange(args), CancellationService.Token);
                 }
             }
             catch (Exception ex)

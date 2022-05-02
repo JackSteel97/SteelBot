@@ -1,8 +1,4 @@
 ﻿using DSharpPlus.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.SelfRole
@@ -39,6 +35,13 @@ namespace SteelBot.Channels.SelfRole
             Member = member;
             SourceMessage = sourceMessage;
             RoleName = roleName;
+        }
+
+        public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage)
+        {
+            Action = action;
+            Member = member;
+            SourceMessage = sourceMessage;
         }
 
         public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder msg)

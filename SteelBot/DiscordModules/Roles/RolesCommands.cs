@@ -2,13 +2,8 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using SteelBot.Database.Models;
-using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles
@@ -31,36 +26,8 @@ namespace SteelBot.DiscordModules.Roles
         [Cooldown(1, 60, CooldownBucketType.Channel)]
         public Task ViewSelfRoles(CommandContext context)
         {
-            List<SelfRole> allRoles = DataHelpers.Roles.GetSelfRoles(context.Guild.Id);
-            if (allRoles == null || allRoles.Count == 0)
-            {
-                return context.RespondAsync(embed: EmbedGenerator.Warning("There are no self roles available.\nAsk your administrator to create some!"));
-            }
-            string prefix = DataHelpers.Config.GetPrefix(context.Guild.Id);
-
-            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Available Self Roles");
-
-            StringBuilder rolesBuilder = new StringBuilder();
-            rolesBuilder.AppendLine(Formatter.Bold("All")).AppendLine($" - Join all available Self Roles");
-            foreach (SelfRole role in allRoles)
-            {
-                if (!role.Hidden)
-                {
-                    DiscordRole discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
-                    string roleMention = role.RoleName;
-                    if (discordRole != default && discordRole.IsMentionable)
-                    {
-                        roleMention = discordRole.Mention;
-                    }
-                    rolesBuilder.AppendLine(Formatter.Bold(roleMention));
-                    rolesBuilder.AppendLine($" - {role.Description}");
-                }
-            }
-            builder.WithDescription($"Use `{prefix}SelfRoles Join \"RoleName\"` to join one of these roles.\n\n{rolesBuilder}");
-
-            return context.RespondAsync(embed: builder.Build());
+            DataHelpers.Roles.DisplayRoles(context);
+            return Task.CompletedTask;
         }
 
         [Command("Join")]
@@ -71,27 +38,12 @@ namespace SteelBot.DiscordModules.Roles
         {
             if (roleName.Equals("All", StringComparison.OrdinalIgnoreCase))
             {
-                string joinedRoles = await DataHelpers.Roles.JoinAllAvailableRoles(context.Member, context.Guild);
-                if (joinedRoles.Length > 0)
-                {
-                    await context.RespondAsync(embed: EmbedGenerator.Success(joinedRoles, "Joined Roles"));
-                }
-                else
-                {
-                    await context.RespondAsync(embed: EmbedGenerator.Warning("There are no roles that you don't already have."));
-                }
-                return;
+                await DataHelpers.Roles.JoinAllRoles(context);
             }
-
-            // Get discord role variable.
-            DiscordRole role = context.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-            if (role == default)
+            else
             {
-                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid role on this server. Make sure your administrator has added the role."));
-                return;
+                await DataHelpers.Roles.JoinRole(context, roleName);
             }
-
-            await DataHelpers.Roles.JoinRole(context, role);
         }
 
         [Command("Join")]
@@ -107,14 +59,7 @@ namespace SteelBot.DiscordModules.Roles
         [Cooldown(10, 60, CooldownBucketType.User)]
         public async Task LeaveRole(CommandContext context, [RemainingText] string roleName)
         {
-            // Get discord role variable.
-            DiscordRole role = context.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-            if (role == default)
-            {
-                await context.RespondAsync(embed: EmbedGenerator.Error($"**{roleName}** is not a valid role on this server. Make sure your administrator has added the role."));
-                return;
-            }
-            await DataHelpers.Roles.LeaveRole(context, role);
+            await DataHelpers.Roles.LeaveRole(context, roleName);
         }
 
         [Command("Leave")]
@@ -147,7 +92,7 @@ namespace SteelBot.DiscordModules.Roles
         [Cooldown(10, 60, CooldownBucketType.Guild)]
         public Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
         {
-           return DataHelpers.Roles.RemoveRole(context, roleName);
+            return DataHelpers.Roles.RemoveRole(context, roleName);
         }
 
         [Command("Remove")]
