@@ -129,8 +129,4 @@
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="DiscordModules\Roles\Models\" />
-	</ItemGroup>
 </Project>
