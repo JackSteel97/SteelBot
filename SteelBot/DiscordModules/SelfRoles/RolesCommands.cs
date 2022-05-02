@@ -63,6 +63,7 @@ namespace SteelBot.DiscordModules.Roles
         }
 
         [Command("Leave")]
+        [Priority(10)]
         public async Task LeaveRole(CommandContext context, DiscordRole role)
         {
             await DataHelpers.Roles.LeaveRole(context, role);

@@ -30,6 +30,8 @@ using Serilog;
 using System.Threading.Tasks;
 using SteelBot.Channels.Voice;
 using SteelBot.Channels.Message;
+using SteelBot.Channels.SelfRole;
+using SteelBot.DiscordModules.Roles.Services;
 
 namespace SteelBot
 {
@@ -172,6 +174,11 @@ namespace SteelBot
 
             serviceProvider.AddSingleton<MessagesChannel>();
             serviceProvider.AddSingleton<IncomingMessageHandler>();
+
+            serviceProvider.AddSingleton<SelfRoleManagementChannel>();
+            serviceProvider.AddSingleton<SelfRoleCreationService>();
+            serviceProvider.AddSingleton<SelfRoleMembershipService>();
+            serviceProvider.AddSingleton<SelfRoleViewingService>();
 
             serviceProvider.AddSingleton<UserLockingService>();
         }

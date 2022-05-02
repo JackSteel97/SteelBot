@@ -44,7 +44,7 @@ public class SelfRoleViewingService
                 .WithTitle("Available Self Roles");
 
         var rolesBuilder = new StringBuilder();
-        rolesBuilder.AppendLine(Formatter.Bold("All")).AppendLine(" - Join all available Self Roles");
+        rolesBuilder.Append(Formatter.Bold("All")).AppendLine(" - Join all available Self Roles");
 
         AppendSelfRoles(context, allRoles, rolesBuilder);
 
@@ -62,7 +62,7 @@ public class SelfRoleViewingService
             {
                 roleMention = discordRole.Mention;
             }
-            rolesBuilder.AppendLine(Formatter.Bold(roleMention));
+            rolesBuilder.Append(Formatter.Bold(roleMention));
             rolesBuilder.Append(" - ").AppendLine(role.Description);
         }
     }
