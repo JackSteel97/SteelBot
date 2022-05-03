@@ -8,6 +8,7 @@ namespace SteelBot.Database.Models
     public class RankRole
     {
         public long RowId { get; set; }
+        public ulong RoleDiscordId { get; set; }
 
         [MaxLength(255)]
         public string RoleName { get; set; }
@@ -24,8 +25,9 @@ namespace SteelBot.Database.Models
         /// </summary>
         public RankRole() { }
 
-        public RankRole(string roleName, long guildRowId, int levelRequired)
+        public RankRole(ulong roleId, string roleName, long guildRowId, int levelRequired)
         {
+            RoleDiscordId = roleId;
             RoleName = roleName;
             CreatedAt = DateTime.UtcNow;
             GuildRowId = guildRowId;
