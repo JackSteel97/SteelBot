@@ -123,7 +123,7 @@ namespace SteelBot.DiscordModules.WordGuesser
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, allStats, 10, (builder, user, index) =>
             {
                 return builder
-                    .AppendLine($"**{(index + 1).Ordinalize()}** - {user.UserId.ToMention()}")
+                    .AppendLine($"**{(index + 1).Ordinalize()}** - {user.UserId.ToUserMention()}")
                     .AppendLine($"Guesses `{user.Guesses}`")
                     .AppendLine($"Correct `{$"{user.CorrectGuesses}"}`");
             });

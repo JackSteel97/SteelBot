@@ -24,7 +24,7 @@ namespace SteelBot.DataProviders.SubProviders
             LoadRankRoleData();
         }
 
-        public void LoadRankRoleData()
+        private void LoadRankRoleData()
         {
             Logger.LogInformation("Loading data from database: RankRoles");
             RankRole[] allRoles;
@@ -53,11 +53,11 @@ namespace SteelBot.DataProviders.SubProviders
             }
         }
 
-        public bool BotKnowsRole(ulong guildId, ulong roleName)
+        public bool BotKnowsRole(ulong guildId, ulong roleId)
         {
             if (RankRolesByGuildAndRole.TryGetValue(guildId, out var roles))
             {
-                return roles.ContainsKey(roleName);
+                return roles.ContainsKey(roleId);
             }
             return false;
         }

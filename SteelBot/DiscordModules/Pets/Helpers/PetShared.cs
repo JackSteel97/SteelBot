@@ -174,11 +174,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
                 if (pingUser)
                 {
-                    message = message.WithContent(userId.ToMention());
+                    message = message.WithContent(userId.ToUserMention());
                 }
                 else
                 {
-                    changes.Insert(0, userId.ToMention() + Environment.NewLine);
+                    changes.Insert(0, userId.ToUserMention() + Environment.NewLine);
                 }
 
                 message = message.WithEmbed(EmbedGenerator.Info(changes.ToString(),

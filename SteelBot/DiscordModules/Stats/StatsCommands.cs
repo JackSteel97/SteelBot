@@ -287,7 +287,7 @@ namespace SteelBot.DiscordModules.Stats
             List<Page> pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedUsers, 5, (builder, user, index) =>
             {
                 return builder
-                    .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToMention())
+                    .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
                     .AppendLine(metricValues[index]);
             });
 
@@ -333,7 +333,7 @@ namespace SteelBot.DiscordModules.Stats
                 pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 5, (builder, user, index) =>
                 {
                     return builder
-                        .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToMention())
+                        .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
                         .Append("Level `").Append(user.CurrentLevel).AppendLine("`")
                         .Append("XP `").Append(user.TotalXp.ToString("N0")).AppendLine("`");
                 });

@@ -41,9 +41,14 @@ namespace SteelBot.Helpers.Extensions
             return formatted;
         }
 
-        public static string ToMention(this ulong id)
+        public static string ToUserMention(this ulong id)
         {
             return $"<@{id}>";
+        }
+
+        public static string ToRoleMention(this ulong id)
+        {
+            return $"<@&{id}>";
         }
     }
 }
