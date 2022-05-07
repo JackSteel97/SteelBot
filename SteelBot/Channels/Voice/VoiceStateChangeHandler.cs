@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles;
+using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
 using System;
@@ -17,26 +18,26 @@ namespace SteelBot.Channels.Voice
         private readonly UsersProvider _usersCache;
         private readonly PetsDataHelper _petsDataHelper;
         private readonly LevelMessageSender _levelMessageSender;
-        private readonly RankRoleDataHelper _rankRoleDataHelper;
+        private readonly RankRolesProvider _rankRolesProvider;
 
         public VoiceStateChangeHandler(ILogger<VoiceStateChangeHandler> logger,
             UsersProvider usersCache,
             PetsDataHelper petsDataHelper,
             LevelMessageSender levelMessageSender,
-            RankRoleDataHelper rankRoleDataHelper)
+            RankRolesProvider rankRolesProvider)
         {
             _logger = logger;
             _usersCache = usersCache;
             _petsDataHelper = petsDataHelper;
             _levelMessageSender = levelMessageSender;
-            _rankRoleDataHelper = rankRoleDataHelper;
+            _rankRolesProvider = rankRolesProvider;
         }
 
         public async Task HandleVoiceStateChange(VoiceStateChange changeArgs)
         {
             var usersInChannel = GetUsersInChannel(changeArgs);
 
-            var scalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
+            double scalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
 
             // Update this user
             await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, scalingFactor);
@@ -46,7 +47,7 @@ namespace SteelBot.Channels.Voice
             {
                 if(userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
                 {
-                    var otherScalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
+                    double otherScalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
                     await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherScalingFactor);
                 }
             }
@@ -56,7 +57,7 @@ namespace SteelBot.Channels.Voice
         {
             if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor))
             {
-                await _rankRoleDataHelper.UserLevelledUp(guild.Id, user.Id, guild);
+                await RankRoleShared.UserLevelledUp(guild.Id, user.Id, guild, _rankRolesProvider, _usersCache, _levelMessageSender);
             }
         }
 

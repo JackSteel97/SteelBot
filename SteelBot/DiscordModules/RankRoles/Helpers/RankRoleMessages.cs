@@ -22,7 +22,7 @@ public static class RankRoleMessages
 
     public static DiscordMessageBuilder RequiredRankMustBePositive()
     {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("The required rank must be postive."));
+        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("The required rank must be positive."));
     }
 
     public static DiscordMessageBuilder RoleAlreadyExists()
@@ -48,18 +48,5 @@ public static class RankRoleMessages
     public static DiscordMessageBuilder RankRoleDeletedSuccess(string roleName)
     {
         return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"Rank Role {Formatter.Bold(roleName)} deleted!"));
-    }
-
-    public static DiscordMessageBuilder RankGranted(string roleMention, int requiredLevel)
-    {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info($"You have been granted the {Formatter.Bold(roleMention)} role for reaching rank {Formatter.Bold(requiredLevel.ToString())}!", "Rank Role Granted!"));
-    }
-
-    public static DiscordMessageBuilder RankChangeDueToDeletion(string previousRoleName, string newRoleMention)
-    {
-        string newRoleText = string.IsNullOrWhiteSpace(newRoleMention)
-                        ? "there are no rank roles eligible to replace it."
-                        : $"your new role is {Formatter.Bold(newRoleMention)}";
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info($"Your previous rank role {Formatter.Bold(previousRoleName)} has been deleted by an admin, {newRoleText}", "Rank Role Changed"));
     }
 }

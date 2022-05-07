@@ -38,6 +38,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Message;
+using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Voice;
 using SteelBot.Database;
@@ -89,6 +90,7 @@ namespace SteelBot
         private readonly VoiceStateChannel VoiceStateChannel;
         private readonly MessagesChannel IncomingMessageChannel;
         private readonly SelfRoleManagementChannel SelfRoleManagementChannel;
+        private readonly RankRoleManagementChannel RankRoleManagementChannel;
 
         public BotMain(AppConfigurationService appConfigurationService,
             ILogger<BotMain> logger,
@@ -102,7 +104,8 @@ namespace SteelBot
             CancellationService cancellationService,
             MessagesChannel incomingMessageChannel,
             UserLockingService userLockingService,
-            SelfRoleManagementChannel selfRoleManagementChannel)
+            SelfRoleManagementChannel selfRoleManagementChannel,
+            RankRoleManagementChannel rankRoleManagementChannel)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -117,6 +120,7 @@ namespace SteelBot
             IncomingMessageChannel = incomingMessageChannel;
             UserLockingService = userLockingService;
             SelfRoleManagementChannel = selfRoleManagementChannel;
+            RankRoleManagementChannel = rankRoleManagementChannel;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -156,6 +160,7 @@ namespace SteelBot
             VoiceStateChannel.Start(CancellationService.Token);
             IncomingMessageChannel.Start(CancellationService.Token);
             SelfRoleManagementChannel.Start(CancellationService.Token);
+            RankRoleManagementChannel.Start(CancellationService.Token);
         }
 
         private void InitHandlers()
@@ -194,6 +199,27 @@ namespace SteelBot
                         var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
                         role.DiscordRoleId = discordRole.Id;
                         dbContext.SelfRoles.Update(role);
+                        dbContext.SaveChanges();
+                        anyChange = true;
+                    }
+                }
+            }
+
+            // Migration for rank role refactor
+            // TODO: Run in Dev and Remove before releasing to test
+
+            var allRankRoles = dbContext.RankRoles.Include(x => x.Guild).ToArray();
+
+            foreach (var role in allRankRoles)
+            {
+                if (role.RoleDiscordId == default)
+                {
+                    var guild = await Client.GetGuildAsync(role.Guild.DiscordId);
+                    if (guild != null)
+                    {
+                        var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
+                        role.RoleDiscordId = discordRole.Id;
+                        dbContext.RankRoles.Update(role);
                         dbContext.SaveChanges();
                         anyChange = true;
                     }

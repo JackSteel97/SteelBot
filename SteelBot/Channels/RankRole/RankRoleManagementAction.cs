@@ -14,7 +14,7 @@ public class RankRoleManagementAction
 {
     public RankRoleManagementActionType Action { get; init; }
     public DiscordMessage SourceMessage { get; init; }
-    public string RoleNameInput { get; init; }
+    public string RoleName { get; init; }
     public ulong RoleId { get; init; }
     public int RequiredRank { get; init; }
     public DiscordGuild Guild => SourceMessage.Channel.Guild;
@@ -23,15 +23,16 @@ public class RankRoleManagementAction
     {
         Action = action;
         SourceMessage = sourceMessage;
-        RoleNameInput = roleName;
+        RoleName = roleName;
         RequiredRank = requiredRank;
     }
 
-    public RankRoleManagementAction(RankRoleManagementActionType action, DiscordMessage sourceMessage, ulong roleId, int requiredRank = default)
+    public RankRoleManagementAction(RankRoleManagementActionType action, DiscordMessage sourceMessage, ulong roleId, string roleName, int requiredRank = default)
     {
         Action = action;
         SourceMessage = sourceMessage;
         RoleId = roleId;
+        RoleName = roleName;
         RequiredRank = requiredRank;
     }
 
@@ -43,5 +44,5 @@ public class RankRoleManagementAction
 
     public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder msg) => SourceMessage.RespondAsync(msg);
 
-    public string GetRoleIdentifier() => RoleId == default ? RoleNameInput : RoleId.ToString();
+    public string GetRoleIdentifier() => RoleId == default ? RoleName : RoleId.ToString();
 }

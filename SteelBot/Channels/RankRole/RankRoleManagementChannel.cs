@@ -13,10 +13,12 @@ public class RankRoleManagementChannel : BaseChannel<RankRoleManagementAction>
     public RankRoleManagementChannel(ILogger<RankRoleManagementChannel> logger,
             ErrorHandlingService errorHandlingService,
             RankRoleCreationService rankRoleCreationService,
-            RankRoleDeletionService rankRoleDeletionService) : base(logger, errorHandlingService, "Rank Role")
+            RankRoleDeletionService rankRoleDeletionService,
+            RankRoleViewingService rankRoleViewingService) : base(logger, errorHandlingService, "Rank Role")
     {
         _rankRoleCreationService = rankRoleCreationService;
         _rankRoleDeletionService = rankRoleDeletionService;
+        _rankRoleViewingService = rankRoleViewingService;
     }
 
     protected override async ValueTask HandleMessage(RankRoleManagementAction message)

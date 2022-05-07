@@ -29,7 +29,7 @@ public class RankRoleViewingService
     public void View(RankRoleManagementAction request)
     {
         _logger.LogInformation("User {UserId} requested to view the Rank Roles in Guild {GuildId}", request.SourceMessage.Author.Id, request.Guild.Id);
-        if (!_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var guildRoles))
+        if (!_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var guildRoles) || guildRoles.Count == 0)
         {
             request.RespondAsync(RankRoleMessages.NoRankRolesForThisServer()).FireAndForget(_errorHandlingService);
             return;

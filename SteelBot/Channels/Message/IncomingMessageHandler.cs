@@ -2,13 +2,10 @@
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles;
+using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.Message
@@ -19,22 +16,22 @@ namespace SteelBot.Channels.Message
         private readonly ILogger<IncomingMessageHandler> _logger;
         private readonly LevelMessageSender _levelMessageSender;
         private readonly PetsDataHelper _petsDataHelper;
-        private readonly RankRoleDataHelper _rankRoleDataHelper;
         private readonly TriggerDataHelper _triggerDataHelper;
+        private readonly RankRolesProvider _rankRolesProvider;
 
         public IncomingMessageHandler(UsersProvider usersProvider,
             ILogger<IncomingMessageHandler> logger,
             LevelMessageSender levelMessageSender,
             PetsDataHelper petsDataHelper,
-            RankRoleDataHelper rankRoleDataHelper,
-            TriggerDataHelper triggerDataHelper)
+            TriggerDataHelper triggerDataHelper,
+            RankRolesProvider rankRolesProvider)
         {
             _usersProvider = usersProvider;
             _logger = logger;
             _levelMessageSender = levelMessageSender;
             _petsDataHelper = petsDataHelper;
-            _rankRoleDataHelper = rankRoleDataHelper;
             _triggerDataHelper = triggerDataHelper;
+            _rankRolesProvider = rankRolesProvider;
         }
 
         public async Task HandleMessage(IncomingMessage messageArgs)
@@ -42,7 +39,7 @@ namespace SteelBot.Channels.Message
             bool levelledUp = await UpdateMessageCounters(messageArgs);
             if (levelledUp)
             {
-                await _rankRoleDataHelper.UserLevelledUp(messageArgs.Guild.Id, messageArgs.User.Id, messageArgs.Guild);
+                await RankRoleShared.UserLevelledUp(messageArgs.Guild.Id, messageArgs.User.Id, messageArgs.Guild, _rankRolesProvider, _usersProvider, _levelMessageSender);
             }
             await _triggerDataHelper.HandleNewMessage(messageArgs.Guild.Id, messageArgs.Message.Channel, messageArgs.Message.Content);
         }

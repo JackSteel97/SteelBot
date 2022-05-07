@@ -40,7 +40,7 @@ namespace SteelBot.DiscordModules.RankRoles
 
         [Command("Set")]
         [Priority(10)]
-        public async Task SetRankRole(CommandContext context, DiscordRole role, int requiredRank)
+        public async Task SetRankRole(CommandContext context, int requiredRank, DiscordRole role)
         {
             await DataHelpers.RankRoles.CreateRankRole(context, role, requiredRank);
         }

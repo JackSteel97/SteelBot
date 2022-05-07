@@ -3,7 +3,8 @@ using DSharpPlus.Entities;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
-using SteelBot.DiscordModules;
+using SteelBot.DataProviders.SubProviders;
+using SteelBot.DiscordModules.RankRoles.Helpers;
 using System.Threading.Tasks;
 
 namespace SteelBot.Services
@@ -11,20 +12,25 @@ namespace SteelBot.Services
     public class UserTrackingService
     {
         private readonly DataCache Cache;
-        private readonly DataHelpers DataHelpers;
+        private readonly RankRolesProvider _rankRolesProvider;
+        private readonly UsersProvider _usersProvider;
+        private readonly LevelMessageSender _levelMessageSender;
 
-        public UserTrackingService(DataCache cache, DataHelpers dataHelpers)
+        public UserTrackingService(DataCache cache,
+            RankRolesProvider rankRolesProvider,
+            UsersProvider usersProvider,
+            LevelMessageSender levelMessageSender)
         {
             Cache = cache;
-            DataHelpers = dataHelpers;
+            _rankRolesProvider = rankRolesProvider;
+            _usersProvider = usersProvider;
+            _levelMessageSender = levelMessageSender;
         }
 
         /// <summary>
         /// Call this for every entry point receiver.
         /// Make sure the bot know about the user so we can update user state when needed.
         /// </summary>
-        /// <param name="guildId">Guild the user is in.</param>
-        /// <param name="userId">User's discord id.</param>
         public async Task<bool> TrackUser(ulong guildId, DiscordUser user, DiscordGuild discordGuild, DiscordClient client)
         {
             bool continuationAllowed = !user.IsBot && user.Id != client.CurrentUser.Id;
@@ -46,7 +52,7 @@ namespace SteelBot.Services
                     // Only inserted if the user does not already exist.
                     await Cache.Users.InsertUser(guildId, new User(user.Id, guild.RowId));
 
-                    await DataHelpers.RankRoles.UserLevelledUp(guildId, user.Id, discordGuild);
+                    await RankRoleShared.UserLevelledUp(guildId, user.Id, discordGuild, _rankRolesProvider, _usersProvider, _levelMessageSender);
                 }
             }
             else if (user.IsBot && user.Id != client.CurrentUser.Id)

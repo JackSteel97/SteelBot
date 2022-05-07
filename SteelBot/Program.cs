@@ -32,6 +32,8 @@ using SteelBot.Channels.Voice;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.SelfRole;
 using SteelBot.DiscordModules.Roles.Services;
+using SteelBot.Channels.RankRole;
+using SteelBot.DiscordModules.RankRoles.Services;
 
 namespace SteelBot
 {
@@ -179,6 +181,11 @@ namespace SteelBot
             serviceProvider.AddSingleton<SelfRoleCreationService>();
             serviceProvider.AddSingleton<SelfRoleMembershipService>();
             serviceProvider.AddSingleton<SelfRoleViewingService>();
+
+            serviceProvider.AddSingleton<RankRoleManagementChannel>();
+            serviceProvider.AddSingleton<RankRoleCreationService>();
+            serviceProvider.AddSingleton<RankRoleDeletionService>();
+            serviceProvider.AddSingleton<RankRoleViewingService>();
 
             serviceProvider.AddSingleton<UserLockingService>();
         }

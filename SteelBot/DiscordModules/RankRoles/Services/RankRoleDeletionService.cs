@@ -5,6 +5,7 @@ using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.RankRoles.Helpers;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -18,14 +19,16 @@ public class RankRoleDeletionService
     private readonly UsersProvider _usersProvider;
     private readonly UserLockingService _userLockingService;
     private readonly LevelMessageSender _levelMessageSender;
+    private readonly ErrorHandlingService _errorHandlingService;
 
-    public RankRoleDeletionService(ILogger<RankRoleDeletionService> logger, RankRolesProvider rankRolesProvider, UsersProvider usersProvider, UserLockingService userLockingService, LevelMessageSender levelMessageSender)
+    public RankRoleDeletionService(ILogger<RankRoleDeletionService> logger, RankRolesProvider rankRolesProvider, UsersProvider usersProvider, UserLockingService userLockingService, LevelMessageSender levelMessageSender, ErrorHandlingService errorHandlingService)
     {
         _logger = logger;
         _rankRolesProvider = rankRolesProvider;
         _usersProvider = usersProvider;
         _userLockingService = userLockingService;
         _levelMessageSender = levelMessageSender;
+        _errorHandlingService = errorHandlingService;
     }
 
     public async ValueTask Delete(RankRoleManagementAction request)
@@ -43,6 +46,12 @@ public class RankRoleDeletionService
             await RemoveRoleFromUsers(request.Guild, roleToDelete, guildRoles, excludedRoles);
 
             await _rankRolesProvider.RemoveRole(request.Guild.Id, roleToDelete.RoleDiscordId);
+
+            request.RespondAsync(RankRoleMessages.RankRoleDeletedSuccess(roleToDelete.RoleName)).FireAndForget(_errorHandlingService);
+        }
+        else
+        {
+            request.RespondAsync(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName)).FireAndForget(_errorHandlingService);
         }
     }
 
@@ -106,7 +115,7 @@ public class RankRoleDeletionService
         // Fallback to search by name.
         if(_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var allGuildRoles))
         {
-            role = allGuildRoles.Find(x => x.RoleName.Equals(request.RoleNameInput, StringComparison.OrdinalIgnoreCase));
+            role = allGuildRoles.Find(x => x.RoleName.Equals(request.RoleName, StringComparison.OrdinalIgnoreCase));
             return role != default;
         }
 

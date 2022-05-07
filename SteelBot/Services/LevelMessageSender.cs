@@ -42,8 +42,8 @@ namespace SteelBot.Services
                 if (channel != null)
                 {
                     string newRoleText = newRoleId.HasValue && newRoleId.Value != default
-                        ? "there are no rank roles eligible to replace it."
-                        : $"your new role is **{newRoleId.Value.ToRoleMention()}**";
+                        ? $"your new role is **{newRoleId.Value.ToRoleMention()}**"
+                        :"there are no rank roles eligible to replace it.";
 
                     channel.SendMessageAsync(userId.ToUserMention(), embed: EmbedGenerator.Info($"Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"))
                         .FireAndForget(_errorHandlingService);

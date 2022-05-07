@@ -20,18 +20,28 @@ public class RankRoleCreationService
     private readonly ILogger<RankRoleCreationService> _logger;
     private readonly UsersProvider _usersProvider;
     private readonly UserLockingService _userLockingService;
+    private readonly LevelMessageSender _levelMessageSender;
 
-    public RankRoleCreationService(ErrorHandlingService errorHandlingService, RankRolesProvider rankRolesProvider, GuildsProvider guildsProvider, ILogger<RankRoleCreationService> logger)
+    public RankRoleCreationService(ErrorHandlingService errorHandlingService,
+        RankRolesProvider rankRolesProvider,
+        GuildsProvider guildsProvider,
+        ILogger<RankRoleCreationService> logger,
+        UsersProvider usersProvider,
+        UserLockingService userLockingService,
+        LevelMessageSender levelMessageSender)
     {
         _errorHandlingService = errorHandlingService;
         _rankRolesProvider = rankRolesProvider;
         _guildsProvider = guildsProvider;
         _logger = logger;
+        _usersProvider = usersProvider;
+        _userLockingService = userLockingService;
+        _levelMessageSender = levelMessageSender;
     }
 
     public async ValueTask Create(RankRoleManagementAction request)
     {
-        _logger.LogInformation("Request to create Rank Role {RoleName} at {RequiredRank} in Guild {Guild} received", request.GetRoleIdentifier(), request.RequiredRank, request.Guild.Id);
+        _logger.LogInformation("Request to create Rank Role {RoleName} at {RequiredRank} in Guild {GuildId} received", request.GetRoleIdentifier(), request.RequiredRank, request.Guild.Id);
         if (Validate(request, out var discordRole))
         {
             var newRankRole = await CreateRole(request, discordRole);
@@ -64,6 +74,7 @@ public class RankRoleCreationService
                     }
                     await member.GrantRoleAsync(newDiscordRole, "New Rank Role created, this user already has the required rank");
                     await _usersProvider.UpdateRankRole(guild.Id, user.DiscordId, newRankRole);
+                    _levelMessageSender.SendRankGrantedMessage(guild, member.Id, newRankRole, newDiscordRole.Mention);
                 }
             }
         }
@@ -85,16 +96,16 @@ public class RankRoleCreationService
     private bool Validate(RankRoleManagementAction request, out DiscordRole discordRole)
     {
         discordRole = null;
-        if (request.RoleId == default || string.IsNullOrWhiteSpace(request.RoleNameInput))
+        if (request.RoleId == default && string.IsNullOrWhiteSpace(request.RoleName))
         {
             request.RespondAsync(RankRoleMessages.NoRoleNameProvided()).FireAndForget(_errorHandlingService);
             return false;
         }
 
-        discordRole = GetDiscordRole(request.Guild, request.RoleId, request.RoleNameInput);
+        discordRole = GetDiscordRole(request.Guild, request.RoleId, request.RoleName);
         if (discordRole == null)
         {
-            request.RespondAsync(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleNameInput)).FireAndForget(_errorHandlingService);
+            request.RespondAsync(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName)).FireAndForget(_errorHandlingService);
             return false;
         }
 
