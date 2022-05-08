@@ -8,7 +8,6 @@ namespace SteelBot.DiscordModules.Pets.Models
     public class BonusTotals
     {
         public Dictionary<BonusType, PetBonus> Totals { get; init; } = new Dictionary<BonusType, PetBonus>();
-        public double PassiveOffline { get; private set; }
 
         /// <summary>
         /// Empty constructor.
@@ -30,15 +29,6 @@ namespace SteelBot.DiscordModules.Pets.Models
             {
                 Add(bonus);
             }
-
-            if (pet.Rarity == Rarity.Legendary)
-            {
-                AddPassive(pet.CurrentLevel);
-            }
-            else if (pet.Rarity == Rarity.Mythical)
-            {
-                AddPassive(pet.CurrentLevel * 2);
-            }
         }
 
         public void Add(PetBonus bonus)
@@ -58,11 +48,6 @@ namespace SteelBot.DiscordModules.Pets.Models
                 // Clone to prevent affecting the source bonus.
                 Totals.Add(bonus.BonusType, bonus.Clone());
             }
-        }
-
-        public void AddPassive(double passiveXp)
-        {
-            PassiveOffline += passiveXp;
         }
     }
 }

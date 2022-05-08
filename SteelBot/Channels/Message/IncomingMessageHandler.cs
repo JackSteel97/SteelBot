@@ -58,7 +58,7 @@ namespace SteelBot.Channels.Message
                 {
                     // Xp has changed.
                     levelIncreased = copyOfUser.UpdateLevel();
-                    await _petsDataHelper.PetXpUpdated(availablePets, messageArgs.Guild);
+                    await _petsDataHelper.PetXpUpdated(availablePets, messageArgs.Guild, copyOfUser.CurrentLevel);
                 }
                 await _usersProvider.UpdateUser(messageArgs.Guild.Id, copyOfUser);
 

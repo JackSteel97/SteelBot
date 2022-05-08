@@ -114,7 +114,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return false;
         }
 
-        public static bool PetXpChanged(Pet pet, StringBuilder changes, out bool shouldPingOwner)
+        public static bool PetXpChanged(Pet pet, StringBuilder changes, int levelOfUser, out bool shouldPingOwner)
         {
             shouldPingOwner = false;
             var newBonuses = new List<PetBonus>();
@@ -126,7 +126,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                 pet.CurrentLevel = newLevel;
                 for (int level = nextLevel; level <= pet.CurrentLevel; ++level)
                 {
-                    var newBonus = PetLevelledUp(pet, level);
+                    var newBonus = PetLevelledUp(pet, level, levelOfUser);
                     if (newBonus != null)
                     {
                         newBonuses.Add(newBonus);
@@ -145,24 +145,6 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
 
             return levelledUp;
-        }
-
-        public static int GetDisconnectedXpPerMin(List<Pet> availablePets)
-        {
-            int disconnectedXpPerMin = 0;
-            foreach (var pet in availablePets)
-            {
-                if (pet.Rarity == Rarity.Legendary)
-                {
-                    // Legendary pets earn passive xp.
-                    disconnectedXpPerMin += pet.CurrentLevel;
-                }
-                else if (pet.Rarity == Rarity.Mythical)
-                {
-                    disconnectedXpPerMin += pet.CurrentLevel * 2;
-                }
-            }
-            return disconnectedXpPerMin;
         }
 
         public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, ulong userId, bool pingUser)
@@ -267,21 +249,21 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return Convert.ToInt32(currentLevelBracket + extraRequiredLevels);
         }
 
-        private static PetBonus PetLevelledUp(Pet pet, int level)
+        private static PetBonus PetLevelledUp(Pet pet, int level, int levelOfUser)
         {
             PetBonus newBonus = null;
-            if (level == 10 || level % 25 == 0)
+            if (level % 10 == 0)
             {
-                // New bonuses gained at level 10, 25, 50, 75, etc...
-                newBonus = GivePetNewBonus(pet);
+                // New bonuses gained every 10 levels.
+                newBonus = GivePetNewBonus(pet, levelOfUser);
             }
             ImproveCurrentPetBonuses(pet);
             return newBonus;
         }
 
-        private static PetBonus GivePetNewBonus(Pet pet)
+        private static PetBonus GivePetNewBonus(Pet pet, int levelOfUser)
         {
-            var bonus = PetFactory.GenerateBonus(pet);
+            var bonus = PetFactory.GenerateBonus(pet, levelOfUser);
             pet.AddBonus(bonus);
             return bonus;
         }
@@ -290,7 +272,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         {
             foreach (var bonus in pet.Bonuses)
             {
-                var increase = Math.Abs(bonus.Value * 0.01);
+                var increase = Math.Abs(bonus.Value * 0.02);
                 bonus.Value += increase;
             }
         }

@@ -189,13 +189,13 @@ namespace SteelBot.DiscordModules.Pets
             return new List<Pet>();
         }
 
-        public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild)
+        public async Task PetXpUpdated(List<Pet> pets, DiscordGuild sourceGuild, int levelOfUser)
         {
             var changes = new StringBuilder();
             bool pingOwner = false;
             foreach (var pet in pets)
             {
-                bool levelledUp = PetShared.PetXpChanged(pet, changes, out var shouldPingOwner);
+                bool levelledUp = PetShared.PetXpChanged(pet, changes, levelOfUser, out var shouldPingOwner);
                 if (levelledUp)
                 {
                     if (shouldPingOwner)

@@ -66,7 +66,7 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("Search")]
         [Description("Search for a new pet. Allows 10 searches per hour.")]
-        [Cooldown(10, HourSeconds, CooldownBucketType.User)]
+        //[Cooldown(10, HourSeconds, CooldownBucketType.User)]
         public async Task Search(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
@@ -111,7 +111,7 @@ namespace SteelBot.DiscordModules.Pets
             var start = DateTime.UtcNow;
             for (int i = 0; i < count; ++i)
             {
-                var pet = PetFactory.Generate();
+                var pet = PetFactory.Generate(1);
                 if (!countByRarity.ContainsKey(pet.Rarity))
                 {
                     countByRarity.Add(pet.Rarity, 1);

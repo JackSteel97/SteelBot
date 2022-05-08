@@ -54,11 +54,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
             return rarity switch
             {
                 Rarity.Common => 0.2,
-                Rarity.Uncommon => 0.4,
-                Rarity.Rare => 0.6,
-                Rarity.Epic => 0.8,
-                Rarity.Legendary => 1,
-                Rarity.Mythical => 2,
+                Rarity.Uncommon => 0.3,
+                Rarity.Rare => 0.4,
+                Rarity.Epic => 0.6,
+                Rarity.Legendary => 0.8,
+                Rarity.Mythical => 1,
                 _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
             };
         }

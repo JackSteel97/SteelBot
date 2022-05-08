@@ -66,8 +66,8 @@ namespace SteelBot.DiscordModules.Pets.Services
         {
             bool befriendAttempt = false;
             DiscordInteraction interaction = null;
-
-            var foundPet = PetFactory.Generate();
+            Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var user);
+            var foundPet = PetFactory.Generate(user?.CurrentLevel ?? 0);
             var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: false);
 
             var initialResponseBuilder = new DiscordMessageBuilder()

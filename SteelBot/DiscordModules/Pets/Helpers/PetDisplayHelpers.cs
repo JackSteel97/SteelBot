@@ -122,11 +122,6 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             {
                 AppendBonus(bonuses, bonus);
             }
-
-            if (totals.PassiveOffline != 0)
-            {
-                AppendPassiveXpBonus(bonuses, totals.PassiveOffline);
-            }
             return bonuses;
         }
 

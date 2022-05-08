@@ -82,7 +82,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return possibilities;
         }
 
-        public Pet Generate()
+        public Pet Generate(int levelOfUser = 0)
         {
             var baseRarity = GetBaseRarity();
             var species = GetSpecies(baseRarity);
@@ -101,7 +101,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             pet.Attributes = BuildAttributes(pet);
 
-            var bonuses = BuildBonuses(pet);
+            var bonuses = BuildBonuses(pet, levelOfUser);
             pet.AddBonuses(bonuses);
 
             Logger.LogDebug("Generated a new pet with Base Rarity {BaseRarity} and Final Rarity {FinalRarity}", baseRarity.ToString(), finalRarity.ToString());
@@ -202,11 +202,11 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return attributes;
         }
 
-        public static PetBonus GenerateBonus(Pet pet, List<PetBonus> existingBonuses = default)
+        public static PetBonus GenerateBonus(Pet pet, int levelOfUser, List<PetBonus> existingBonuses = default)
         {
             existingBonuses ??= pet.Bonuses;
             bool validBonus = true;
-            var maxBonus = pet.Rarity.GetMaxBonusValue();
+            var maxPercentageBonus = pet.Rarity.GetMaxBonusValue();
             PetBonus bonus;
             do
             {
@@ -218,7 +218,11 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
                 if (bonus.BonusType.IsPercentage())
                 {
-                    validBonus = HandlePercentageBonusGeneration(pet, maxBonus, bonus, existingBonuses);
+                    validBonus = HandlePercentageBonusGeneration(pet, maxPercentageBonus, bonus, existingBonuses);
+                }
+                else if(bonus.BonusType == BonusType.OfflineXP)
+                {
+                    HandleOfflineXpBonusGeneration(bonus, pet.Rarity, pet.CurrentLevel, levelOfUser);
                 }
                 else
                 {
@@ -227,6 +231,24 @@ namespace SteelBot.DiscordModules.Pets.Generation
             } while (!validBonus);
 
             return bonus;
+        }
+
+        private static void HandleOfflineXpBonusGeneration(PetBonus bonus, Rarity rarity, int petLevel, int userLevel)
+        {
+            double baseValue = (double)rarity;
+
+            bonus.Value = baseValue;
+            double chanceToGetMore = baseValue / 10;
+
+            double petLevelMultiplier = 1 + ((double)petLevel / 100);
+            double userLevelMultiplier = 1 + ((double)userLevel / 100);
+            baseValue *= petLevelMultiplier;
+            baseValue *= userLevelMultiplier;
+
+            while (MathsHelper.TrueWithProbability(chanceToGetMore))
+            {
+                bonus.Value += baseValue;
+            }
         }
 
         private static void HandleIntegerBonusGeneration(PetBonus bonus, Rarity rarity)
@@ -273,14 +295,14 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return validBonus;
         }
 
-        private static List<PetBonus> BuildBonuses(Pet pet)
+        private static List<PetBonus> BuildBonuses(Pet pet, int levelOfUser)
         {
             var maxBonuses = pet.Rarity.GetStartingBonusCount();
             var bonuses = new List<PetBonus>(maxBonuses);
 
             for (int i = 0; i < maxBonuses; ++i)
             {
-                var bonus = GenerateBonus(pet, bonuses);
+                var bonus = GenerateBonus(pet, levelOfUser, bonuses);
                 bonuses.Add(bonus);
             }
             return bonuses;

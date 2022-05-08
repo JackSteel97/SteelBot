@@ -204,7 +204,7 @@ namespace SteelBot.Helpers.Levelling
 
         private static void IncrementDisconnectedXp(User user, TimeSpan disconnectedDuration, List<Pet> availablePets)
         {
-            var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
+            var disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXP);
             if (disconnectedXpPerMin > 0)
             {
                 var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, TimeSpan.Zero, disconnectedXpPerMin);

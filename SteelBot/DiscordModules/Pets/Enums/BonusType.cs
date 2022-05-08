@@ -16,6 +16,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
         BefriendSuccessRate = 1 << 7,
         PetSlots = 1 << 8,
         PetSharedXP = 1 << 9,
+        OfflineXP = 1 << 10,
         AllXP = MessageXP | VoiceXP | StreamingXP | VideoXP
     }
 
@@ -31,6 +32,7 @@ namespace SteelBot.DiscordModules.Pets.Enums
             return type switch
             {
                 BonusType.PetSlots => false,
+                BonusType.OfflineXP => false,
                 _ => true,
             };
         }

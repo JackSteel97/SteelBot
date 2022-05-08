@@ -136,7 +136,7 @@ namespace SteelBot.Channels.Voice
                 if (scalingFactor != 0)
                 {
                     levelIncreased = copyOfUser.UpdateLevel();
-                    await _petsDataHelper.PetXpUpdated(availablePets, guild);
+                    await _petsDataHelper.PetXpUpdated(availablePets, guild, copyOfUser.CurrentLevel);
                 }
 
                 await _usersCache.UpdateUser(guildId, copyOfUser);

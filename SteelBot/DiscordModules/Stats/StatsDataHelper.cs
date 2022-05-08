@@ -69,14 +69,14 @@ namespace SteelBot.DiscordModules.Stats
 
             foreach (var user in allUsers)
             {
-                User copyOfUser = user.Clone();
+                var copyOfUser = user.Clone();
                 var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
                 copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, updateLastActivity: false);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
-                await PetsDataHelper.PetXpUpdated(availablePets, default); // Default - Don't try to send level up messages
+                await PetsDataHelper.PetXpUpdated(availablePets, default, copyOfUser.CurrentLevel); // Default - Don't try to send level up messages
             }
         }
 
@@ -110,7 +110,7 @@ namespace SteelBot.DiscordModules.Stats
                 velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.StreamingXP, levelConfig.StreamingXpPerMin);
                 velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.VideoXP, levelConfig.VideoXpPerMin);
 
-                var disconnectedXpPerMin = PetShared.GetDisconnectedXpPerMin(availablePets);
+                var disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXP);
                 velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
             }
             return velocity;

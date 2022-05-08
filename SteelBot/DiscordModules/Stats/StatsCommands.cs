@@ -425,7 +425,7 @@ namespace SteelBot.DiscordModules.Stats
                 .AddField("Message", Formatter.InlineCode(velocity.Message.ToString("N0")), true)
                 .AddField("Voice", Formatter.InlineCode(velocity.Voice.ToString("N0")), true)
                 .AddField("Muted", Formatter.InlineCode($"-{velocity.Muted:N0}"), true)
-                .AddField("Deafened", Formatter.InlineCode($"-{velocity.Deafened:N0}"))
+                .AddField("Deafened", Formatter.InlineCode($"-{velocity.Deafened:N0}"), true)
                 .AddField("Streaming", Formatter.InlineCode(velocity.Streaming.ToString("N0")), true)
                 .AddField("Video", Formatter.InlineCode(velocity.Video.ToString("N0")), true)
                 .AddField("Offline", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);

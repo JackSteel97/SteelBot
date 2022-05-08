@@ -35,7 +35,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
                 var combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
-                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count>0);
+                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
 
                 var maxCapacity = PetShared.GetPetCapacity(user, allPets);
                 var baseCapacity = PetShared.GetBasePetCapacity(user);
@@ -61,7 +61,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task HandleTreatGiven(CommandContext context, long petId)
         {
-            if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
+            if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet) && Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var user))
             {
                 var xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
                 var xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
@@ -71,7 +71,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 pet.EarnedXp += xpGain;
 
                 var changes = new StringBuilder();
-                bool levelledUp = PetShared.PetXpChanged(pet, changes, out var shouldPingOwner);
+                bool levelledUp = PetShared.PetXpChanged(pet, changes, user.CurrentLevel, out var shouldPingOwner);
                 await Cache.Pets.UpdatePet(pet);
                 context.Channel.SendMessageAsync(PetMessages.GetPetTreatedMessage(pet, xpGain)).FireAndForget(ErrorHandlingService);
                 if (levelledUp && Cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
