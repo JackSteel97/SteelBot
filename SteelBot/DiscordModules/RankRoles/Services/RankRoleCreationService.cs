@@ -48,7 +48,7 @@ public class RankRoleCreationService
             if (newRankRole != default)
             {
                 var usersGainedRole = await AssignRoleToUsersAboveRequiredRank(request.Guild, discordRole, newRankRole);
-                SendCreatedSuccessMessage(request, discordRole.Name, newRankRole.LevelRequired, usersGainedRole);
+                SendCreatedSuccessMessage(request, discordRole.Mention, newRankRole.LevelRequired, usersGainedRole);
             }
         }
     }
