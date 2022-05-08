@@ -143,13 +143,14 @@ namespace SteelBot.DiscordModules.Stats
         [Cooldown(2, 30, CooldownBucketType.User)]
         public async Task StatsBreakdown(CommandContext context, DiscordMember discordUser = null)
         {
+            if(discordUser == null)
+            {
+                discordUser = context.Member;
+            }
+
             using (await UserLockingService.ReaderLockAsync(discordUser.Guild.Id, discordUser.Id))
             {
-                ulong userId = context.User.Id;
-                if (discordUser != null)
-                {
-                    userId = discordUser.Id;
-                }
+                ulong userId = discordUser.Id;
 
                 if (!DataHelper.Stats.TryGetUser(context.Guild.Id, userId, out User user))
                 {
