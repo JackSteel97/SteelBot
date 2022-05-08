@@ -110,10 +110,10 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private static Rarity GetBaseRarity()
         {
-            const int maxBound = 1000;
-            const double MythicalChance = 0.001;
-            const double LegendaryChance = 0.02;
-            const double EpicChance = 0.08;
+            const int maxBound = 10000;
+            const double MythicalChance = 0.0001;
+            const double LegendaryChance = 0.01;
+            const double EpicChance = 0.10;
             const double RareChance = 0.20;
             const double UncommonChance = 0.50;
 
@@ -213,7 +213,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 bonus = new PetBonus()
                 {
                     Pet = pet,
-                    BonusType = GetRandomEnumValue<BonusType>(BonusType.None),
+                    BonusType = GetWeightedRandomBonusType(pet.Rarity)
                 };
 
                 if (bonus.BonusType.IsPercentage())
@@ -233,17 +233,36 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return bonus;
         }
 
+        private static BonusType GetWeightedRandomBonusType(Rarity rarity)
+        {
+            var excludedTypes = new List<BonusType> { BonusType.None };
+            double rarityValue = (double)rarity;
+            double chanceToGeneratePassiveXp = rarityValue / 10;
+            double chanceToGeneratePetSlots = 0.2 + (rarityValue / 10);
+
+            if (MathsHelper.TrueWithProbability(1 - chanceToGeneratePassiveXp))
+            {
+                excludedTypes.Add(BonusType.OfflineXP);
+            }
+            if (MathsHelper.TrueWithProbability(1 - chanceToGeneratePetSlots))
+            {
+                excludedTypes.Add(BonusType.PetSlots);
+            }
+
+            return GetRandomEnumValue<BonusType>(excludedTypes.ToArray());
+        }
+
         private static void HandleOfflineXpBonusGeneration(PetBonus bonus, Rarity rarity, int petLevel, int userLevel)
         {
             double baseValue = (double)rarity;
 
-            bonus.Value = baseValue;
             double chanceToGetMore = baseValue / 10;
 
             double petLevelMultiplier = 1 + ((double)petLevel / 100);
             double userLevelMultiplier = 1 + ((double)userLevel / 100);
             baseValue *= petLevelMultiplier;
             baseValue *= userLevelMultiplier;
+            bonus.Value = baseValue;
 
             while (MathsHelper.TrueWithProbability(chanceToGetMore))
             {

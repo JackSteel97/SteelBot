@@ -209,6 +209,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static double GetBonusValue(List<Pet> activePets, BonusType targetType)
         {
             bool isPercentage = targetType.IsPercentage();
+            bool isRounded = targetType.IsRounded();
             double multiplier = isPercentage ? 1 : 0;
             foreach (var pet in activePets)
             {
@@ -217,7 +218,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     if (bonus.BonusType.HasFlag(targetType))
                     {
                         var value = bonus.Value;
-                        if (!isPercentage) {
+                        if (isRounded) {
                             value = Math.Round(bonus.Value);
                         }
                         multiplier += value;

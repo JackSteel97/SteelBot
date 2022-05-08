@@ -36,5 +36,14 @@ namespace SteelBot.DiscordModules.Pets.Enums
                 _ => true,
             };
         }
+
+        public static bool IsRounded(this BonusType type)
+        {
+            return type switch
+            {
+                BonusType.PetSlots => true,
+                _ => false
+            };
+        }
     }
 }

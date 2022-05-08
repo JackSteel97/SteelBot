@@ -1,8 +1,10 @@
 ﻿using SteelBot.DiscordModules.Pets.Enums;
 using System;
+using System.Diagnostics;
 
 namespace SteelBot.Database.Models.Pets
 {
+    [DebuggerDisplay("{BonusType} : {Value}")]
     public class PetBonus
     {
         public long RowId { get; set; }

@@ -138,8 +138,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             var emoji = GetEmoji(bonus.Value, bonus.BonusType.IsNegative());
             var bonusValue = bonus.Value;
 
-            string bonusValueFormat = "P2";
-            if (!bonus.BonusType.IsPercentage())
+            string bonusValueFormat = bonus.BonusType.IsPercentage() ? "P2" : "N2";
+            if (bonus.BonusType.IsRounded())
             {
                 bonusValue = Math.Round(bonusValue);
                 bonusValueFormat = "N0";

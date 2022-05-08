@@ -35,9 +35,9 @@ namespace SteelBot.DiscordModules.Pets.Models
         {
             if(Totals.TryGetValue(bonus.BonusType, out var bonusTotal))
             {
-                bool isPercentage = bonus.BonusType.IsPercentage();
+                bool isRounded = bonus.BonusType.IsRounded();
                 var value = bonus.Value;
-                if (!isPercentage)
+                if (isRounded)
                 {
                     value = Math.Round(bonus.Value);
                 }

@@ -3,10 +3,12 @@ using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SteelBot.Database.Models.Pets
 {
+    [DebuggerDisplay("{Rarity} {Species} {Name}")]
     public class Pet
     {
         public long RowId { get; set; }
