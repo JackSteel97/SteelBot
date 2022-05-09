@@ -8,6 +8,7 @@ using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -106,18 +107,14 @@ namespace SteelBot.DiscordModules.Pets
         [RequireOwner]
         public async Task GenerateLots(CommandContext context, double count)
         {
-            var countByRarity = new Dictionary<Rarity, int>();
+            var countByRarity = new ConcurrentDictionary<Rarity, int>();
 
             var start = DateTime.UtcNow;
-            for (int i = 0; i < count; ++i)
+            Parallel.For(0, (int)count, i =>
             {
                 var pet = PetFactory.Generate(1);
-                if (!countByRarity.ContainsKey(pet.Rarity))
-                {
-                    countByRarity.Add(pet.Rarity, 1);
-                }
-                ++countByRarity[pet.Rarity];
-            }
+                countByRarity.AddOrUpdate(pet.Rarity, 1, (k, v) => ++v);
+            });
             var end = DateTime.UtcNow;
 
             var embed = new DiscordEmbedBuilder().WithTitle("Stats").WithColor(EmbedGenerator.InfoColour)

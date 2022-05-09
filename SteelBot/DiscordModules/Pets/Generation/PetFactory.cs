@@ -87,7 +87,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
             var baseRarity = GetBaseRarity();
             var species = GetSpecies(baseRarity);
             var finalRarity = GetFinalRarity(baseRarity);
-            var size = GetRandomEnumValue<Size>();
+            var size = PetGenerationShared.GetRandomEnumValue<Size>();
             var birthDate = GetBirthDate(species);
 
             var pet = new Pet()
@@ -101,7 +101,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
             pet.Attributes = BuildAttributes(pet);
 
-            var bonuses = BuildBonuses(pet, levelOfUser);
+            var bonuses = PetBonusFactory.GenerateMany(pet, levelOfUser);
             pet.AddBonuses(bonuses);
 
             Logger.LogDebug("Generated a new pet with Base Rarity {BaseRarity} and Final Rarity {FinalRarity}", baseRarity.ToString(), finalRarity.ToString());
@@ -110,10 +110,10 @@ namespace SteelBot.DiscordModules.Pets.Generation
 
         private static Rarity GetBaseRarity()
         {
-            const int maxBound = 10000;
+            const int maxBound = 100000;
             const double MythicalChance = 0.0001;
-            const double LegendaryChance = 0.01;
-            const double EpicChance = 0.10;
+            const double LegendaryChance = 0.005;
+            const double EpicChance = 0.06;
             const double RareChance = 0.20;
             const double UncommonChance = 0.50;
 
@@ -194,7 +194,7 @@ namespace SteelBot.DiscordModules.Pets.Generation
                 var attribute = new PetAttribute()
                 {
                     Pet = pet,
-                    Name = part.Humanize(),
+                    Name = part.ToString(),
                     Description = GenerateColourCombo()
                 };
                 attributes.Add(attribute);
@@ -202,173 +202,23 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return attributes;
         }
 
-        public static PetBonus GenerateBonus(Pet pet, int levelOfUser, List<PetBonus> existingBonuses = default)
-        {
-            existingBonuses ??= pet.Bonuses;
-            bool validBonus = true;
-            var maxPercentageBonus = pet.Rarity.GetMaxBonusValue();
-            PetBonus bonus;
-            do
-            {
-                bonus = new PetBonus()
-                {
-                    Pet = pet,
-                    BonusType = GetWeightedRandomBonusType(pet.Rarity)
-                };
-
-                if (bonus.BonusType.IsPercentage())
-                {
-                    validBonus = HandlePercentageBonusGeneration(pet, maxPercentageBonus, bonus, existingBonuses);
-                }
-                else if(bonus.BonusType == BonusType.OfflineXP)
-                {
-                    HandleOfflineXpBonusGeneration(bonus, pet.Rarity, pet.CurrentLevel, levelOfUser);
-                }
-                else
-                {
-                    HandleIntegerBonusGeneration(bonus, pet.Rarity);
-                }
-            } while (!validBonus);
-
-            return bonus;
-        }
-
-        private static BonusType GetWeightedRandomBonusType(Rarity rarity)
-        {
-            var excludedTypes = new List<BonusType> { BonusType.None };
-            double rarityValue = (double)rarity;
-            double chanceToGeneratePassiveXp = rarityValue / 10;
-            double chanceToGeneratePetSlots = 0.2 + (rarityValue / 10);
-
-            if (MathsHelper.TrueWithProbability(1 - chanceToGeneratePassiveXp))
-            {
-                excludedTypes.Add(BonusType.OfflineXP);
-            }
-            if (MathsHelper.TrueWithProbability(1 - chanceToGeneratePetSlots))
-            {
-                excludedTypes.Add(BonusType.PetSlots);
-            }
-
-            return GetRandomEnumValue<BonusType>(excludedTypes.ToArray());
-        }
-
-        private static void HandleOfflineXpBonusGeneration(PetBonus bonus, Rarity rarity, int petLevel, int userLevel)
-        {
-            double baseValue = (double)rarity;
-
-            double chanceToGetMore = baseValue / 10;
-
-            double petLevelMultiplier = 1 + ((double)petLevel / 100);
-            double userLevelMultiplier = 1 + ((double)userLevel / 100);
-            baseValue *= petLevelMultiplier;
-            baseValue *= userLevelMultiplier;
-            bonus.Value = baseValue;
-
-            while (MathsHelper.TrueWithProbability(chanceToGetMore))
-            {
-                bonus.Value += baseValue;
-            }
-        }
-
-        private static void HandleIntegerBonusGeneration(PetBonus bonus, Rarity rarity)
-        {
-            bonus.Value = 1;
-            while (MathsHelper.TrueWithProbability(0.1))
-            {
-                ++bonus.Value;
-            }
-
-            var probabilityToGoNegative = ((double)rarity + 1) / 10;
-            if (MathsHelper.TrueWithProbability(probabilityToGoNegative))
-            {
-                bonus.Value *= -1;
-            }
-        }
-
-        private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses)
-        {
-            bool validBonus = true;
-            var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
-
-            bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
-            if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
-            {
-                // Normally positive bonuses being negative should be less common.
-                if (MathsHelper.TrueWithProbability(0.8))
-                {
-                    bonus.Value *= -1;
-                }
-            }
-
-            // Check this won't cause negative bonuses to go far
-            if (bonus.Value < 0 && existingBonuses?.Count > 0)
-            {
-                var currentTotal = existingBonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
-                var newTotal = currentTotal + bonus.Value;
-                if (newTotal < -1)
-                {
-                    validBonus = false;
-                }
-            }
-
-            return validBonus;
-        }
-
-        private static List<PetBonus> BuildBonuses(Pet pet, int levelOfUser)
-        {
-            var maxBonuses = pet.Rarity.GetStartingBonusCount();
-            var bonuses = new List<PetBonus>(maxBonuses);
-
-            for (int i = 0; i < maxBonuses; ++i)
-            {
-                var bonus = GenerateBonus(pet, levelOfUser, bonuses);
-                bonuses.Add(bonus);
-            }
-            return bonuses;
-        }
-
         private static string GenerateColourCombo()
         {
             if (MathsHelper.TrueWithProbability(0.1))
             {
                 // Has two colours.
-                var primary = GetRandomEnumValue<Colour>();
-                var secondary = GetRandomEnumValue<Colour>();
-                var mixing = GetRandomEnumValue<ColourMixing>();
+                var primary = PetGenerationShared.GetRandomEnumValue<Colour>();
+                var secondary = PetGenerationShared.GetRandomEnumValue<Colour>();
+                var mixing = PetGenerationShared.GetRandomEnumValue<ColourMixing>();
 
-                return $"{primary.Humanize()} and {secondary.Humanize()} {mixing.Humanize()} patterned";
+                return $"{primary} and {secondary} {mixing} patterned";
             }
             else
             {
                 // Has one colour.
-                var colour = GetRandomEnumValue<Colour>();
-                return colour.Humanize();
+                var colour = PetGenerationShared.GetRandomEnumValue<Colour>();
+                return colour.ToString();
             }
-        }
-
-        private static T GetRandomEnumValue<T>(params T[] excluding)
-        {
-            T result;
-            var excludedValues = excluding.ToHashSet();
-            do
-            {
-                var values = Enum.GetValues(typeof(T)).Cast<T>().ToArray();
-                result = values[RandomNumberGenerator.GetInt32(values.Length)];
-            } while (excludedValues.Contains(result));
-            return result;
-        }
-
-        private static double GetRandomPercentageBonus(double maxValue = 1, double minValue = -1)
-        {
-            var random = GetRandomDouble();
-            return minValue + (random * (maxValue - minValue));
-        }
-
-        private static double GetRandomDouble()
-        {
-            const int maxValue = 1001;
-            const double maxDoubleVal = maxValue;
-            return RandomNumberGenerator.GetInt32(1, maxValue) / maxDoubleVal;
         }
     }
 }

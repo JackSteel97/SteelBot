@@ -264,7 +264,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         private static PetBonus GivePetNewBonus(Pet pet, int levelOfUser)
         {
-            var bonus = PetFactory.GenerateBonus(pet, levelOfUser);
+            var bonus = PetBonusFactory.Generate(pet, levelOfUser);
             pet.AddBonus(bonus);
             return bonus;
         }
