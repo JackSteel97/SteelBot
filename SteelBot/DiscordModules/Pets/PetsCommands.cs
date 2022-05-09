@@ -110,10 +110,10 @@ namespace SteelBot.DiscordModules.Pets
             var countByRarity = new ConcurrentDictionary<Rarity, int>();
 
             var start = DateTime.UtcNow;
-            Parallel.For(0, (int)count, i =>
+            Parallel.For(0, (int)count, _ =>
             {
                 var pet = PetFactory.Generate(1);
-                countByRarity.AddOrUpdate(pet.Rarity, 1, (k, v) => ++v);
+                countByRarity.AddOrUpdate(pet.Rarity, 1, (_, v) => ++v);
             });
             var end = DateTime.UtcNow;
 
@@ -135,7 +135,7 @@ namespace SteelBot.DiscordModules.Pets
         [RequireOwner]
         public async Task CalculateCombinations(CommandContext context)
         {
-            var count = PetFactory.CountPossibilities();
+            ulong count = PetFactory.CountPossibilities();
 
             await context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
         }
