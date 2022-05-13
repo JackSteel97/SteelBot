@@ -3,6 +3,8 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Voice;
 using SteelBot.Services;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.Message
@@ -14,6 +16,8 @@ namespace SteelBot.Channels.Message
         private readonly IncomingMessageHandler _incomingMessageHandler;
         private readonly VoiceStateChangeHandler _voiceStateChangeHanlder;
         private readonly UserLockingService _userLockingService;
+        private readonly Dictionary<(ulong guildId, ulong userId), DateTime> _lastVoiceUpdateFromMessage;
+        private static readonly TimeSpan _voiceUpdateTimeout = TimeSpan.FromMinutes(1);
 
         public MessagesChannel(ILogger<MessagesChannel> logger,
             ErrorHandlingService errorHandlingService,
@@ -38,9 +42,14 @@ namespace SteelBot.Channels.Message
                 {
                     await _incomingMessageHandler.HandleMessage(message);
 
-                    // The user here is already coming from a Guild so we can safely cast to a member.
-                    var member = (DiscordMember)message.User;
-                    await _voiceStateChangeHanlder.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
+                    var key = (message.Guild.Id, message.User.Id);
+                    if (!_lastVoiceUpdateFromMessage.TryGetValue(key, out var lastUpdate) || (DateTime.UtcNow - lastUpdate) > _voiceUpdateTimeout)
+                    {
+                        _lastVoiceUpdateFromMessage[key] = DateTime.UtcNow;
+                        // The user here is already coming from a Guild so we can safely cast to a member.
+                        var member = (DiscordMember)message.User;
+                        await _voiceStateChangeHanlder.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
+                    }
                 }
             }
         }
