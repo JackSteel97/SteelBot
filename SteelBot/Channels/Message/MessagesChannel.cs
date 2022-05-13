@@ -32,6 +32,7 @@ namespace SteelBot.Channels.Message
             _incomingMessageHandler = incomingMessageHandler;
             _voiceStateChangeHanlder = voiceStateChangeHanlder;
             _userLockingService = userLockingService;
+            _lastVoiceUpdateFromMessage = new Dictionary<(ulong guildId, ulong userId), DateTime>();
         }
 
         protected override async ValueTask HandleMessage(IncomingMessage message)
