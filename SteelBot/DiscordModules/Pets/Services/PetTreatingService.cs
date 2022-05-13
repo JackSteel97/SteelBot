@@ -43,7 +43,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                     (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                     (pet) => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()));
 
-                var resultId = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
+                (string resultId, _) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
                 if (!string.IsNullOrWhiteSpace(resultId))
                 {
                     // Figure out which pet they want to manage.

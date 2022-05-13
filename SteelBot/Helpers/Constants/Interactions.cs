@@ -33,6 +33,11 @@ namespace SteelBot.Helpers.Constants
             {
                 return new DiscordButtonComponent(ButtonStyle.Primary, $"{InteractionIds.Pets.Manage}:{petId}", $"Manage {name}");
             }
+
+            public static DiscordButtonComponent Replace(long petId, string name)
+            {
+                return new DiscordButtonComponent(ButtonStyle.Danger, $"{InteractionIds.Pets.Replace}:{petId}", $"Replace {name}");
+            }
             public static DiscordButtonComponent Treat(long petId, string name)
             {
                 return new DiscordButtonComponent(ButtonStyle.Success, $"{InteractionIds.Pets.Treat}:{petId}", $"Treat {name}");
@@ -68,6 +73,7 @@ namespace SteelBot.Helpers.Constants
             public const string NameConfirm = "name_confirmed_pet";
             public const string NameRetry = "name_retry_pet";
             public const string Manage = "manage_pet";
+            public const string Replace = "replace_pet";
             public const string Rename = "rename_pet";
             public const string Abandon = "abandon_pet";
             public const string MakePrimary = "primary_pet";

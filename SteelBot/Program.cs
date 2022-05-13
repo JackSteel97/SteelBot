@@ -101,6 +101,7 @@ namespace SteelBot
                 var client = new DiscordClient(new DiscordConfiguration()
                 {
                     LoggerFactory = loggerFactory,
+                    MinimumLogLevel = (LogLevel)Enum.Parse(typeof(LogLevel),  appConfigurationService.Application.Discord.LogLevel),
                     MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
                     Token = appConfigurationService.Application.Discord.LoginToken,
                     TokenType = TokenType.Bot,

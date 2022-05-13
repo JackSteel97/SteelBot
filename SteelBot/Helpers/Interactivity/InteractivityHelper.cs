@@ -102,7 +102,7 @@ namespace SteelBot.Helpers
             }
         }
 
-        public static async Task<string> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
+        public static async Task<(string selectedId, DiscordInteraction interaction)> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
         {
             DiscordComponent[] paginationComponents = new DiscordComponent[]
             {
@@ -140,8 +140,8 @@ namespace SteelBot.Helpers
                             break;
                         default:
                             messageBuilder.ClearComponents();
-                            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
-                            return result.Result.Id;
+                            await message.ModifyAsync(messageBuilder);
+                            return (result.Result.Id, result.Result.Interaction);
                     }
                     currentPageIndex = MathsHelper.Modulo(currentPageIndex, pages.Count);
                     currentPage = pages[currentPageIndex];
@@ -153,7 +153,7 @@ namespace SteelBot.Helpers
                     messageBuilder.ClearComponents();
                     await message.ModifyAsync(messageBuilder);
 
-                    return null;
+                    return (null,null);
                 }
             }
         }
