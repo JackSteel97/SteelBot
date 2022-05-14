@@ -6,6 +6,7 @@ using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Models;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,19 +21,19 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             string name;
             if (includeName)
             {
-                name = $"{pet.GetName()} - ";
+                name = $"{pet.GetName().ToZalgo(pet.IsCorrupt)} - ";
             }
             else
             {
-                name = $"{pet.Species.GetName()} - ";
+                name = $"{pet.Species.GetName().ToZalgo(pet.IsCorrupt)} - ";
             }
             var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
+                .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
                 .WithTitle($"{name}Level {pet.CurrentLevel}")
                 .WithTimestamp(DateTime.Now)
-                .AddField("Rarity", Formatter.InlineCode(pet.Rarity.ToString()), true)
-                .AddField("Species", Formatter.InlineCode(pet.Species.GetName()), true)
-                .AddField("Size", Formatter.InlineCode(pet.Size.ToString()), true)
+                .AddField("Rarity", Formatter.InlineCode(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt)), true)
+                .AddField("Species", Formatter.InlineCode(pet.Species.GetName().ToZalgo(pet.IsCorrupt)), true)
+                .AddField("Size", Formatter.InlineCode(pet.Size.ToString().ToZalgo(pet.IsCorrupt)), true)
                 .AddField("Age", Formatter.InlineCode($"{GetAge(pet.BornAt)}"), true)
                 .AddField("Found", Formatter.InlineCode(pet.FoundAt.Humanize()), true);
 
@@ -43,7 +44,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
             foreach (var attribute in pet.Attributes)
             {
-                embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description), true);
+                embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description.ToZalgo(pet.IsCorrupt)), true);
             }
 
             StringBuilder bonuses = AppendBonuses(new StringBuilder(), pet);
@@ -86,14 +87,14 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             }
 
             var totalsBuilder = new StringBuilder();
-            AppendBonuses(totalsBuilder, totals);
+            AppendBonuses(totalsBuilder, totals, false);
             embedBuilder.AddField("Totals", totalsBuilder.ToString());
 
             return PaginationHelper.GenerateEmbedPages(embedBuilder, allPets, 5, (builder, petWithActivation, _) =>
             {
                 var pet = petWithActivation.Pet;
                 builder.AppendLine(Formatter.Bold((pet.Priority+1).Ordinalize()))
-                .Append(Formatter.Bold(pet.GetName())).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
+                .Append(Formatter.Bold(pet.GetName().ToZalgo(pet.IsCorrupt))).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ').Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
                 if (!petWithActivation.Active)
                 {
                     var levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, baseCapacity, maxCapacity);
@@ -104,9 +105,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             });
         }
 
-        public static StringBuilder AppendBonusDisplay(StringBuilder builder, PetBonus bonus)
+        public static StringBuilder AppendBonusDisplay(StringBuilder builder, PetBonus bonus, bool isCorrupt = false)
         {
-            return AppendBonus(builder, bonus);
+            return AppendBonus(builder, bonus, isCorrupt);
         }
 
         private static string GetAge(DateTime birthdate)
@@ -116,11 +117,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             return string.Concat(ageStr, " old");
         }
 
-        private static StringBuilder AppendBonuses(StringBuilder bonuses, BonusTotals totals)
+        private static StringBuilder AppendBonuses(StringBuilder bonuses, BonusTotals totals, bool isCorrupt)
         {
             foreach (var bonus in totals.Totals.Values.OrderBy(x => x.BonusType))
             {
-                AppendBonus(bonuses, bonus);
+                AppendBonus(bonuses, bonus, isCorrupt);
             }
             return bonuses;
         }
@@ -128,12 +129,12 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
         {
             var bonusTotals = new BonusTotals(pet);
-            AppendBonuses(bonuses, bonusTotals);
+            AppendBonuses(bonuses, bonusTotals, pet.IsCorrupt);
 
             return bonuses;
         }
 
-        private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus)
+        private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus, bool isCorrupt)
         {
             var emoji = GetEmoji(bonus.Value, bonus.BonusType.IsNegative());
             var bonusValue = bonus.Value;
@@ -159,14 +160,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
                     bonusSuffix = " (Capped at +50)";
                 }
 
-                bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize()).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
+                bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize().ToZalgo(isCorrupt)).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
             }
             return bonuses;
-        }
-
-        private static StringBuilder AppendPassiveXpBonus(StringBuilder bonuses, double passiveXp)
-        {
-            return bonuses.Append(EmojiConstants.CustomDiscordEmojis.GreenArrowUp).Append(" - ").Append("`Passive Offline XP: +").Append(passiveXp).AppendLine("`");
         }
 
         private static string GetEmoji(double value, bool isNegativeType = false)

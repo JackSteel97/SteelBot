@@ -47,8 +47,8 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double baseCapacity, double maxCapacity)
         {
-            builder.Append(Formatter.Bold((pet.Priority+1).Ordinalize())).Append(" - ").AppendLine(Formatter.Bold(pet.GetName()))
-                .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString())).Append(' ').Append(pet.Species.GetName());
+            builder.Append(Formatter.Bold((pet.Priority+1).Ordinalize())).Append(" - ").AppendLine(Formatter.Bold(pet.GetName().ToZalgo(pet.IsCorrupt)))
+                .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ').Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
 
             if (!active)
             {

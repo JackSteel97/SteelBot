@@ -108,6 +108,8 @@ namespace SteelBot.DiscordModules.Pets.Generation
             return pet;
         }
 
+
+
         private static Rarity GetBaseRarity()
         {
             const int maxBound = 100000;

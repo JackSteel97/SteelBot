@@ -13,7 +13,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         {
             var nameInsert = !string.IsNullOrWhiteSpace(pet.Name) ? Formatter.Italic(pet.Name) : Formatter.Italic(pet.Species.GetName());
             var embedBuilder = new DiscordEmbedBuilder()
-               .WithColor(new DiscordColor(pet.Rarity.GetColour()))
+               .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
                .WithTitle("Congrats")
                .WithDescription($"{owner.Mention} Congratulations on your new pet {nameInsert}");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
@@ -22,7 +22,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static DiscordMessageBuilder GetPetRanAwayMessage(Pet pet)
         {
             var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
+                .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
                 .WithTitle("It got away!")
                 .WithDescription($"The {pet.Species.GetName()} ran away before you could befriend it.{Environment.NewLine}Better luck next time!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
@@ -31,10 +31,16 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         public static DiscordMessageBuilder GetBefriendFailedMessage(Pet pet)
         {
             var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(pet.Rarity.GetColour()))
+                .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
                 .WithTitle("Failed to befriend!")
                 .WithDescription($"The {pet.Species.GetName()} ran away as soon as you moved closer.{Environment.NewLine}Better luck next time!");
             return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        }
+
+        public static DiscordMessageBuilder GetPetCorruptedMessage(Pet pet)
+        {
+            var embed = PetDisplayHelpers.GetPetDisplayEmbed(pet, includeName: false);
+            return new DiscordMessageBuilder().WithEmbed(embed).WithContent("Your new pet became Corrupted during the befriending process!!");
         }
 
         public static DiscordMessageBuilder GetBefriendSuccessMessage(Pet pet)

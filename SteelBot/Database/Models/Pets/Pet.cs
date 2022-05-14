@@ -24,6 +24,7 @@ namespace SteelBot.Database.Models.Pets
         public Species Species { get; set; }
         public Size Size { get; set; }
         public Rarity Rarity { get; set; }
+        public bool IsCorrupt { get; set; }
         public List<PetAttribute> Attributes { get; set; }
         public List<PetBonus> Bonuses { get; set; }
 

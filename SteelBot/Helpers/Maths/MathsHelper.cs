@@ -21,7 +21,7 @@ namespace SteelBot.Helpers
 
         public static bool TrueWithProbability(double probability)
         {
-            const int maxBound = 1000;
+            const int maxBound = 10000;
             return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
         }
 

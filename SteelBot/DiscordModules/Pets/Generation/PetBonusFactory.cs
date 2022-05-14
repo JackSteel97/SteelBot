@@ -1,6 +1,7 @@
 ﻿using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -54,11 +55,66 @@ public static class PetBonusFactory
         return bonus;
     }
 
+    public static Pet Corrupt(Pet pet, int levelOfUser)
+    {
+        double totalBonusValue = 0;
+        // Flip existing bonuses
+        foreach (var bonus in pet.Bonuses)
+        {
+            if (bonus.BonusType.IsPercentage())
+            {
+                totalBonusValue += Math.Abs(bonus.Value);
+            }
+            else
+            {
+                totalBonusValue += Math.Abs(bonus.Value) / 100;
+            }
+
+            bool isNegative = bonus.BonusType.IsNegative();
+            if ((bonus.Value < 0 && isNegative)         // Negative bonus type that is providing a positive effect.
+                || (bonus.Value > 0 && !isNegative))    // Positive bonus type that is providing a positive effect
+            {
+                // Invert bonus - i.e. make it a negative effect.
+                bonus.Value *= -1;
+            }
+        }
+
+        // Generate single large positive bonus.
+        var newBonus = Generate(pet, levelOfUser, pet.Bonuses);
+        var newBonusIsNegative = newBonus.BonusType.IsNegative();
+        if ((newBonus.Value > 0 && newBonusIsNegative)
+            || (newBonus.Value < 0 && !newBonusIsNegative))
+        {
+            // Bonus is providing a negative effect, invert it to provide a positive effect.
+            newBonus.Value *= -1;
+        }
+
+        if (!newBonus.BonusType.IsPercentage())
+        {
+            // Make the total none-percentage scaled.
+            totalBonusValue *= 100;
+        }
+
+        if(newBonus.Value < 0)
+        {
+            // Bonus is a negative value with positive effect, get new value up to max -1 limit.
+            newBonus.Value = GetRandomPercentageBonus(maxValue: newBonus.Value, minValue: -1);
+        }
+        else if(totalBonusValue > newBonus.Value)
+        {
+            // Sum of bonuses is higher than the generated bonus, get a new value between these limits.
+            newBonus.Value = GetRandomPercentageBonus(totalBonusValue, newBonus.Value);
+        }
+        pet.IsCorrupt = true;
+        pet.AddBonus(newBonus);
+        return pet;
+    }
+
     private static BonusType GetWeightedRandomBonusType(Rarity rarity)
     {
         double rarityValue = (double)rarity;
-        double chanceToGeneratePassiveXp = rarityValue / 10;
-        double chanceToGeneratePetSlots = rarityValue / 20;
+        double chanceToGeneratePassiveXp = rarityValue / 20;
+        double chanceToGeneratePetSlots = rarityValue / 40;
 
         if (MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp))
         {

@@ -20,9 +20,11 @@ namespace SteelBot.DiscordModules.Pets.Enums
         private const string Epic = "#7F00FF";
         private const string Legendary = "#FF5F1F";
         private const string Mythical = "#DC2367";
+        private const string Corrupt = "#B80F0A";
 
-        public static string GetColour(this Rarity rarity)
+        public static string GetColour(this Rarity rarity, bool isCorrupt)
         {
+            if (isCorrupt) return Corrupt;
             return rarity switch
             {
                 Rarity.Common => Common,

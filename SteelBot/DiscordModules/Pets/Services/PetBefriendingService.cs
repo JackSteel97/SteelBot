@@ -128,6 +128,16 @@ namespace SteelBot.DiscordModules.Pets.Services
                 if (befriendSuccess)
                 {
                     Logger.LogInformation("User {UserId} in Guild {GuildId} successfully befriended a {Rarity} pet with Id {PetId}", context.User.Id, context.Guild.Id, pet.Rarity, pet.RowId);
+
+                    if (PetCorrupted() && Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var ownerUser))
+                    {
+                        Logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
+                        pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
+                        await Cache.Pets.UpdatePet(pet);
+                        var response = PetMessages.GetPetCorruptedMessage(pet).WithReply(context.Message.Id, mention: true);
+                        context.Channel.SendMessageAsync(response).FireAndForget(ErrorHandlingService);
+                    }
+
                     await PetModals.NamePet(interaction, pet);
                 }
             }
@@ -293,5 +303,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             var currentRate = baseRate + ((petCapacity - ownedPetCount) / (petCapacity + rarityModifier));
             return currentRate * bonusMultiplier;
         }
+
+        private static bool PetCorrupted() => MathsHelper.TrueWithProbability(0.001);
     }
 }
