@@ -40,7 +40,7 @@ public static class PetBonusFactory
 
             if (bonus.BonusType.IsPercentage())
             {
-                validBonus = HandlePercentageBonusGeneration(pet, maxPercentageBonus, bonus, existingBonuses);
+                validBonus = HandlePercentageBonusGeneration(pet, maxPercentageBonus, bonus, existingBonuses, pet.CurrentLevel, levelOfUser);
             }
             else if (bonus.BonusType == BonusType.OfflineXP)
             {
@@ -116,14 +116,14 @@ public static class PetBonusFactory
         double chanceToGeneratePassiveXp = rarityValue / 20;
         double chanceToGeneratePetSlots = rarityValue / 40;
 
-        if (MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp))
-        {
-            return BonusType.OfflineXP;
-        }
-
         if (MathsHelper.TrueWithProbability(chanceToGeneratePetSlots))
         {
             return BonusType.PetSlots;
+        }
+
+        if (MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp))
+        {
+            return BonusType.OfflineXP;
         }
 
         return PetGenerationShared.GetRandomEnumValue<BonusType>(_excludedTypes);
@@ -135,16 +135,22 @@ public static class PetBonusFactory
 
         double chanceToGetMore = baseValue / 10;
 
-        double petLevelMultiplier = 1 + ((double)petLevel / 100);
-        double userLevelMultiplier = 1 + ((double)userLevel / 100);
-        baseValue *= petLevelMultiplier;
-        baseValue *= userLevelMultiplier;
-        bonus.Value = baseValue;
+        bonus.Value = ApplyScaling(baseValue, petLevel, userLevel);
 
         while (MathsHelper.TrueWithProbability(chanceToGetMore))
         {
             bonus.Value += baseValue;
         }
+    }
+
+    private static double ApplyScaling(double bonusValue, int petLevel, int userLevel)
+    {
+        double petLevelMultiplier = 1 + ((double)petLevel / 100);
+        double userLevelMultiplier = 1 + ((double)userLevel / 100);
+
+        bonusValue *= petLevelMultiplier;
+        bonusValue *= userLevelMultiplier;
+        return bonusValue;
     }
 
     private static void HandleIntegerBonusGeneration(PetBonus bonus, Rarity rarity)
@@ -162,7 +168,7 @@ public static class PetBonusFactory
         }
     }
 
-    private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses)
+    private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses, int petLevel, int userLevel)
     {
         bool validBonus = true;
         var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
@@ -176,6 +182,8 @@ public static class PetBonusFactory
                 bonus.Value *= -1;
             }
         }
+
+        bonus.Value = ApplyScaling(bonus.Value, petLevel, userLevel);
 
         // Check this won't cause negative bonuses to go far
         if (bonus.Value < 0 && existingBonuses?.Count > 0)
