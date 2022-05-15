@@ -65,8 +65,6 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -171,67 +169,20 @@ namespace SteelBot
             Client.GuildDeleted += HandleLeavingGuild;
             Client.GuildMemberRemoved += HandleGuildMemberRemoved;
             Client.ModalSubmitted += HandleModalSubmitted;
-            Client.GuildDownloadCompleted += HandleGuildDownloadCompleted;
             //Client.GuildMemberAdded += HandleGuildMemberAdded; // TODO: Implement properly
 
             Commands.CommandErrored += HandleCommandErrored;
             Commands.CommandExecuted += HandleCommandExecuted;
         }
 
-        private async Task HandleGuildDownloadCompleted(DiscordClient sender, GuildDownloadCompletedEventArgs e)
+        class XpEntry
         {
-#if DEBUG
-            // Migration for self role refactor
-            // TODO: Run in Dev and Remove before releasing to test
-            var dbContextFactory = ServiceProvider.GetRequiredService<IDbContextFactory<SteelBotContext>>();
-            bool anyChange = false;
-            using var dbContext = dbContextFactory.CreateDbContext();
-
-            var allSelfRoles = dbContext.SelfRoles.Include(x => x.Guild).ToArray();
-
-            foreach (var role in allSelfRoles)
-            {
-                if (role.DiscordRoleId == default)
-                {
-                    var guild = await Client.GetGuildAsync(role.Guild.DiscordId);
-                    if (guild != null)
-                    {
-                        var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
-                        role.DiscordRoleId = discordRole.Id;
-                        dbContext.SelfRoles.Update(role);
-                        dbContext.SaveChanges();
-                        anyChange = true;
-                    }
-                }
-            }
-
-            // Migration for rank role refactor
-            // TODO: Run in Dev and Remove before releasing to test
-
-            var allRankRoles = dbContext.RankRoles.Include(x => x.Guild).ToArray();
-
-            foreach (var role in allRankRoles)
-            {
-                if (role.RoleDiscordId == default)
-                {
-                    var guild = await Client.GetGuildAsync(role.Guild.DiscordId);
-                    if (guild != null)
-                    {
-                        var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
-                        role.RoleDiscordId = discordRole.Id;
-                        dbContext.RankRoles.Update(role);
-                        dbContext.SaveChanges();
-                        anyChange = true;
-                    }
-                }
-            }
-
-            if (anyChange)
-            {
-                Debugger.Break();
-            }
-#endif
+            public DateTime Timestamp { get; set; }
+            public ulong UserId { get; set; }
+            public long Xp { get; set; }
+            public string CurrentUsername { get; set; }
         }
+
 
         private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
         {
