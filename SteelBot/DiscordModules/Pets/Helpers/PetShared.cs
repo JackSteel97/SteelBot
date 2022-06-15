@@ -152,21 +152,19 @@ namespace SteelBot.DiscordModules.Pets.Helpers
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
             if (channel != null)
             {
-                var message = new DiscordMessageBuilder();
-
+                string content = "";
                 if (pingUser)
                 {
-                    message = message.WithContent(userId.ToUserMention());
+                    content = userId.ToUserMention();
                 }
                 else
                 {
                     changes.Insert(0, userId.ToUserMention() + Environment.NewLine);
                 }
 
-                message = message.WithEmbed(EmbedGenerator.Info(changes.ToString(),
-                            "Pet Level Up"));
+                var embed = new DiscordEmbedBuilder(EmbedGenerator.Info(changes.ToString(), "Pet Level Up"));
 
-                await channel.SendMessageAsync(message);
+                await channel.SendMessageAsync(content, embed);
             }
         }
 

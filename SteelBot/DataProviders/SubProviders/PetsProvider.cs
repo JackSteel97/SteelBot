@@ -164,10 +164,15 @@ namespace SteelBot.DataProviders.SubProviders
                 int writtenCount;
                 using (SteelBotContext db = DbContextFactory.CreateDbContext())
                 {
+                    // Load all the existing pets first - this is way more performant for some unknown reason loading them one-by-one executes far more queries than required.
+                    var originalPets = await db.Pets
+                        .Include(x=>x.Bonuses)
+                        .Where(x => pets.Select(y => y.RowId).Contains(x.RowId))
+                        .ToDictionaryAsync(x=>x.RowId);
                     foreach (var newPet in pets)
                     {
                         // To prevent EF tracking issue, grab and alter existing value.
-                        var original = db.Pets.Include(x => x.Bonuses).First(u => u.RowId == newPet.RowId);
+                        var original = originalPets[newPet.RowId];
                         db.Entry(original).CurrentValues.SetValues(newPet);
 
                         // The above doesn't update navigation properties. We must manually update any navigation properties we need to like this.
