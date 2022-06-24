@@ -68,7 +68,7 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         [Fact]
         public void GetAvailablePets_LastPetsGiveNegativeSlots()
         {
-            var user = GetUser(40);
+            var user = GetUser(1);
             var pets = GetPets_LastNegatives();
 
             var activePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
@@ -90,15 +90,15 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         }
 
         [Theory]
-        [InlineData(1, 1)]
-        [InlineData(10, 1)]
-        [InlineData(20, 2)]
-        [InlineData(30, 2)]
-        [InlineData(40, 3)]
-        [InlineData(50, 3)]
-        [InlineData(60, 4)]
-        [InlineData(80, 5)]
-        [InlineData(100, 6)]
+        [InlineData(1, 3)]
+        [InlineData(10, 3)]
+        [InlineData(20, 4)]
+        [InlineData(30, 4)]
+        [InlineData(40, 5)]
+        [InlineData(50, 5)]
+        [InlineData(60, 6)]
+        [InlineData(80, 7)]
+        [InlineData(100, 8)]
         public void GetPetCapacity_NoPets(int level, int expectedCapacity)
         {
             var user = GetUser(level);
@@ -110,25 +110,25 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         }
 
         [Theory]
-        [InlineData(1, 1, 2)]
-        [InlineData(10, 1, 2)]
-        [InlineData(20, 1, 3)]
-        [InlineData(30, 1, 3)]
-        [InlineData(40, 1, 4)]
-        [InlineData(50, 1, 4)]
-        [InlineData(60, 1, 5)]
-        [InlineData(80, 1, 6)]
-        [InlineData(100, 1, 7)]
-        [InlineData(1, 2, 3)]
-        [InlineData(10, 2, 3)]
-        [InlineData(20, 2, 4)]
-        [InlineData(30, 2, 4)]
-        [InlineData(40, 2, 5)]
-        [InlineData(50, 2, 5)]
-        [InlineData(60, 2, 6)]
-        [InlineData(80, 2, 7)]
-        [InlineData(100, 50, 56)]
-        [InlineData(100, 100, 56)]
+        [InlineData(1, 1, 4)]
+        [InlineData(10, 1, 4)]
+        [InlineData(20, 1, 5)]
+        [InlineData(30, 1, 5)]
+        [InlineData(40, 1, 6)]
+        [InlineData(50, 1, 6)]
+        [InlineData(60, 1, 7)]
+        [InlineData(80, 1, 8)]
+        [InlineData(100, 1, 9)]
+        [InlineData(1, 2, 5)]
+        [InlineData(10, 2, 5)]
+        [InlineData(20, 2, 6)]
+        [InlineData(30, 2, 6)]
+        [InlineData(40, 2, 7)]
+        [InlineData(50, 2, 7)]
+        [InlineData(60, 2, 8)]
+        [InlineData(80, 2, 9)]
+        [InlineData(100, 50, 58)]
+        [InlineData(100, 100, 58)]
         public void GetPetCapacity_OnePet(int level, int bonusPetSlots, int expectedCapacity)
         {
             var user = GetUser(level);
@@ -142,13 +142,13 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
         [Theory]
         [InlineData(1, 1)]
         [InlineData(10, 1)]
-        [InlineData(20, 1)]
-        [InlineData(30, 1)]
-        [InlineData(40, 1)]
-        [InlineData(50, 1)]
-        [InlineData(60, 2)]
-        [InlineData(80, 3)]
-        [InlineData(100, 4)]
+        [InlineData(20, 2)]
+        [InlineData(30, 2)]
+        [InlineData(40, 3)]
+        [InlineData(50, 3)]
+        [InlineData(60, 4)]
+        [InlineData(80, 5)]
+        [InlineData(100, 6)]
         public void GetPetCapacity_LastNegatives(int level, int expectedCapacity)
         {
             var user = GetUser(level);
@@ -233,7 +233,7 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
             var pet1 = factory.Generate();
             pet1.Bonuses = new List<PetBonus>
             {
-                GetPetBonus(1)
+                GetPetBonus(0)
             };
             var pet2 = factory.Generate();
             pet2.Bonuses = new List<PetBonus>();
@@ -241,7 +241,7 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers
             var pet3 = factory.Generate();
             pet3.Bonuses = new List<PetBonus>
             {
-                GetPetBonus(1)
+                GetPetBonus(0)
             };
 
             var pet4 = factory.Generate();
