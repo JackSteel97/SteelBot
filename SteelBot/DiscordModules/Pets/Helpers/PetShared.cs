@@ -271,8 +271,11 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         {
             foreach (var bonus in pet.Bonuses)
             {
-                var increase = Math.Abs(bonus.Value * 0.02);
-                bonus.Value += increase;
+                if (bonus.BonusType != BonusType.PetSlots)
+                {
+                    var increase = Math.Abs(bonus.Value * 0.02);
+                    bonus.Value += increase;
+                }
             }
         }
     }
