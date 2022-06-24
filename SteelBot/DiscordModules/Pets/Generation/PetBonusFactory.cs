@@ -140,7 +140,7 @@ public static class PetBonusFactory
 
     private static double ApplyScaling(double bonusValue, int petLevel, int userLevel)
     {
-        double petLevelMultiplier = 1 + ((double)petLevel / 100);
+        double petLevelMultiplier = 1 + ((double)petLevel / 50);
         double userLevelMultiplier = 1 + ((double)userLevel / 100);
 
         bonusValue *= petLevelMultiplier;
