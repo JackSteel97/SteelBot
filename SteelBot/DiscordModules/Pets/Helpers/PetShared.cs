@@ -251,9 +251,9 @@ namespace SteelBot.DiscordModules.Pets.Helpers
         private static PetBonus PetLevelledUp(Pet pet, int level, int levelOfUser)
         {
             PetBonus newBonus = null;
-            if (level % 10 == 0)
+            double chanceToGenerateNewBonus = (((double)pet.Rarity) + 1) / 10;
+            if (level % 10 == 0 && MathsHelper.TrueWithProbability(chanceToGenerateNewBonus))
             {
-                // New bonuses gained every 10 levels.
                 newBonus = GivePetNewBonus(pet, levelOfUser);
             }
             ImproveCurrentPetBonuses(pet);
