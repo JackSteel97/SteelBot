@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 namespace SteelBot.DiscordModules.Pets.Generation;
 public static class PetBonusFactory
 {
-    private static readonly BonusType[] _excludedTypes = new BonusType[] { BonusType.None };
+    private static readonly BonusType[] _excludedTypes = new BonusType[] { BonusType.None, BonusType.PetSlots, BonusType.OfflineXP };
 
     public static List<PetBonus> GenerateMany(Pet pet, int levelOfUser)
     {
@@ -36,7 +36,7 @@ public static class PetBonusFactory
         };
         do
         {
-            bonus.BonusType = GetWeightedRandomBonusType(pet.Rarity);
+            bonus.BonusType = GetWeightedRandomBonusType(pet.Rarity, levelOfUser);
 
             if (bonus.BonusType.IsPercentage())
             {
@@ -110,23 +110,18 @@ public static class PetBonusFactory
         return pet;
     }
 
-    private static BonusType GetWeightedRandomBonusType(Rarity rarity)
+    private static BonusType GetWeightedRandomBonusType(Rarity rarity, int userLevel)
     {
         double rarityValue = (double)rarity;
         double chanceToGeneratePassiveXp = rarityValue / 20;
-        double chanceToGeneratePetSlots = rarityValue / 40;
+        double chanceToGeneratePetSlots = rarityValue / 50;
 
-        if (MathsHelper.TrueWithProbability(chanceToGeneratePetSlots))
+        return userLevel switch
         {
-            return BonusType.PetSlots;
-        }
-
-        if (MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp))
-        {
-            return BonusType.OfflineXP;
-        }
-
-        return PetGenerationShared.GetRandomEnumValue<BonusType>(_excludedTypes);
+            > 20 when MathsHelper.TrueWithProbability(chanceToGeneratePetSlots) => BonusType.PetSlots,
+            > 50 when MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp) => BonusType.OfflineXP,
+            _ => PetGenerationShared.GetRandomEnumValue(_excludedTypes),
+        };
     }
 
     private static void HandleOfflineXpBonusGeneration(PetBonus bonus, Rarity rarity, int petLevel, int userLevel)
