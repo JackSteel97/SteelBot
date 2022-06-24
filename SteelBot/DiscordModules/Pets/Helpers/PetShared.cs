@@ -94,7 +94,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers
 
         public static int GetBasePetCapacity(User user)
         {
-            int result = 1;
+            int result = 3;
 
             if (user != default)
             {
