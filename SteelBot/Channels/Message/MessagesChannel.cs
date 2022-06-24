@@ -14,7 +14,7 @@ namespace SteelBot.Channels.Message
         private readonly UserTrackingService _userTrackingService;
         private readonly DiscordClient _discordClient;
         private readonly IncomingMessageHandler _incomingMessageHandler;
-        private readonly VoiceStateChangeHandler _voiceStateChangeHanlder;
+        private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
         private readonly UserLockingService _userLockingService;
         private readonly Dictionary<(ulong guildId, ulong userId), DateTime> _lastVoiceUpdateFromMessage;
         private static readonly TimeSpan _voiceUpdateTimeout = TimeSpan.FromMinutes(1);
@@ -24,13 +24,13 @@ namespace SteelBot.Channels.Message
             UserTrackingService userTrackingService,
             DiscordClient discordClient,
             IncomingMessageHandler incomingMessageHandler,
-            VoiceStateChangeHandler voiceStateChangeHanlder,
+            VoiceStateChangeHandler voiceStateChangeHandler,
             UserLockingService userLockingService) : base(logger, errorHandlingService, "Messages")
         {
             _userTrackingService = userTrackingService;
             _discordClient = discordClient;
             _incomingMessageHandler = incomingMessageHandler;
-            _voiceStateChangeHanlder = voiceStateChangeHanlder;
+            _voiceStateChangeHandler = voiceStateChangeHandler;
             _userLockingService = userLockingService;
             _lastVoiceUpdateFromMessage = new Dictionary<(ulong guildId, ulong userId), DateTime>();
         }
@@ -49,7 +49,7 @@ namespace SteelBot.Channels.Message
                         _lastVoiceUpdateFromMessage[key] = DateTime.UtcNow;
                         // The user here is already coming from a Guild so we can safely cast to a member.
                         var member = (DiscordMember)message.User;
-                        await _voiceStateChangeHanlder.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
+                        await _voiceStateChangeHandler.HandleVoiceStateChange(new VoiceStateChange(message.Guild, message.User, member.VoiceState));
                     }
                 }
             }
