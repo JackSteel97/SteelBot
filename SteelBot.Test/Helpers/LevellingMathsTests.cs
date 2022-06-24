@@ -23,17 +23,17 @@ namespace SteelBot.Test.Helpers
             Assert.Equal(expectedXp, actualXp);
         }
 
-        [Theory] // Xp = (1.2^level)-1 + (500*level)
+        [Theory]
         [InlineData(0, 0)]
-        [InlineData(1, 500)]
-        [InlineData(2, 1000)]
-        [InlineData(3, 1501)]
-        [InlineData(4, 2001)]
-        [InlineData(5, 2501)]
-        [InlineData(10, 5005)]
-        [InlineData(50, 34099)]
-        [InlineData(70, 383888)]
-        [InlineData(100, 82867974)]
+        [InlineData(1, 501)]
+        [InlineData(2, 1008)]
+        [InlineData(3, 1528)]
+        [InlineData(4, 2065)]
+        [InlineData(5, 2626)]
+        [InlineData(10, 6005)]
+        [InlineData(50, 159_099)]
+        [InlineData(70, 726_888)]
+        [InlineData(100, 83_867_974)]
         public void XpForLevel(int level, ulong expectedXp)
         {
             ulong actualXp = LevellingMaths.XpForLevel(level);
