@@ -52,6 +52,10 @@ public static class PetBonusFactory
             }
         } while (!validBonus);
 
+        if (pet.IsCorrupt)
+        {
+            bonus.Value = ScaleCorruptBonus(bonus.Value, pet.Rarity);
+        }
         return bonus;
     }
 
@@ -61,6 +65,8 @@ public static class PetBonusFactory
         // Flip existing bonuses
         foreach (var bonus in pet.Bonuses)
         {
+            bonus.Value = ScaleCorruptBonus(bonus.Value, pet.Rarity);
+
             if (bonus.BonusType.IsPercentage())
             {
                 totalBonusValue += Math.Abs(bonus.Value);
@@ -106,6 +112,8 @@ public static class PetBonusFactory
             newBonus.Value = GetRandomPercentageBonus(totalBonusValue, newBonus.Value);
         }
         pet.IsCorrupt = true;
+
+        newBonus.Value = ScaleCorruptBonus(newBonus.Value, pet.Rarity);
         pet.AddBonus(newBonus);
         return pet;
     }
@@ -113,7 +121,7 @@ public static class PetBonusFactory
     private static BonusType GetWeightedRandomBonusType(Rarity rarity, int userLevel)
     {
         double rarityValue = (double)rarity;
-        double chanceToGeneratePassiveXp = rarityValue / 20;
+        double chanceToGeneratePassiveXp = rarityValue / 60;
         double chanceToGeneratePetSlots = rarityValue / 50;
 
         return userLevel switch
@@ -206,4 +214,6 @@ public static class PetBonusFactory
         const double maxDoubleVal = maxValue;
         return RandomNumberGenerator.GetInt32(1, maxValue) / maxDoubleVal;
     }
+
+    private static double ScaleCorruptBonus(double value, Rarity rarity) => value * RandomNumberGenerator.GetInt32(2, 3 + (int)rarity);
 }
