@@ -44,7 +44,7 @@ namespace SteelBot.DiscordModules.Stats
 
         public DiscordEmbedBuilder GetStatsEmbed(User user, string username)
         {
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
+            var embedBuilder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
                 .WithTitle($"{username} Stats")
                 .AddField("Message Count", $"`{user.MessageCount:N0} Messages`", true)
@@ -73,7 +73,7 @@ namespace SteelBot.DiscordModules.Stats
                 var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
                 // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, updateLastActivity: false);
+                copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, shouldEarnVideoXp: true, updateLastActivity: false);
                 copyOfUser.UpdateLevel();
                 await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
                 await PetsDataHelper.PetXpUpdated(availablePets, default, copyOfUser.CurrentLevel); // Default - Don't try to send level up messages

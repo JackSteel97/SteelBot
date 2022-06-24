@@ -37,25 +37,25 @@ namespace SteelBot.Channels.Voice
         {
             var usersInChannel = GetUsersInChannel(changeArgs);
 
-            double scalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
+            (double baseScalingFactor, bool shouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
 
             // Update this user
-            await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, scalingFactor);
+            await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
 
             // Update other users in the channel.
-            foreach(var userInChannel in usersInChannel)
+            foreach (var userInChannel in usersInChannel)
             {
-                if(userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
+                if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
                 {
-                    double otherScalingFactor = GetVoiceXpScalingFactor(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
-                    await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherScalingFactor);
+                    (double otherBaseScalingFactor, bool otherShouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
+                    await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, shouldEarnVideo);
                 }
             }
         }
 
-        private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor)
+        private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)
         {
-            if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor))
+            if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor, shouldEarnVideoXp))
             {
                 await RankRoleShared.UserLevelledUp(guild.Id, user.Id, guild, _rankRolesProvider, _usersCache, _levelMessageSender);
             }
@@ -82,7 +82,7 @@ namespace SteelBot.Channels.Voice
             return usersInChannel;
         }
 
-        private double GetVoiceXpScalingFactor(ulong guildId, ulong currentUserId, IReadOnlyList<DiscordMember> usersInChannel)
+        private (double baseScalingFactor, bool shouldEarnVideoXp) GetVoiceXpScalingFactors(ulong guildId, ulong currentUserId, IReadOnlyList<DiscordMember> usersInChannel)
         {
             _logger.LogDebug("Calculating Voice Xp scaling factor for User {UserId} in Guild {GuildId}", currentUserId, guildId);
             int otherUsersCount = 0;
@@ -91,9 +91,10 @@ namespace SteelBot.Channels.Voice
             if (!_usersCache.TryGetUser(guildId, currentUserId, out var thisUser))
             {
                 _logger.LogWarning("Could not retrieve data for User {UserId} in Guild {GuildId}", currentUserId, guildId);
-                return scalingFactor;
+                return (scalingFactor, false);
             }
 
+            bool shouldEarnVideoXp = false;
             foreach (var userInChannel in usersInChannel)
             {
                 if (userInChannel.Id != currentUserId && !userInChannel.IsBot)
@@ -103,6 +104,11 @@ namespace SteelBot.Channels.Voice
                     {
                         scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
                     }
+
+                    if (userInChannel.VoiceState.IsSelfVideo)
+                    {
+                        shouldEarnVideoXp = true;
+                    }
                 }
             }
 
@@ -110,16 +116,16 @@ namespace SteelBot.Channels.Voice
             {
                 // Take average scaling factor.
                 scalingFactor /= otherUsersCount;
-                var groupBonus = (otherUsersCount - 1) / 10D;
+                double groupBonus = (otherUsersCount - 1) / 10D;
                 scalingFactor += groupBonus;
             }
 
-            _logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor}", currentUserId, guildId, scalingFactor);
+            _logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor} and ShouldEarnVideoXp is {ShouldEarnVideoXp}", currentUserId, guildId, scalingFactor, shouldEarnVideoXp);
 
-            return scalingFactor;
+            return (scalingFactor, shouldEarnVideoXp);
         }
 
-        private async ValueTask<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor)
+        private async ValueTask<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor, bool shouldEarnVideoXp)
         {
             ulong guildId = guild.Id;
             ulong userId = discordUser.Id;
@@ -131,7 +137,7 @@ namespace SteelBot.Channels.Voice
 
                 var copyOfUser = user.Clone();
                 var availablePets = _petsDataHelper.GetAvailablePets(guildId, userId, out _);
-                copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor);
+                copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor, shouldEarnVideoXp);
 
                 if (scalingFactor != 0)
                 {

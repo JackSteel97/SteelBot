@@ -46,14 +46,14 @@ namespace SteelBot.Helpers.Levelling
             return lastMessageWasMoreThanAMinuteAgo;
         }
 
-        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets, double scalingFactor, bool updateLastActivity = true)
+        public static void VoiceStateChange(this User user, DiscordVoiceState newState, List<Pet> availablePets, double scalingFactor, bool shouldEarnVideoXp, bool updateLastActivity = true)
         {
             DateTime now = DateTime.UtcNow;
             if (updateLastActivity)
             {
                 user.LastActivity = now;
             }
-            UpdateVoiceCounters(user, now, availablePets, scalingFactor);
+            UpdateVoiceCounters(user, now, availablePets, scalingFactor, shouldEarnVideoXp);
             UpdateStartTimes(user, newState, now, scalingFactor);
         }
 
@@ -101,7 +101,7 @@ namespace SteelBot.Helpers.Levelling
             }
         }
 
-        private static void UpdateVoiceCounters(User user, DateTime now, List<Pet> availablePets, double scalingFactor)
+        private static void UpdateVoiceCounters(User user, DateTime now, List<Pet> availablePets, double scalingFactor, bool shouldEarnVideoXp)
         {
             if (user.VoiceStartTime.HasValue)
             {
@@ -135,7 +135,7 @@ namespace SteelBot.Helpers.Levelling
             {
                 var durationDifference = now - user.VideoStartTime.Value;
                 user.TimeSpentOnVideo += durationDifference;
-                IncrementVideoXp(user, durationDifference, availablePets, scalingFactor);
+                IncrementVideoXp(user, durationDifference, availablePets, scalingFactor, shouldEarnVideoXp);
             }
 
             if (user.AfkStartTime.HasValue)
@@ -192,9 +192,9 @@ namespace SteelBot.Helpers.Levelling
             }
         }
 
-        private static void IncrementVideoXp(User user, TimeSpan videoDuration, List<Pet> availablePets, double scalingFactor)
+        private static void IncrementVideoXp(User user, TimeSpan videoDuration, List<Pet> availablePets, double scalingFactor, bool shouldEarnVideoXp)
         {
-            if (scalingFactor != 0)
+            if (scalingFactor != 0 && shouldEarnVideoXp)
             {
                 var baseXp = LevellingMaths.GetDurationXp(videoDuration, user.TimeSpentOnVideo, LevelConfig.VideoXpPerMin);
                 var bonusAppliedXp = LevellingMaths.ApplyPetBonuses(baseXp, availablePets, BonusType.VideoXP);
