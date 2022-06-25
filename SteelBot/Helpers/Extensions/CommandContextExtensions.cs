@@ -1,5 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using Sentry;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Extensions
@@ -21,6 +23,20 @@ namespace SteelBot.Helpers.Extensions
         public static Task<DiscordMessage> RespondAsync(this CommandContext context, DiscordMessageBuilder messageBuilder, bool mention)
         {
             return context.Channel.SendMessageAsync(messageBuilder.WithReply(context.Message.Id, mention));
+        }
+
+        public static User GetSentryUser(this CommandContext context)
+        {
+            return new User
+            {
+                Username = $"{context.User.Username}#{context.User.Discriminator}",
+                Other = new Dictionary<string, string>
+                {
+                    ["UserId"] = context.User.Id.ToString(),
+                    ["GuildId"] = context.Guild.Id.ToString(),
+                    ["Guild"] = context.Guild.Name
+                }
+            };
         }
     }
 }

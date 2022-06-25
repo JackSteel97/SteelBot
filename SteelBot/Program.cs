@@ -34,6 +34,8 @@ using SteelBot.Channels.SelfRole;
 using SteelBot.DiscordModules.Roles.Services;
 using SteelBot.Channels.RankRole;
 using SteelBot.DiscordModules.RankRoles.Services;
+using Sentry;
+using SteelBot.DSharpPlusOverrides;
 
 namespace SteelBot
 {
@@ -84,6 +86,16 @@ namespace SteelBot
                 {
                     opt.ClearProviders();
                     opt.AddSerilog(Log.Logger);
+                    opt.AddConfiguration(configuration);
+                    opt.AddSentry(o =>
+                    {
+                        o.MinimumEventLevel = LogLevel.Warning;
+                        o.Environment = Environment;
+                        o.Release = appConfigurationService.Version;
+                        o.AutoSessionTracking = true;
+                        o.DetectStartupTime = StartupTimeDetectionMode.Best;
+                        o.ServerName = System.Environment.MachineName;
+                    });
                 });
 
                 // Database DI.
@@ -189,6 +201,7 @@ namespace SteelBot
             serviceProvider.AddSingleton<RankRoleViewingService>();
 
             serviceProvider.AddSingleton<UserLockingService>();
+            serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();
         }
 
         public static async Task Main(string[] args)
@@ -199,6 +212,7 @@ namespace SteelBot
             }
             finally
             {
+                await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
                 Log.CloseAndFlush();
             }
         }

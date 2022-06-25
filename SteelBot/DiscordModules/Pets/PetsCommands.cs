@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
@@ -25,8 +26,7 @@ namespace SteelBot.DiscordModules.Pets
         private readonly DataHelpers DataHelpers;
         private const double TwelveHoursSeconds = 12 * 60 * 60;
         private const double HourSeconds = 60 * 60;
-
-        public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers)
+        public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry) : base(sentry)
         {
             Logger = logger;
             PetFactory = petFactory;
@@ -39,7 +39,6 @@ namespace SteelBot.DiscordModules.Pets
         public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
         {
             Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
-
             otherUser ??= context.Member;
             await DataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
         }

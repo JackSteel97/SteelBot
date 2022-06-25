@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Exceptions;
@@ -16,19 +17,23 @@ namespace SteelBot.Services
         private readonly AppConfigurationService AppConfigurationService;
         private readonly DataCache Cache;
         private readonly ILogger<ErrorHandlingService> Logger;
+        private readonly IHub _sentry;
 
-        public ErrorHandlingService(DiscordClient client, AppConfigurationService appConfigurationService, DataCache cache, ILogger<ErrorHandlingService> logger)
+        public ErrorHandlingService(DiscordClient client, AppConfigurationService appConfigurationService, DataCache cache, ILogger<ErrorHandlingService> logger, IHub sentry)
         {
             Client = client;
             AppConfigurationService = appConfigurationService;
             Cache = cache;
             Logger = logger;
+            _sentry = sentry;
         }
 
         public async Task Log(Exception e, string source)
         {
             try
             {
+                var transaction = _sentry.GetSpan();
+
                 Logger.LogError(e, "Source Method: {Source}", source);
                 if (e.InnerException != null)
                 {
@@ -41,6 +46,12 @@ namespace SteelBot.Services
                 if (e is not FireAndForgetTaskException)
                 {
                     await SendMessageToJack(e, source);
+                }
+
+                if (transaction != null)
+                {
+                    transaction.Status = SpanStatus.InternalError;
+                    transaction.Finish();
                 }
             }
             catch (Exception ex)

@@ -37,6 +37,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
@@ -83,6 +84,7 @@ namespace SteelBot
         private readonly ErrorHandlingService ErrorHandlingService;
         private readonly CancellationService CancellationService;
         private readonly UserLockingService UserLockingService;
+        private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
 
         // Channels
         private readonly VoiceStateChannel VoiceStateChannel;
@@ -103,7 +105,8 @@ namespace SteelBot
             MessagesChannel incomingMessageChannel,
             UserLockingService userLockingService,
             SelfRoleManagementChannel selfRoleManagementChannel,
-            RankRoleManagementChannel rankRoleManagementChannel)
+            RankRoleManagementChannel rankRoleManagementChannel,
+            ErrorHandlingAsynchronousCommandExecutor commandExecutor)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -119,6 +122,7 @@ namespace SteelBot
             UserLockingService = userLockingService;
             SelfRoleManagementChannel = selfRoleManagementChannel;
             RankRoleManagementChannel = rankRoleManagementChannel;
+            _commandExecutor = commandExecutor;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -145,6 +149,7 @@ namespace SteelBot
             await ShutdownDiscordClient();
             await DataHelpers.Stats.DisconnectAllUsers();
             CancellationService.Cancel();
+            await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
         }
 
         private async Task ShutdownDiscordClient()
@@ -175,15 +180,6 @@ namespace SteelBot
             Commands.CommandExecuted += HandleCommandExecuted;
         }
 
-        class XpEntry
-        {
-            public DateTime Timestamp { get; set; }
-            public ulong UserId { get; set; }
-            public long Xp { get; set; }
-            public string CurrentUsername { get; set; }
-        }
-
-
         private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
         {
             switch (e.Interaction.Data.CustomId)
@@ -205,7 +201,7 @@ namespace SteelBot
                 Services = ServiceProvider,
                 PrefixResolver = ResolvePrefix,
                 EnableDms = false,
-                CommandExecutor = new ErrorHandlingAsynchronousCommandExecutor(ErrorHandlingService)
+                CommandExecutor = _commandExecutor
             });
 
             Commands.RegisterCommands<ConfigCommands>();

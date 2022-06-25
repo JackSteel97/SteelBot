@@ -19,6 +19,7 @@ using DSharpPlus.EventArgs;
 using SteelBot.Helpers.Constants;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Sentry;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -30,13 +31,15 @@ namespace SteelBot.DiscordModules.Pets
         private readonly PetTreatingService TreatingService;
         private readonly ErrorHandlingService ErrorHandlingService;
         private readonly ILogger<PetsDataHelper> Logger;
+        private readonly IHub _sentry;
 
         public PetsDataHelper(DataCache cache,
             PetBefriendingService petBefriendingService,
             PetManagementService petManagementService,
             PetTreatingService petTreatingService,
             ErrorHandlingService errorHandlingService,
-            ILogger<PetsDataHelper> logger)
+            ILogger<PetsDataHelper> logger,
+            IHub sentry)
         {
             Cache = cache;
             BefriendingService = petBefriendingService;
@@ -44,6 +47,7 @@ namespace SteelBot.DiscordModules.Pets
             TreatingService = petTreatingService;
             ErrorHandlingService = errorHandlingService;
             Logger = logger;
+            _sentry = sentry;
         }
 
         public async Task HandleSearch(CommandContext context)
@@ -130,13 +134,16 @@ namespace SteelBot.DiscordModules.Pets
 
         public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
         {
+            var transaction = _sentry.GetSpan();
             if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(target.Id, out var pets))
             {
+                var getPetsSpan = transaction.StartChild("Get Available Pets");
                 var availablePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
+                var combinedPets = PetShared.Recombine(availablePets, disabledPets);
+                getPetsSpan.Finish();
 
-                List<PetWithActivation> combinedPets = PetShared.Recombine(availablePets, disabledPets);
-
+                var messageBuilderSpan = transaction.StartChild("Build Message");
                 var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, pets, disabledPets.Count>0, target.DisplayName)
                     .WithThumbnail(target.AvatarUrl);
 
@@ -151,7 +158,11 @@ namespace SteelBot.DiscordModules.Pets
                 var baseCapacity = PetShared.GetBasePetCapacity(user);
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
                 var interactivity = context.Client.GetInteractivity();
+                messageBuilderSpan.Finish();
+
+                var displaySpan = transaction.StartChild("Display Paginated Message");
                 await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+                displaySpan.Finish();
             }
             else
             {
