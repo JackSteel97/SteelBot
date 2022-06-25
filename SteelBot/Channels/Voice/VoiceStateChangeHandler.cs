@@ -48,7 +48,7 @@ namespace SteelBot.Channels.Voice
                 if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
                 {
                     (double otherBaseScalingFactor, bool otherShouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
-                    await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, shouldEarnVideo);
+                    await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, otherShouldEarnVideo);
                 }
             }
         }
