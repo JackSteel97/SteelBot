@@ -118,7 +118,7 @@ namespace SteelBot.Channels.Voice
                         scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
                     }
 
-                    if (userInChannel.VoiceState.IsSelfVideo)
+                    if (userInChannel?.VoiceState?.IsSelfVideo == true)
                     {
                         shouldEarnVideoXp = true;
                     }

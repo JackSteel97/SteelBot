@@ -12,10 +12,10 @@ namespace SteelBot.Helpers.Levelling
         {
             // XP = High-Level Scale + Low-Level Scale + Base Scale
             // High-Level Scale = (1.2^level)-1
-            // Low-Level Scale = (level^2)*level
+            // Low-Level Scale = (level^2.5)*level
             // Base Scale = 500*level;
             double highLevelScale = Math.Pow(1.2, level) - 1;
-            double lowLevelScale = Math.Pow(level, 2) * level;
+            double lowLevelScale = Math.Pow(level, 2.5) * level;
             double baseScale = 500 * level;
             return Convert.ToUInt64(Math.Round(highLevelScale+lowLevelScale+baseScale));
         }

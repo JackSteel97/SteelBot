@@ -26,14 +26,14 @@ namespace SteelBot.Test.Helpers
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 501)]
-        [InlineData(2, 1008)]
-        [InlineData(3, 1528)]
-        [InlineData(4, 2065)]
-        [InlineData(5, 2626)]
-        [InlineData(10, 6005)]
-        [InlineData(50, 159_099)]
-        [InlineData(70, 726_888)]
-        [InlineData(100, 83_867_974)]
+        [InlineData(2, 1012)]
+        [InlineData(3, 1547)]
+        [InlineData(4, 2129)]
+        [InlineData(5, 2781)]
+        [InlineData(10, 8167)]
+        [InlineData(50, 917_983)]
+        [InlineData(70, 32_53_632)]
+        [InlineData(100, 92_867_974)]
         public void XpForLevel(int level, ulong expectedXp)
         {
             ulong actualXp = LevellingMaths.XpForLevel(level);
