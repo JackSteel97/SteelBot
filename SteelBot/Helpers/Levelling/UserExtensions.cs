@@ -14,6 +14,8 @@ namespace SteelBot.Helpers.Levelling
 {
     public static class UserExtensions
     {
+        private static readonly TimeSpan _maxDisconnectedDuration = TimeSpan.FromHours(8);
+
         public static LevellingConfig LevelConfig { get; set; }
 
         public static bool UpdateLevel(this User user)
@@ -207,7 +209,12 @@ namespace SteelBot.Helpers.Levelling
             var disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXP);
             if (disconnectedXpPerMin > 0)
             {
-                var xpEarned = LevellingMaths.GetDurationXp(disconnectedDuration, TimeSpan.Zero, disconnectedXpPerMin);
+                var duration = disconnectedDuration;
+                if (disconnectedDuration > _maxDisconnectedDuration)
+                {
+                    duration = _maxDisconnectedDuration;
+                }
+                var xpEarned = LevellingMaths.GetDurationXp(duration, TimeSpan.Zero, disconnectedXpPerMin);
                 user.DisconnectedXpEarned += xpEarned;
             }
         }
