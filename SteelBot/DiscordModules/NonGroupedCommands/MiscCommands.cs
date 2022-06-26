@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services.Configuration;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.NonGroupedCommands
     {
         private AppConfigurationService AppConfigurationService;
 
-        public MiscCommands(AppConfigurationService appConfigurationService)
+        public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
         {
             AppConfigurationService = appConfigurationService;
         }

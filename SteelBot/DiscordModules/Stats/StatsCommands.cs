@@ -7,8 +7,8 @@ using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using ScottPlot;
+using Sentry;
 using SteelBot.Database.Models;
-using SteelBot.Database.Models.Users;
 using SteelBot.DiscordModules.Stats.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DiscordModules.Stats
 {
@@ -36,7 +37,7 @@ namespace SteelBot.DiscordModules.Stats
         private readonly UserLockingService UserLockingService;
         private readonly ErrorHandlingService ErrorHandlingService;
 
-        public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator, AppConfigurationService appConfigurationService, UserLockingService userLockingService, ErrorHandlingService errorHandlingService)
+        public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator, AppConfigurationService appConfigurationService, UserLockingService userLockingService, ErrorHandlingService errorHandlingService, IHub sentry) : base(sentry)
         {
             DataHelper = dataHelpers;
             LevelCardGenerator = levelCardGenerator;

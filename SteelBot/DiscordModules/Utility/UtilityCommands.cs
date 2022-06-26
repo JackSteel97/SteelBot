@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
+using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -27,7 +28,7 @@ namespace SteelBot.DiscordModules.Utility
         private readonly DataCache Cache;
         private readonly IHostApplicationLifetime ApplicationLifetime;
 
-        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime)
+        public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime, IHub sentry) : base(sentry)
         {
             Rand = new Random();
             AppConfigurationService = appConfigurationService;

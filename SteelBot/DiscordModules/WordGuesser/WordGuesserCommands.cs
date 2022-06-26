@@ -6,6 +6,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services.Configuration;
@@ -46,7 +47,7 @@ namespace SteelBot.DiscordModules.WordGuesser
         private readonly Dictionary<ulong, WordGuesserStats> Stats = new Dictionary<ulong, WordGuesserStats>();
         private readonly StringBuilder CurrentResponse = new StringBuilder();
 
-        public WordGuesserCommands(ILogger<WordGuesserCommands> logger, AppConfigurationService appConfigurationService)
+        public WordGuesserCommands(ILogger<WordGuesserCommands> logger, AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
         {
             Logger = logger;
             AppConfigurationService = appConfigurationService;

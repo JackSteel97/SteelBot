@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Sentry;
 using SteelBot.Helpers.Extensions;
 using System;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.Roles
     {
         private readonly DataHelpers DataHelpers;
 
-        public RolesCommands(DataHelpers dataHelper)
+        public RolesCommands(DataHelpers dataHelper, IHub sentry) : base(sentry)
         {
             DataHelpers = dataHelper;
         }

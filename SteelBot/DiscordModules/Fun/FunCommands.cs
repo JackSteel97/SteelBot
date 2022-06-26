@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -19,7 +20,7 @@ namespace SteelBot.DiscordModules.Fun
         private readonly DataHelpers DataHelpers;
         private readonly DataCache Cache;
 
-        public FunCommands(DataHelpers dataHelpers, DataCache cache)
+        public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry) : base(sentry)
         {
             DataHelpers = dataHelpers;
             Cache = cache;

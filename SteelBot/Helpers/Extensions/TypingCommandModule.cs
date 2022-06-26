@@ -35,8 +35,7 @@ namespace SteelBot.Helpers.Extensions
                 var transaction = _sentry.GetSpan();
                 if (transaction != null)
                 {
-                    transaction.Status = SpanStatus.Ok;
-                    transaction.Finish();
+                    transaction.Finish(SpanStatus.Ok);
                 }
             }
 

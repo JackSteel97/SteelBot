@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
@@ -16,7 +17,7 @@ namespace SteelBot.DiscordModules.Stocks
     {
         private readonly StockPriceService StockPriceService;
 
-        public StocksCommands(StockPriceService stockPriceService)
+        public StocksCommands(StockPriceService stockPriceService, IHub sentry) : base(sentry)
         {
             StockPriceService = stockPriceService;
         }

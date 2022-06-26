@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
+using Sentry;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -24,7 +25,7 @@ namespace SteelBot.DiscordModules.Triggers
     {
         private readonly DataHelpers DataHelpers;
 
-        public TriggerCommands(DataHelpers dataHelpers)
+        public TriggerCommands(DataHelpers dataHelpers, IHub sentry) : base(sentry)
         {
             DataHelpers = dataHelpers;
         }

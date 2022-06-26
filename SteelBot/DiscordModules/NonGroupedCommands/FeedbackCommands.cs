@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -14,7 +15,7 @@ namespace SteelBot.DiscordModules.NonGroupedCommands
     {
         private readonly DataCache Cache;
 
-        public FeedbackCommands(DataCache cache)
+        public FeedbackCommands(DataCache cache, IHub sentry) : base(sentry)
         {
             Cache = cache;
         }

@@ -3,6 +3,7 @@ using AlphaVantage.Net.Stocks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Sentry;
 using SteelBot.Database.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -22,7 +23,7 @@ namespace SteelBot.DiscordModules.Stocks
         private readonly DataHelpers DataHelpers;
         private readonly StockPriceService StockPriceService;
 
-        public PortfolioCommands(DataHelpers dataHelpers, StockPriceService stockPriceService)
+        public PortfolioCommands(DataHelpers dataHelpers, StockPriceService stockPriceService, IHub sentry) : base(sentry)
         {
             DataHelpers = dataHelpers;
             StockPriceService = stockPriceService;

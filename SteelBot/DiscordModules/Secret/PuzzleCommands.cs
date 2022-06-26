@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
+using Sentry;
 using SteelBot.Attributes;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -26,7 +27,7 @@ namespace SteelBot.DiscordModules.Secret
         private readonly List<string> NumberWords;
         private readonly AppConfigurationService AppConfigurationService;
 
-        public PuzzleCommands(AppConfigurationService appConfigurationService)
+        public PuzzleCommands(AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
         {
             NumberWords = new List<string>();
             for (int i = 1; i <= NumberOfQuestions; i++)
