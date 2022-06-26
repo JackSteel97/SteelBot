@@ -33,8 +33,6 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
@@ -42,7 +40,6 @@ using SteelBot.Channels.Message;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Voice;
-using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
@@ -80,7 +77,6 @@ namespace SteelBot
         private readonly DataHelpers DataHelpers;
         private readonly DataCache Cache;
         private CommandsNextExtension Commands;
-        private readonly UserTrackingService UserTrackingService;
         private readonly ErrorHandlingService ErrorHandlingService;
         private readonly CancellationService CancellationService;
         private readonly UserLockingService UserLockingService;
@@ -98,7 +94,6 @@ namespace SteelBot
             IServiceProvider serviceProvider,
             DataHelpers dataHelpers,
             DataCache cache,
-            UserTrackingService userTrackingService,
             ErrorHandlingService errorHandlingService,
             VoiceStateChannel voiceStateChannel,
             CancellationService cancellationService,
@@ -114,7 +109,6 @@ namespace SteelBot
             ServiceProvider = serviceProvider;
             DataHelpers = dataHelpers;
             Cache = cache;
-            UserTrackingService = userTrackingService;
             ErrorHandlingService = errorHandlingService;
             VoiceStateChannel = voiceStateChannel;
             CancellationService = cancellationService;

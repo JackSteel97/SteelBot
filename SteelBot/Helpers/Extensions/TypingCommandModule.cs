@@ -24,7 +24,6 @@ namespace SteelBot.Helpers.Extensions
                     scope.Transaction = transaction;
                 });
             }
-            
             ctx.TriggerTypingAsync();
             return Task.CompletedTask;
         }

@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
+using Sentry;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets.Helpers;
@@ -21,38 +22,53 @@ namespace SteelBot.DiscordModules.Pets.Services
     {
         private readonly DataCache Cache;
         private readonly ErrorHandlingService ErrorHandlingService;
+        private readonly IHub _sentry;
 
-        public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService)
+        public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry)
         {
             Cache = cache;
             ErrorHandlingService = errorHandlingService;
+            _sentry = sentry;
         }
 
         public async Task Manage(CommandContext context)
         {
+            var transaction = _sentry.GetSpan();
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
             {
+                var getPetsSpan = transaction.StartChild("Get Available Pets");
+
                 var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
                 var combinedPets = PetShared.Recombine(availablePets, disabledPets);
+                getPetsSpan.Finish();
 
+                var buildEmbedSpan = transaction.StartChild("Build Owned Pets Base Embed");
                 var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
+                buildEmbedSpan.Finish();
 
+                var capacitySpan = transaction.StartChild("Get Pet Capacity");
                 var maxCapacity = PetShared.GetPetCapacity(user, allPets);
                 var baseCapacity = PetShared.GetBasePetCapacity(user);
+                capacitySpan.Finish();
 
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                     (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                     (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
 
+                var waitingSpan = transaction.StartChild("Waiting for Response");
                 (string resultId, _) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
+                waitingSpan.Finish();
                 if (!string.IsNullOrWhiteSpace(resultId))
                 {
+                    var handleSpan = transaction.StartChild("Handle Manage Pet");
                     // Figure out which pet they want to manage.
                     if (PetShared.TryGetPetIdFromComponentId(resultId, out var petId))
                     {
-                        await HandleManagePet(context, petId);
+                        await HandleManagePet(context, petId, handleSpan);
                     }
+
+                    handleSpan.Finish();
                 }
             }
             else
@@ -99,11 +115,15 @@ namespace SteelBot.DiscordModules.Pets.Services
             }
         }
 
-        private async Task HandleManagePet(CommandContext context, long petId)
+        private async Task HandleManagePet(CommandContext context, long petId, ISpan transaction)
         {
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
             {
+                var countPetsSpan = transaction.StartChild("Count Pets");
                 Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out var ownedPetCount);
+                countPetsSpan.Finish();
+
+                var buildMessageSpan = transaction.StartChild("Build Message");
                 var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet, showLevelProgress: true);
                 var initialResponseBuilder = new DiscordMessageBuilder()
                     .WithEmbed(petDisplay);
@@ -119,15 +139,18 @@ namespace SteelBot.DiscordModules.Pets.Services
                         Interactions.Pets.Abandon,
                         Interactions.Confirmation.Cancel,
                     });
+                buildMessageSpan.Finish();
 
+                var waitingForResponseSpan = transaction.StartChild("Wait for user selection");
                 var message = await context.RespondAsync(initialResponseBuilder, mention: true);
                 var result = await message.WaitForButtonAsync(context.Member);
-
+                waitingForResponseSpan.Finish();
                 initialResponseBuilder.ClearComponents();
 
                 if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
                 {
                     message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
+                    var performManageSpan = transaction.StartChild("Perform Manage Operation", result.Result.Id);
                     switch (result.Result.Id)
                     {
                         case InteractionIds.Pets.Rename:
@@ -152,15 +175,17 @@ namespace SteelBot.DiscordModules.Pets.Services
                             await PetModals.MovePet(result.Result.Interaction, pet, ownedPetCount);
                             break;
                     }
+
+                    performManageSpan.Finish();
                 }
                 else
                 {
-                    await message.ModifyAsync(initialResponseBuilder);
+                    message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
                 }
             }
             else
             {
-                await context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true);
+                context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true).FireAndForget(ErrorHandlingService);
             }
         }
 
@@ -170,7 +195,7 @@ namespace SteelBot.DiscordModules.Pets.Services
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
             {
-                var petsToUpdate = new List<Pet>(oldPriority+1);
+                var petsToUpdate = new List<Pet>(oldPriority + 1);
 
                 foreach (var ownedPet in allPets)
                 {

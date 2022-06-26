@@ -10,7 +10,6 @@ using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets
