@@ -1,7 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using Sentry;
-using System.Collections.Generic;
+using SteelBot.Helpers.Sentry;
 using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Extensions
@@ -27,16 +27,7 @@ namespace SteelBot.Helpers.Extensions
 
         public static User GetSentryUser(this CommandContext context)
         {
-            return new User
-            {
-                Username = $"{context.User.Username}#{context.User.Discriminator}",
-                Other = new Dictionary<string, string>
-                {
-                    ["UserId"] = context.User.Id.ToString(),
-                    ["GuildId"] = context.Guild.Id.ToString(),
-                    ["Guild"] = context.Guild.Name
-                }
-            };
+            return SentryHelpers.GetSentryUser(context.User, context.Guild);
         }
     }
 }

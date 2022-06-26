@@ -15,7 +15,7 @@ namespace SteelBot.Channels
 
         private readonly Channel<TMsg> _channel;
         private readonly ILogger _logger;
-        private readonly ErrorHandlingService _errorHandlingService;
+        protected readonly ErrorHandlingService _errorHandlingService;
         private readonly string _label;
 
         protected BaseChannel(ILogger logger, ErrorHandlingService errorHandlingService, string channelLabel = "Unlabelled")

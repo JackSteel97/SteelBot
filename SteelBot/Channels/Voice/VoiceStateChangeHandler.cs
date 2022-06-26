@@ -1,8 +1,8 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
-using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
@@ -33,24 +33,37 @@ namespace SteelBot.Channels.Voice
             _rankRolesProvider = rankRolesProvider;
         }
 
-        public async Task HandleVoiceStateChange(VoiceStateChange changeArgs)
+        public async Task HandleVoiceStateChange(VoiceStateChange changeArgs, ISpan transaction)
         {
+            var getUsersInChannelSpan = transaction.StartChild("Get Users In Channel");
             var usersInChannel = GetUsersInChannel(changeArgs);
+            getUsersInChannelSpan.Finish();
 
+            var scalingSpan = transaction.StartChild("Get Xp Scaling Factors");
             (double baseScalingFactor, bool shouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
+            scalingSpan.Finish();
 
+            var updateUserSpan = transaction.StartChild("Update User Stats");
             // Update this user
             await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
+            updateUserSpan.Finish();
 
+            var updateOtherUsersSpan = transaction.StartChild("Update Other Users In Channel");
             // Update other users in the channel.
             foreach (var userInChannel in usersInChannel)
             {
                 if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
                 {
+                    var otherScalingSpan = updateOtherUsersSpan.StartChild("Get Xp Scaling Factors", $"For {userInChannel.Username}");
                     (double otherBaseScalingFactor, bool otherShouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
+                    otherScalingSpan.Finish();
+
+                    var otherUpdateSpan = updateOtherUsersSpan.StartChild("Update User Stats", $"For {userInChannel.Username}");
                     await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, otherShouldEarnVideo);
+                    otherUpdateSpan.Finish();
                 }
             }
+            updateOtherUsersSpan.Finish();
         }
 
         private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)

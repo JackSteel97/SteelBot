@@ -90,7 +90,6 @@ namespace SteelBot
                     opt.AddSentry(o =>
                     {
                         o.MinimumEventLevel = LogLevel.Warning;
-                        o.Environment = Environment;
                         o.Release = appConfigurationService.Version;
                         o.AutoSessionTracking = true;
                         o.DetectStartupTime = StartupTimeDetectionMode.Best;

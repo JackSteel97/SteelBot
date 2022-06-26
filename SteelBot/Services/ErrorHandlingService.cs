@@ -50,8 +50,7 @@ namespace SteelBot.Services
 
                 if (transaction != null)
                 {
-                    transaction.Status = SpanStatus.InternalError;
-                    transaction.Finish();
+                    transaction.Finish(e);
                 }
             }
             catch (Exception ex)
