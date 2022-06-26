@@ -23,7 +23,6 @@ namespace SteelBot.DiscordModules.Pets
         private readonly ILogger<PetsCommands> Logger;
         private readonly PetFactory PetFactory;
         private readonly DataHelpers DataHelpers;
-        private const double TwelveHoursSeconds = 12 * 60 * 60;
         private const double HourSeconds = 60 * 60;
         public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry) : base(sentry)
         {
@@ -54,8 +53,8 @@ namespace SteelBot.DiscordModules.Pets
 
         [Command("treat")]
         [Aliases("reward", "gift")]
-        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per twelve hours")]
-        [Cooldown(2, TwelveHoursSeconds, CooldownBucketType.User)]
+        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per hour")]
+        [Cooldown(2, HourSeconds, CooldownBucketType.User)]
         public async Task TreatPet(CommandContext context)
         {
             Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
