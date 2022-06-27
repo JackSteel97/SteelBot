@@ -33,7 +33,7 @@ namespace SteelBot.Helpers.Extensions
             if (_sentry != null)
             {
                 var transaction = _sentry.GetSpan();
-                if (transaction != null)
+                if (transaction != null && !transaction.IsFinished)
                 {
                     transaction.Finish(SpanStatus.Ok);
                 }
