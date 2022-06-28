@@ -81,6 +81,7 @@ namespace SteelBot.DiscordModules.Pets.Services
         private async Task<(bool befriendAttempt, Pet pet, DiscordInteraction interaction)> HandleInitialSearchSuccess(CommandContext context, bool mustReplace)
         {
             var transaction = _sentry.GetSpan();
+            var buildPetDisplaySpan = transaction.StartChild("Build Pet Display");
             bool befriendAttempt = false;
             DiscordInteraction interaction = null;
             Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var user);
@@ -97,7 +98,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                 });
 
             Logger.LogInformation("Sending pet found message to User {UserId} in Guild {GuildId}", context.User.Id, context.Guild.Id);
-
+            buildPetDisplaySpan.Finish();
             transaction.Finish(SpanStatus.Ok);
             var message = await context.RespondAsync(initialResponseBuilder, mention: true);
             var result = await message.WaitForButtonAsync(context.Member);
@@ -231,7 +232,6 @@ namespace SteelBot.DiscordModules.Pets.Services
             pet.OwnerDiscordId = userId;
             pet.RowId = await Cache.Pets.InsertPet(pet);
             addSpan.Finish();
-
         }
 
         private bool SearchSuccess(DiscordMember userSearching)

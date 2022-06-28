@@ -9,6 +9,7 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,6 @@ namespace SteelBot.DiscordModules.Pets.Services
                 && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
             {
                 var getPetsSpan = transaction.StartChild("Get Available Pets");
-
                 var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
                 var combinedPets = PetShared.Recombine(availablePets, disabledPets);
                 getPetsSpan.Finish();
@@ -52,22 +52,23 @@ namespace SteelBot.DiscordModules.Pets.Services
                 var baseCapacity = PetShared.GetBasePetCapacity(user);
                 capacitySpan.Finish();
 
+                var pagesSpan = transaction.StartChild("Generate Embed Pages");
                 var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                     (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                     (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
+                pagesSpan.Finish();
 
-                var waitingSpan = transaction.StartChild("Waiting for Response");
+                transaction.Finish(SpanStatus.Ok);
                 (string resultId, _) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
-                waitingSpan.Finish();
+                var responseTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), "Handle Manage Response");
                 if (!string.IsNullOrWhiteSpace(resultId))
                 {
-                    var handleSpan = transaction.StartChild("Handle Manage Pet");
+                    var handleSpan = responseTransaction.StartChild("Handle Manage Pet");
                     // Figure out which pet they want to manage.
                     if (PetShared.TryGetPetIdFromComponentId(resultId, out var petId))
                     {
                         await HandleManagePet(context, petId, handleSpan);
                     }
-
                     handleSpan.Finish();
                 }
             }

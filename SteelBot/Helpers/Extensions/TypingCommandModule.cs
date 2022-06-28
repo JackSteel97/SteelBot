@@ -32,7 +32,12 @@ namespace SteelBot.Helpers.Extensions
         {
             if (_sentry != null)
             {
-                var transaction = _sentry.GetSpan();
+                ITransaction transaction = null;
+                _sentry.ConfigureScope(scope =>
+                {
+                    transaction = scope.Transaction;
+                });
+
                 if (transaction != null && !transaction.IsFinished)
                 {
                     transaction.Finish(SpanStatus.Ok);

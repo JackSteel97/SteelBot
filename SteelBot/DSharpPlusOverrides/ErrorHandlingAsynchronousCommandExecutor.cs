@@ -31,6 +31,7 @@ namespace SteelBot.DSharpPlusOverrides
             //transaction.Finish();
             return Task.CompletedTask;
         }
+
         public void Dispose()
         {
             // Nothing to dispose
