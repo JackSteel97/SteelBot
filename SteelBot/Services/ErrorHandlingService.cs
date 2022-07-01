@@ -5,6 +5,7 @@ using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Exceptions;
 using SteelBot.Helpers;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services.Configuration;
 using System;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace SteelBot.Services
         {
             try
             {
-                var transaction = _sentry.GetSpan();
+                var transaction = _sentry.GetCurrentTransaction();
 
                 Logger.LogError(e, "Source Method: {Source}", source);
                 if (e.InnerException != null)

@@ -33,7 +33,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         public async Task Treat(CommandContext context)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
             {
@@ -79,7 +79,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task HandleTreatGiven(CommandContext context, long petId)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet) && Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var user))
             {
                 var xpMathsSpan = transaction.StartChild("Calculate Treat Xp");

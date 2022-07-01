@@ -41,4 +41,14 @@ public static class SentryExtensions
         sentry.ConfigureScope(scope => scope.Transaction = transaction);
         return transaction;
     }
+
+    public static ITransaction GetCurrentTransaction(this IHub sentry)
+    {
+        ITransaction transaction = null;
+        sentry.ConfigureScope(scope =>
+        {
+            transaction = scope.Transaction;
+        });
+        return transaction;
+    }
 }

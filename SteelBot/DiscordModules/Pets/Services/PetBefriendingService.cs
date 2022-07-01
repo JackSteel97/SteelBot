@@ -4,7 +4,6 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Database.Models.Pets;
-using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
@@ -40,7 +39,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         public async Task Search(CommandContext context)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             bool isReplacementBefriend = false;
             if (!HasSpaceForAnotherPet(context.Member))
             {
@@ -80,7 +79,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task<(bool befriendAttempt, Pet pet, DiscordInteraction interaction)> HandleInitialSearchSuccess(CommandContext context, bool mustReplace)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var buildPetDisplaySpan = transaction.StartChild("Build Pet Display");
             bool befriendAttempt = false;
             DiscordInteraction interaction = null;
@@ -146,7 +145,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
                     if (PetCorrupted() && Cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var ownerUser))
                     {
-                        var transaction = _sentry.GetSpan();
+                        var transaction = _sentry.GetCurrentTransaction();
                         var corruptSpan = transaction.StartChild("Corrupt Pet");
                         Logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
                         pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
@@ -185,7 +184,7 @@ namespace SteelBot.DiscordModules.Pets.Services
                        (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                        (pet) => Interactions.Pets.Replace(pet.Pet.RowId, pet.Pet.GetName()));
 
-                _sentry.GetSpan()?.Finish();
+                _sentry.GetCurrentTransaction()?.Finish();
                 (string resultId, interaction) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
                 _sentry.StartNewConfiguredTransaction(nameof(PetBefriendingService), "Replacement Befriend Response");
 
@@ -206,7 +205,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task ReplacePetWith(CommandContext context, long petId, Pet newPet)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var removeSpan = transaction.StartChild("Remove Pet");
             if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var petToReplace))
             {
@@ -227,7 +226,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task AddPet(ulong userId, Pet pet)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var addSpan = transaction.StartChild("Add Pet");
             pet.OwnerDiscordId = userId;
             pet.RowId = await Cache.Pets.InsertPet(pet);
@@ -243,7 +242,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private double GetSearchSuccessProbability(DiscordMember userSearching)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var successProbabilitySpan = transaction.StartChild(nameof(GetSearchSuccessProbability));
             int ownedPetCount = 0;
             double bonusMultiplier = 1;
@@ -264,7 +263,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private bool HasSpaceForAnotherPet(DiscordMember user)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var spaceSpan = transaction.StartChild(nameof(HasSpaceForAnotherPet));
 
             (int capacity, int allPetsCount) = GetCapacityAndAllPetsCount(user);
@@ -289,7 +288,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private bool CanReplaceToBefriend(DiscordMember user)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var canReplaceSpan = transaction.StartChild(nameof(CanReplaceToBefriend));
 
             (int capacity, int allPetsCount) = GetCapacityAndAllPetsCount(user);
@@ -312,7 +311,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private double GetBefriendSuccessProbability(User user, Pet target)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             var befriendSuccessSpan = transaction.StartChild(nameof(GetBefriendSuccessProbability));
             const double baseRate = 0.1;
             int ownedPetCount = 0;

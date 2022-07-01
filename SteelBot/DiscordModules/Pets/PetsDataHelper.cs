@@ -20,6 +20,7 @@ using SteelBot.Helpers.Constants;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.Helpers.Sentry;
 
 namespace SteelBot.DiscordModules.Pets
 {
@@ -134,7 +135,7 @@ namespace SteelBot.DiscordModules.Pets
 
         public async Task SendOwnedPetsDisplay(CommandContext context, DiscordMember target)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(target.Id, out var pets))
             {

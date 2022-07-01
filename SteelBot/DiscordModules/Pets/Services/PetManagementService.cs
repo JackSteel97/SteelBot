@@ -1,5 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Sentry;
@@ -11,10 +10,7 @@ using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Services
@@ -34,7 +30,7 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         public async Task Manage(CommandContext context)
         {
-            var transaction = _sentry.GetSpan();
+            var transaction = _sentry.GetCurrentTransaction();
             if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
                 && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
             {
@@ -289,8 +285,12 @@ namespace SteelBot.DiscordModules.Pets.Services
 
         private async Task HandlePetAbandon(CommandContext context, Pet pet)
         {
+            var transaction = _sentry.GetCurrentTransaction();
+            transaction.Finish();
             if (await InteractivityHelper.GetConfirmation(context, "Pet Release"))
             {
+                var abandonTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), nameof(HandlePetAbandon));
+
                 await Cache.Pets.RemovePet(context.Member.Id, pet.RowId);
 
                 if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
