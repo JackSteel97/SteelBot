@@ -15,15 +15,7 @@ namespace SteelBot.Database
 
         public DbSet<SelfRole> SelfRoles { get; set; }
         public DbSet<RankRole> RankRoles { get; set; }
-
-        public DbSet<Poll> Polls { get; set; }
-
-        public DbSet<PollOption> PollOptions { get; set; }
         public DbSet<Trigger> Triggers { get; set; }
-        public DbSet<StockPortfolio> StockPortfolios { get; set; }
-        public DbSet<OwnedStock> OwnedStocks { get; set; }
-        public DbSet<StockPortfolioSnapshot> StockPortfolioSnapshots { get; set; }
-
         public DbSet<ExceptionLog> LoggedErrors { get; set; }
         public DbSet<CommandStatistic> CommandStatistics { get; set; }
         public DbSet<Pet> Pets { get; set; }
@@ -64,7 +56,6 @@ namespace SteelBot.Database
 
                 entity.HasMany(u => u.CreatedTriggers).WithOne(t => t.Creator).HasForeignKey(t => t.CreatorRowId).OnDelete(DeleteBehavior.NoAction);
                 entity.HasOne(u => u.CurrentRankRole).WithMany(rr => rr.UsersWithRole).HasForeignKey(u => u.CurrentRankRoleRowId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(u => u.StockPortfolio).WithOne(pf => pf.Owner).HasForeignKey<StockPortfolio>(pf => pf.OwnerRowId);
             });
 
             modelBuilder.Entity<UserAudit>(entity =>
@@ -78,16 +69,6 @@ namespace SteelBot.Database
                 entity.HasKey(sr => sr.RowId);
             });
 
-            modelBuilder.Entity<Poll>(entity =>
-            {
-                entity.HasKey(sr => sr.RowId);
-                entity.HasMany(p => p.Options).WithOne(po => po.Poll).HasForeignKey(po => po.PollRowId);
-            });
-
-            modelBuilder.Entity<PollOption>(entity =>
-            {
-                entity.HasKey(sr => sr.RowId);
-            });
 
             modelBuilder.Entity<ExceptionLog>(entity =>
             {
@@ -108,27 +89,6 @@ namespace SteelBot.Database
             {
                 entity.HasKey(cs => cs.RowId);
                 entity.HasIndex(cs => cs.CommandName).IsUnique();
-            });
-
-            modelBuilder.Entity<StockPortfolio>(entity =>
-            {
-                entity.HasKey(pf => pf.RowId);
-                entity.Ignore(pf => pf.OwnedStockBySymbol);
-
-                entity.HasMany(pf => pf.OwnedStock).WithOne(os => os.ParentPortfolio).HasForeignKey(os => os.ParentPortfolioRowId);
-                entity.HasMany(pf => pf.Snapshots).WithOne(ss => ss.ParentPortfolio).HasForeignKey(ss => ss.ParentPortfolioRowId);
-            });
-
-            modelBuilder.Entity<OwnedStock>(entity =>
-            {
-                entity.HasKey(os => os.RowId);
-                entity.Property(os => os.AmountOwned).HasColumnType("decimal(38, 20)");
-            });
-
-            modelBuilder.Entity<StockPortfolioSnapshot>(entity =>
-            {
-                entity.HasKey(ss => ss.RowId);
-                entity.Property(ss => ss.TotalValueDollars).HasColumnType("decimal(24, 4)");
             });
 
             modelBuilder.Entity<Pet>(entity =>

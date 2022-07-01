@@ -19,7 +19,6 @@ namespace SteelBot.Database.Models.Users
         public Guild Guild { get; set; }
         public RankRole CurrentRankRole { get; set; }
         public List<Trigger> CreatedTriggers { get; set; }
-        public StockPortfolio StockPortfolio { get; set; }
         public DateTime? LastUpdated { get; set; }
 
         #region TimeSpan Computers

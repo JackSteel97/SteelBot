@@ -47,12 +47,10 @@ using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.NonGroupedCommands;
 using SteelBot.DiscordModules.Pets;
-using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Secret;
 using SteelBot.DiscordModules.Stats;
-using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.DiscordModules.WordGuesser;
@@ -199,8 +197,6 @@ namespace SteelBot
             });
 
             Commands.RegisterCommands<ConfigCommands>();
-            // TODO: Rewrite polls.
-            //Commands.RegisterCommands<PollsCommands>();
             Commands.RegisterCommands<RolesCommands>();
             Commands.RegisterCommands<StatsCommands>();
             Commands.RegisterCommands<UtilityCommands>();
@@ -209,8 +205,6 @@ namespace SteelBot
             Commands.RegisterCommands<TriggerCommands>();
             Commands.RegisterCommands<FeedbackCommands>();
             Commands.RegisterCommands<FunCommands>();
-            Commands.RegisterCommands<StocksCommands>();
-            Commands.RegisterCommands<PortfolioCommands>();
             Commands.RegisterCommands<MiscCommands>();
             Commands.RegisterCommands<PetsCommands>();
             Commands.RegisterCommands<WordGuesserCommands>();

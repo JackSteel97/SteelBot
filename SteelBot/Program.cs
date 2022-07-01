@@ -13,11 +13,9 @@ using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Services;
-using SteelBot.DiscordModules.Polls;
 using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
-using SteelBot.DiscordModules.Stocks;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
@@ -41,7 +39,7 @@ namespace SteelBot
 {
     public static class Program
     {
-        private const string Environment = "Test";
+        private const string Environment = "Development";
 
         private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
         {
@@ -140,10 +138,8 @@ namespace SteelBot
             serviceProvider.AddSingleton<StatsDataHelper>();
             serviceProvider.AddSingleton<ConfigDataHelper>();
             serviceProvider.AddSingleton<RolesDataHelper>();
-            serviceProvider.AddSingleton<PollsDataHelper>();
             serviceProvider.AddSingleton<RankRoleDataHelper>();
             serviceProvider.AddSingleton<TriggerDataHelper>();
-            serviceProvider.AddSingleton<PortfolioDataHelper>();
             serviceProvider.AddSingleton<FunDataHelper>();
             serviceProvider.AddSingleton<PetsDataHelper>();
             // Add base provider.
@@ -156,13 +152,11 @@ namespace SteelBot
             serviceProvider.AddSingleton<GuildsProvider>();
             serviceProvider.AddSingleton<UsersProvider>();
             serviceProvider.AddSingleton<SelfRolesProvider>();
-            serviceProvider.AddSingleton<PollsProvider>();
             serviceProvider.AddSingleton<ExceptionProvider>();
             serviceProvider.AddSingleton<RankRolesProvider>();
             serviceProvider.AddSingleton<TriggersProvider>();
             serviceProvider.AddSingleton<CommandStatisticProvider>();
             serviceProvider.AddSingleton<FunProvider>();
-            serviceProvider.AddSingleton<StockPortfoliosProvider>();
             serviceProvider.AddSingleton<PetsProvider>();
 
             // Add base provider.
@@ -174,7 +168,6 @@ namespace SteelBot
             // Add custom services.
             serviceProvider.AddSingleton<UserTrackingService>();
             serviceProvider.AddSingleton<LevelCardGenerator>();
-            serviceProvider.AddSingleton<StockPriceService>();
             serviceProvider.AddSingleton<PetFactory>();
             serviceProvider.AddTransient<PetBefriendingService>();
             serviceProvider.AddTransient<PetManagementService>();

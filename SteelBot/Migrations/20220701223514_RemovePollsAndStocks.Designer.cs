@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SteelBot.Database;
@@ -11,9 +12,10 @@ using SteelBot.Database;
 namespace SteelBot.Migrations
 {
     [DbContext(typeof(SteelBotContext))]
-    partial class SteelBotContextModelSnapshot : ModelSnapshot
+    [Migration("20220701223514_RemovePollsAndStocks")]
+    partial class RemovePollsAndStocks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
