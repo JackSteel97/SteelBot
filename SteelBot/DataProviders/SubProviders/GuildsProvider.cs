@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services.Configuration;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,14 +16,16 @@ namespace SteelBot.DataProviders.SubProviders
         private readonly ILogger<GuildsProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
         private readonly AppConfigurationService AppConfigurationService;
+        private readonly IHub _sentry;
 
         private Dictionary<ulong, Guild> GuildsByDiscordId;
 
-        public GuildsProvider(ILogger<GuildsProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService)
+        public GuildsProvider(ILogger<GuildsProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService, IHub sentry)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
             AppConfigurationService = appConfigurationService;
+            _sentry = sentry;
 
             GuildsByDiscordId = new Dictionary<ulong, Guild>();
             LoadGuildData();
@@ -29,11 +33,14 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadGuildData()
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadGuildData));
             Logger.LogInformation("Loading data from database: Guilds");
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 GuildsByDiscordId = db.Guilds.AsNoTracking().ToDictionary(g => g.DiscordId);
             }
+
+            transaction.Finish();
         }
 
         public bool BotKnowsGuild(ulong discordId)
@@ -48,17 +55,23 @@ namespace SteelBot.DataProviders.SubProviders
 
         public string GetGuildPrefix(ulong discordId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(GetGuildPrefix));
+
             string prefix = AppConfigurationService.Application.DefaultCommandPrefix;
 
             if (TryGetGuild(discordId, out Guild guild))
             {
                 prefix = guild.CommandPrefix;
             }
+
+            transaction.Finish();
             return prefix;
         }
 
         public async Task SetNewPrefix(ulong guildId, string newPrefix)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(SetNewPrefix));
+
             if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Updating prefix for Guild [{guildId}]");
@@ -68,10 +81,14 @@ namespace SteelBot.DataProviders.SubProviders
 
                 await UpdateGuild(copyOfGuild);
             }
+
+            transaction.Finish();
         }
 
         public async Task SetLevellingChannel(ulong guildId, ulong channelId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(SetLevellingChannel));
+
             if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Updating Levelling Channel for Guild [{guildId}]");
@@ -81,10 +98,14 @@ namespace SteelBot.DataProviders.SubProviders
 
                 await UpdateGuild(copyOfGuild);
             }
+
+            transaction.Finish();
         }
 
         public async Task IncrementGoodVote(ulong guildId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(IncrementGoodVote));
+
             if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Incrementing good bot vote for Guild [{guildId}]");
@@ -93,10 +114,14 @@ namespace SteelBot.DataProviders.SubProviders
 
                 await UpdateGuild(copyOfGuild);
             }
+
+            transaction.Finish();
         }
 
         public async Task IncrementBadVote(ulong guildId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(IncrementBadVote));
+
             if (TryGetGuild(guildId, out Guild guild))
             {
                 Logger.LogInformation($"Incrementing bad bot vote for Guild [{guildId}]");
@@ -105,10 +130,14 @@ namespace SteelBot.DataProviders.SubProviders
 
                 await UpdateGuild(copyOfGuild);
             }
+
+            transaction.Finish();
         }
 
         public async Task UpsertGuild(Guild guild)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpsertGuild));
+
             if (BotKnowsGuild(guild.DiscordId))
             {
                 await UpdateGuild(guild);
@@ -117,10 +146,14 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 await InsertGuild(guild);
             }
+
+            transaction.Finish();
         }
 
         public async Task RemoveGuild(ulong guildId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveGuild));
+
             if (TryGetGuild(guildId, out var guild))
             {
                 Logger.LogInformation("Deleting a Guild [{GuildId}] from the database.", guildId);
@@ -140,10 +173,14 @@ namespace SteelBot.DataProviders.SubProviders
                     Logger.LogError("Deleting Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", guildId);
                 }
             }
+
+            transaction.Finish();
         }
 
         private async Task InsertGuild(Guild guild)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertGuild));
+
             Logger.LogInformation($"Writing a new Guild [{guild.DiscordId}] to the database.");
             int writtenCount;
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
@@ -159,12 +196,16 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 Logger.LogError($"Writing Guild [{guild.DiscordId}] to the database inserted no entities. The internal cache was not changed.");
             }
+
+            transaction.Finish();
         }
 
         
 
         private async Task UpdateGuild(Guild guild)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateGuild));
+
             Logger.LogInformation($"Updating the Guild [{guild.DiscordId}] in the database.");
             guild.RowId = GuildsByDiscordId[guild.DiscordId].RowId;
             int writtenCount;
@@ -184,6 +225,8 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 Logger.LogError($"Updating Guild [{guild.DiscordId}] in the database altered no entities. The internal cache was not changed.");
             }
+
+            transaction.Finish();
         }
     }
 }

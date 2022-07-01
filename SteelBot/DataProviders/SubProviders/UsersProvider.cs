@@ -2,14 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
+using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DataProviders.SubProviders
 {
@@ -17,7 +20,7 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private readonly ILogger<UsersProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly AppConfigurationService AppConfigurationService;
+        private readonly IHub _sentry;
         private readonly AsyncReaderWriterLock Lock = new AsyncReaderWriterLock();
 
         /// <summary>
@@ -26,17 +29,19 @@ namespace SteelBot.DataProviders.SubProviders
         /// </summary>
         private readonly Dictionary<(ulong guildId, ulong userId), User> UsersByDiscordIdAndServer;
 
-        public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, AppConfigurationService appConfigurationService)
+        public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
-            AppConfigurationService = appConfigurationService;
+            _sentry = sentry;
 
             UsersByDiscordIdAndServer = LoadUserData();
         }
 
         private Dictionary<(ulong, ulong), User> LoadUserData()
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadUserData));
+
             using (Lock.WriterLock())
             {
                 var result = new Dictionary<(ulong, ulong), User>();
@@ -51,6 +56,8 @@ namespace SteelBot.DataProviders.SubProviders
                 }
                 return result;
             }
+
+            transaction.Finish();
         }
 
         public bool BotKnowsUser(ulong guildId, ulong userId)
@@ -95,6 +102,8 @@ namespace SteelBot.DataProviders.SubProviders
         /// <param name="user">The internal model for the </param>
         public async Task InsertUser(ulong guildId, User user)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertUser));
+
             using (await Lock.WriterLockAsync())
             {
                 if (!BotKnowsUserCore(guildId, user.DiscordId))
@@ -118,10 +127,14 @@ namespace SteelBot.DataProviders.SubProviders
                     }
                 }
             }
+
+            transaction.Finish();
         }
 
         public async Task RemoveUser(ulong guildId, ulong userId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveUser));
+
             using (await Lock.WriterLockAsync())
             {
                 if (TryGetUserCore(guildId, userId, out User user))
@@ -145,10 +158,14 @@ namespace SteelBot.DataProviders.SubProviders
                     }
                 }
             }
+
+            transaction.Finish();
         }
 
         public async Task UpdateRankRole(ulong guildId, ulong userId, RankRole newRole)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateRankRole));
+
             if (TryGetUser(guildId, userId, out User user))
             {
                 Logger.LogInformation("Updating RankRole for User {UserId} in Guild {GuildId} to {NewRole}", userId, guildId, newRole?.RoleName);
@@ -168,10 +185,14 @@ namespace SteelBot.DataProviders.SubProviders
 
                 await UpdateUser(guildId, copyOfUser);
             }
+
+            transaction.Finish();
         }
 
         public async Task UpdateUser(ulong guildId, User newUser)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateUser));
+
             using (await Lock.WriterLockAsync())
             {
                 int writtenCount;
@@ -199,6 +220,8 @@ namespace SteelBot.DataProviders.SubProviders
                     Logger.LogError("Updating User {UserId} in Guild {GuildId} did not alter any entities. The internal cache was not changed.", newUser.DiscordId, guildId);
                 }
             }
+
+            transaction.Finish();
         }
 
         private bool BotKnowsUserCore(ulong guildId, ulong userId)

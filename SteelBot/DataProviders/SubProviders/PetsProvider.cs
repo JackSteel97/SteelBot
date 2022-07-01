@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
+using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
@@ -17,16 +19,16 @@ namespace SteelBot.DataProviders.SubProviders
     {
         private readonly ILogger<PetsProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly AppConfigurationService AppConfigurationService;
         private readonly AsyncReaderWriterLock Lock = new AsyncReaderWriterLock();
+        private readonly IHub _sentry;
 
         private readonly Dictionary<ulong, Dictionary<long, Pet>> PetsByUserId;
 
-        public PetsProvider(ILogger<PetsProvider> logger, IDbContextFactory<SteelBotContext> dbContextFactory, AppConfigurationService appConfigurationService)
+        public PetsProvider(ILogger<PetsProvider> logger, IDbContextFactory<SteelBotContext> dbContextFactory, IHub sentry)
         {
             Logger = logger;
             DbContextFactory = dbContextFactory;
-            AppConfigurationService = appConfigurationService;
+            _sentry = sentry;
 
             PetsByUserId = new Dictionary<ulong, Dictionary<long, Pet>>();
             LoadPetsData();
@@ -34,6 +36,8 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadPetsData()
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadPetsData));
+
             using (Lock.WriterLock())
             {
                 Logger.LogInformation("Loading data from database: Pets");
@@ -48,10 +52,14 @@ namespace SteelBot.DataProviders.SubProviders
                     }
                 }
             }
+
+            transaction.Finish();
         }
 
         public bool TryGetUsersPets(ulong userDiscordId, out List<Pet> pets)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(TryGetUsersPets));
+
             bool userHasPets;
             using (Lock.ReaderLock())
             {
@@ -66,11 +74,15 @@ namespace SteelBot.DataProviders.SubProviders
                 }
             }
 
+            transaction.Finish();
+
             return userHasPets && pets.Count > 0;
         }
 
         public bool TryGetUsersPetsCount(ulong userDiscordId, out int numberOfOwnedPets)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(TryGetUsersPetsCount));
+
             bool userHasPets;
             using (Lock.ReaderLock())
             {
@@ -84,19 +96,27 @@ namespace SteelBot.DataProviders.SubProviders
                     numberOfOwnedPets = 0;
                 }
             }
+
+            transaction.Finish();
             return userHasPets;
         }
 
         public bool TryGetPet(ulong userDiscordId, long petId, out Pet pet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(TryGetPet));
+
             using (Lock.ReaderLock())
             {
                 return TryGetPetCore(userDiscordId, petId, out pet);
             }
+
+            transaction.Finish();
         }
 
         public async Task<long> InsertPet(Pet pet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertPet));
+
             long id = 0;
             using (await Lock.WriterLockAsync())
             {
@@ -122,11 +142,15 @@ namespace SteelBot.DataProviders.SubProviders
                     }
                 }
             }
+
+            transaction.Finish();
             return id;
         }
 
         public async Task RemovePet(ulong userDiscordId, long petId)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemovePet));
+
             using (await Lock.WriterLockAsync())
             {
                 if (TryGetPetCore(userDiscordId, petId, out var pet))
@@ -150,11 +174,15 @@ namespace SteelBot.DataProviders.SubProviders
                     }
                 }
             }
+
+            transaction.Finish();
         }
 
         public async Task UpdatePets(ICollection<Pet> pets)
         {
-            if(pets?.Count == 0)
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdatePets), $"{pets.Count} pets");
+
+            if (pets?.Count == 0)
             {
                 return;
             }
@@ -195,10 +223,14 @@ namespace SteelBot.DataProviders.SubProviders
                     Logger.LogError("Updating A collection of Pets did not alter any entities. The internal cache was not changed.");
                 }
             }
+
+            transaction.Finish();
         }
 
         public async Task UpdatePet(Pet newPet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdatePet));
+
             using (await Lock.WriterLockAsync())
             {
                 int writtenCount;
@@ -224,6 +256,8 @@ namespace SteelBot.DataProviders.SubProviders
                     Logger.LogError("Updating Pet [{PetId}] with Owner [{UserId}] did not alter any entities. The internal cache was not changed.", newPet.RowId, newPet.OwnerDiscordId);
                 }
             }
+
+            transaction.Finish();
         }
 
         private bool TryGetPetCore(ulong userDiscordId, long petId, out Pet pet)
@@ -239,6 +273,8 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void AddToCache(Pet pet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(AddToCache));
+
             if (!PetsByUserId.TryGetValue(pet.OwnerDiscordId, out var pets))
             {
                 PetsByUserId[pet.OwnerDiscordId] = new Dictionary<long, Pet>
@@ -250,22 +286,32 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 pets.Add(pet.RowId, pet);
             }
+
+            transaction.Finish();
         }
 
         private void RemoveFromCache(Pet pet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveFromCache));
+
             if (PetsByUserId.TryGetValue(pet.OwnerDiscordId, out var pets))
             {
                 pets.Remove(pet.RowId);
             }
+
+            transaction.Finish();
         }
 
         private void UpdateInCache(Pet newPet)
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateInCache));
+
             if (PetsByUserId.TryGetValue(newPet.OwnerDiscordId, out var pets))
             {
                 pets[newPet.RowId] = newPet;
             }
+
+            transaction.Finish();
         }
     }
 }

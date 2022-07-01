@@ -2,6 +2,7 @@
 using Sentry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,6 +50,13 @@ public static class SentryExtensions
         {
             transaction = scope.Transaction;
         });
+        Debug.Assert(transaction != null, "Transaction has not been configured. Configure a transaction at the start of this flow.");
         return transaction;
+    }
+
+    public static ISpan StartSpanOnCurrentTransaction(this IHub sentry, string operation, string? description = null)
+    {
+        var transaction = GetCurrentTransaction(sentry);
+        return transaction.StartChild(operation, description);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using SteelBot.Database.Models.Users;
+using SteelBot.Helpers.Sentry;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DataProviders.SubProviders
 {
@@ -14,11 +16,13 @@ namespace SteelBot.DataProviders.SubProviders
         private readonly ILogger<TriggersProvider> Logger;
         private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
         private readonly Dictionary<ulong, Dictionary<string, Trigger>> TriggersByGuild;
+        private readonly IHub _sentry;
 
-        public TriggersProvider(ILogger<TriggersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
+        public TriggersProvider(ILogger<TriggersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
         {
             Logger = logger;
             DbContextFactory = contextFactory;
+            _sentry = sentry;
 
             TriggersByGuild = new Dictionary<ulong, Dictionary<string, Trigger>>();
             LoadTriggersData();
@@ -26,6 +30,8 @@ namespace SteelBot.DataProviders.SubProviders
 
         public void LoadTriggersData()
         {
+            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadTriggersData));
+
             Logger.LogInformation("Loading data from database: Triggers");
             Trigger[] allTriggers;
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
@@ -36,6 +42,8 @@ namespace SteelBot.DataProviders.SubProviders
             {
                 AddTriggerToInternalCache(trigger.Guild.DiscordId, trigger);
             }
+
+            transaction.Finish();
         }
 
         private void AddTriggerToInternalCache(ulong guildId, Trigger trigger, User creator = null)
