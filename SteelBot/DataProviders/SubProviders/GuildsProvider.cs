@@ -33,7 +33,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadGuildData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadGuildData));
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp",nameof(LoadGuildData));
             Logger.LogInformation("Loading data from database: Guilds");
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
@@ -55,16 +55,14 @@ namespace SteelBot.DataProviders.SubProviders
 
         public string GetGuildPrefix(ulong discordId)
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(GetGuildPrefix));
 
             string prefix = AppConfigurationService.Application.DefaultCommandPrefix;
 
-            if (TryGetGuild(discordId, out Guild guild))
+            if (TryGetGuild(discordId, out var guild))
             {
                 prefix = guild.CommandPrefix;
             }
 
-            transaction.Finish();
             return prefix;
         }
 

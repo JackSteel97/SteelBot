@@ -42,12 +42,7 @@ namespace SteelBot.Channels.Message
 
         protected override async ValueTask HandleMessage(IncomingMessage message)
         {
-            var transaction = _sentry.StartTransaction("Messages", "Handle Message");
-            _sentry.ConfigureScope(scope =>
-            {
-                scope.User = SentryHelpers.GetSentryUser(message.User, message.Guild);
-                scope.Transaction = transaction;
-            });
+            var transaction = _sentry.StartNewConfiguredTransaction("Messages", "Handle Message", message.User, message.Guild);
 
             try
             {

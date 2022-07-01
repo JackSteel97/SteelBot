@@ -30,7 +30,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadRankRoleData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadRankRoleData));
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadRankRoleData));
 
             Logger.LogInformation("Loading data from database: RankRoles");
             RankRole[] allRoles;

@@ -30,7 +30,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         public void LoadTriggersData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadTriggersData));
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadTriggersData));
 
             Logger.LogInformation("Loading data from database: Triggers");
             Trigger[] allTriggers;

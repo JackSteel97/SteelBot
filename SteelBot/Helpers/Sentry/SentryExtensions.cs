@@ -54,7 +54,7 @@ public static class SentryExtensions
         return transaction;
     }
 
-    public static ISpan StartSpanOnCurrentTransaction(this IHub sentry, string operation, string? description = null)
+    public static ISpan StartSpanOnCurrentTransaction(this IHub sentry, string operation, string description = null)
     {
         var transaction = GetCurrentTransaction(sentry);
         return transaction.StartChild(operation, description);

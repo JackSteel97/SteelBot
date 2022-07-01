@@ -40,11 +40,10 @@ namespace SteelBot.DataProviders.SubProviders
 
         private Dictionary<(ulong, ulong), User> LoadUserData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadUserData));
-
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadUserData));
+            var result = new Dictionary<(ulong, ulong), User>();
             using (Lock.WriterLock())
             {
-                var result = new Dictionary<(ulong, ulong), User>();
                 Logger.LogInformation("Loading data from database: Users");
                 using (SteelBotContext db = DbContextFactory.CreateDbContext())
                 {
@@ -54,10 +53,11 @@ namespace SteelBot.DataProviders.SubProviders
                         .AsNoTracking()
                         .ToDictionary(u => (u.Guild.DiscordId, u.DiscordId));
                 }
-                return result;
             }
 
             transaction.Finish();
+            return result;
+
         }
 
         public bool BotKnowsUser(ulong guildId, ulong userId)

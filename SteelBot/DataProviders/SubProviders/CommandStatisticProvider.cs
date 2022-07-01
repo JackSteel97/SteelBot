@@ -32,8 +32,9 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadCommandStatisticData()
         {
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadCommandStatisticData));
+
             Logger.LogInformation("Loading data from database: Command Statistics");
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadCommandStatisticData));
             using (SteelBotContext db = DbContextFactory.CreateDbContext())
             {
                 StatisticsByCommandName = db.CommandStatistics.AsNoTracking().ToDictionary(cs => cs.CommandName);

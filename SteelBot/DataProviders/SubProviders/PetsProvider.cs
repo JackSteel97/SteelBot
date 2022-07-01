@@ -36,7 +36,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadPetsData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadPetsData));
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadPetsData));
 
             using (Lock.WriterLock())
             {
@@ -105,12 +105,14 @@ namespace SteelBot.DataProviders.SubProviders
         {
             var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(TryGetPet));
 
+            bool result = false;
             using (Lock.ReaderLock())
             {
-                return TryGetPetCore(userDiscordId, petId, out pet);
+                result =  TryGetPetCore(userDiscordId, petId, out pet);
             }
 
             transaction.Finish();
+            return result;
         }
 
         public async Task<long> InsertPet(Pet pet)

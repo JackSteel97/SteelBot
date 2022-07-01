@@ -58,6 +58,7 @@ using SteelBot.DSharpPlusOverrides;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -79,6 +80,7 @@ namespace SteelBot
         private readonly CancellationService CancellationService;
         private readonly UserLockingService UserLockingService;
         private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
+        private readonly IHub _sentry;
 
         // Channels
         private readonly VoiceStateChannel VoiceStateChannel;
@@ -99,7 +101,8 @@ namespace SteelBot
             UserLockingService userLockingService,
             SelfRoleManagementChannel selfRoleManagementChannel,
             RankRoleManagementChannel rankRoleManagementChannel,
-            ErrorHandlingAsynchronousCommandExecutor commandExecutor)
+            ErrorHandlingAsynchronousCommandExecutor commandExecutor,
+            IHub sentry)
         {
             AppConfigurationService = appConfigurationService;
             Logger = logger;
@@ -115,6 +118,7 @@ namespace SteelBot
             SelfRoleManagementChannel = selfRoleManagementChannel;
             RankRoleManagementChannel = rankRoleManagementChannel;
             _commandExecutor = commandExecutor;
+            _sentry = sentry;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -138,9 +142,11 @@ namespace SteelBot
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            var transaction = _sentry.StartNewConfiguredTransaction("Shutdown", nameof(StopAsync));
             await ShutdownDiscordClient();
             await DataHelpers.Stats.DisconnectAllUsers();
             CancellationService.Cancel();
+            transaction.Finish();
             await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
         }
 
@@ -174,15 +180,21 @@ namespace SteelBot
 
         private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
         {
-            switch (e.Interaction.Data.CustomId)
+            Task.Run(async () =>
             {
-                case InteractionIds.Modals.PetNameEntry:
-                    _ = DataHelpers.Pets.HandleNamingPet(e);
-                    break;
-                case InteractionIds.Modals.PetMove:
-                    _ = DataHelpers.Pets.HandleMovingPet(e);
-                    break;
-            }
+                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
+                switch (e.Interaction.Data.CustomId)
+                {
+                    case InteractionIds.Modals.PetNameEntry:
+                        await DataHelpers.Pets.HandleNamingPet(e);
+                        break;
+                    case InteractionIds.Modals.PetMove:
+                        await DataHelpers.Pets.HandleMovingPet(e);
+                        break;
+                }
+                transaction.Finish();
+            }).FireAndForget(ErrorHandlingService);
+
             return Task.CompletedTask;
         }
 
@@ -270,8 +282,11 @@ namespace SteelBot
         {
             try
             {
+                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleJoiningGuild), "Create Guild");
+
                 var joinedGuild = new Guild(args.Guild.Id);
                 await Cache.Guilds.UpsertGuild(joinedGuild);
+                transaction.Finish();
             }
             catch (Exception ex)
             {
@@ -285,12 +300,15 @@ namespace SteelBot
             {
                 try
                 {
+                    var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleLeavingGuild), "Delete Guild");
+
                     var usersInGuild = Cache.Users.GetUsersInGuild(args.Guild.Id);
                     foreach (var user in usersInGuild)
                     {
                         await Cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
                     }
                     await Cache.Guilds.RemoveGuild(args.Guild.Id);
+                    transaction.Finish();
                 }
                 catch (Exception ex)
                 {
@@ -348,8 +366,12 @@ namespace SteelBot
         {
             Task.Run(async () =>
             {
+                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleCommandExecuted), "Increment Statistics");
+
                 Interlocked.Increment(ref AppConfigurationService.HandledCommands);
                 await Cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
+
+                transaction.Finish();
             }).FireAndForget(ErrorHandlingService);
 
             return Task.CompletedTask;
@@ -374,11 +396,17 @@ namespace SteelBot
             {
                 try
                 {
+                    var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildMemberRemoved), "Remove Member");
+
                     using (await UserLockingService.WriterLockAsync(args.Guild.Id, args.Member.Id))
                     {
+                        var span = transaction.StartChild("Delete User", args.Member.Username);
                         // Delete user data.
                         await Cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
+                        span.Finish();
                     }
+
+                    transaction.Finish();
                 }
                 catch (Exception ex)
                 {

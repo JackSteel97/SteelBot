@@ -31,7 +31,7 @@ namespace SteelBot.DataProviders.SubProviders
 
         private void LoadSelfRoleData()
         {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(LoadSelfRoleData));
+            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadSelfRoleData));
 
             Logger.LogInformation("Loading data from database: SelfRoles");
 
