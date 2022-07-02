@@ -39,12 +39,11 @@ namespace SteelBot;
 
 public static class Program
 {
-    private const string _environment = "Development";
-
+    private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Test";
+    
     private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
     {
         serviceProvider.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
-
         // Config setup.
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile($"appsettings.{_environment.ToLower()}.json", false, true)

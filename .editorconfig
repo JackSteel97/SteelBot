@@ -4,6 +4,9 @@ root = true
 # C# files
 [*.cs]
 
+# CS7035: The specified version string does not conform to the recommended format - major.minor.build.revision
+dotnet_diagnostic.CS7035.severity = suggestion
+
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
