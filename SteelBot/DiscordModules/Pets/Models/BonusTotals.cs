@@ -3,51 +3,50 @@ using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;
 
-namespace SteelBot.DiscordModules.Pets.Models
+namespace SteelBot.DiscordModules.Pets.Models;
+
+public class BonusTotals
 {
-    public class BonusTotals
+    public Dictionary<BonusType, PetBonus> Totals { get; init; } = new Dictionary<BonusType, PetBonus>();
+
+    /// <summary>
+    /// Empty constructor.
+    /// </summary>
+    public BonusTotals() { }
+
+    /// <summary>
+    /// Immediately add pet bonuses to the total.
+    /// </summary>
+    /// <param name="pet">Pet to calculate totals of.</param>
+    public BonusTotals(Pet pet)
     {
-        public Dictionary<BonusType, PetBonus> Totals { get; init; } = new Dictionary<BonusType, PetBonus>();
+        Add(pet);
+    }
 
-        /// <summary>
-        /// Empty constructor.
-        /// </summary>
-        public BonusTotals() { }
-
-        /// <summary>
-        /// Immediately add pet bonuses to the total.
-        /// </summary>
-        /// <param name="pet">Pet to calculate totals of.</param>
-        public BonusTotals(Pet pet)
+    public void Add(Pet pet)
+    {
+        foreach (var bonus in pet.Bonuses)
         {
-            Add(pet);
+            Add(bonus);
         }
+    }
 
-        public void Add(Pet pet)
+    public void Add(PetBonus bonus)
+    {
+        if (Totals.TryGetValue(bonus.BonusType, out var bonusTotal))
         {
-            foreach (var bonus in pet.Bonuses)
+            bool isRounded = bonus.BonusType.IsRounded();
+            double value = bonus.Value;
+            if (isRounded)
             {
-                Add(bonus);
+                value = Math.Round(bonus.Value);
             }
+            bonusTotal.Value += value;
         }
-
-        public void Add(PetBonus bonus)
+        else
         {
-            if(Totals.TryGetValue(bonus.BonusType, out var bonusTotal))
-            {
-                bool isRounded = bonus.BonusType.IsRounded();
-                var value = bonus.Value;
-                if (isRounded)
-                {
-                    value = Math.Round(bonus.Value);
-                }
-                bonusTotal.Value += value;
-            }
-            else
-            {
-                // Clone to prevent affecting the source bonus.
-                Totals.Add(bonus.BonusType, bonus.Clone());
-            }
+            // Clone to prevent affecting the source bonus.
+            Totals.Add(bonus.BonusType, bonus.Clone());
         }
     }
 }

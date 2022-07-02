@@ -4,130 +4,126 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using System;
 using System.Collections.Generic;
 
-namespace SteelBot.Helpers.Levelling
+namespace SteelBot.Helpers.Levelling;
+
+public static class LevellingMaths
 {
-    public static class LevellingMaths
+    public static ulong XpForLevel(int level)
     {
-        public static ulong XpForLevel(int level)
+        // XP = High-Level Scale + Low-Level Scale + Base Scale
+        // High-Level Scale = (1.2^level)-1
+        // Low-Level Scale = (level^2.5)*level
+        // Base Scale = 500*level;
+        double highLevelScale = Math.Pow(1.2, level) - 1;
+        double lowLevelScale = Math.Pow(level, 2.5) * level;
+        double baseScale = 500 * level;
+        return Convert.ToUInt64(Math.Round(highLevelScale + lowLevelScale + baseScale));
+    }
+
+    public static double PetXpForLevel(int level, Rarity rarity)
+    {
+        // Pets start at level 1.
+        if (level == 1)
         {
-            // XP = High-Level Scale + Low-Level Scale + Base Scale
-            // High-Level Scale = (1.2^level)-1
-            // Low-Level Scale = (level^2.5)*level
-            // Base Scale = 500*level;
-            double highLevelScale = Math.Pow(1.2, level) - 1;
-            double lowLevelScale = Math.Pow(level, 2.5) * level;
-            double baseScale = 500 * level;
-            return Convert.ToUInt64(Math.Round(highLevelScale+lowLevelScale+baseScale));
+            return 0;
         }
 
-        public static double PetXpForLevel(int level, Rarity rarity)
+        double multiplier = 1 + ((rarity - Rarity.Rare) / 10D);
+
+        return XpForLevel(level) * multiplier;
+    }
+
+    public static bool UpdateLevel(int currentLevel, double totalXp, out int newLevel)
+    {
+        newLevel = currentLevel;
+
+        bool hasEnoughXp;
+        do
         {
-            // Pets start at level 1.
-            if(level == 1)
+            ulong requiredXp = XpForLevel(newLevel + 1);
+            hasEnoughXp = totalXp >= requiredXp;
+            if (hasEnoughXp)
             {
-                return 0;
+                ++newLevel;
             }
+        } while (hasEnoughXp);
 
-            double multiplier = 1 + ((rarity - Rarity.Rare)/10D);
+        return newLevel > currentLevel;
+    }
 
-            return XpForLevel(level) * multiplier;
-        }
+    public static bool UpdatePetLevel(int currentLevel, double totalXp, Rarity rarity, out int newLevel)
+    {
+        newLevel = currentLevel;
 
-        public static bool UpdateLevel(int currentLevel, double totalXp, out int newLevel)
+        bool hasEnoughXp;
+        do
         {
-            newLevel = currentLevel;
-
-            bool hasEnoughXp;
-            do
+            double requiredXp = PetXpForLevel(newLevel + 1, rarity);
+            hasEnoughXp = totalXp >= requiredXp;
+            if (hasEnoughXp)
             {
-                ulong requiredXp = XpForLevel(newLevel + 1);
-                hasEnoughXp = totalXp >= requiredXp;
-                if (hasEnoughXp)
-                {
-                    ++newLevel;
-                }
-            } while (hasEnoughXp);
+                ++newLevel;
+            }
+        } while (hasEnoughXp);
 
-            return newLevel > currentLevel;
-        }
+        return newLevel > currentLevel;
+    }
 
-        public static bool UpdatePetLevel(int currentLevel, double totalXp, Rarity rarity, out int newLevel)
+    public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, List<Pet> availablePets, BonusType bonusType, double baseXp = 1)
+    {
+        ulong durationXp = GetDurationXp(duration, existingDuration, baseXp);
+        return ApplyPetBonuses(durationXp, availablePets, bonusType);
+    }
+
+    public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, double baseXp = 1)
+    {
+        var aWeek = TimeSpan.FromDays(7);
+
+        double multiplier = 1 + (existingDuration / aWeek);
+
+        double totalXp = duration.TotalMinutes * baseXp * multiplier;
+
+        return Convert.ToUInt64(Math.Round(totalXp, MidpointRounding.AwayFromZero));
+    }
+
+    public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> activePets, BonusType requiredBonus)
+    {
+        double multiplier = 1;
+        foreach (var pet in activePets)
         {
-            newLevel = currentLevel;
-
-            bool hasEnoughXp;
-            do
+            foreach (var bonus in pet.Bonuses)
             {
-                var requiredXp = PetXpForLevel(newLevel + 1, rarity);
-                hasEnoughXp = totalXp >= requiredXp;
-                if (hasEnoughXp)
+                if (bonus.BonusType.HasFlag(requiredBonus))
                 {
-                    ++newLevel;
-                }
-            } while (hasEnoughXp);
-
-            return newLevel > currentLevel;
-        }
-
-        public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, List<Pet> availablePets, BonusType bonusType, double baseXp = 1)
-        {
-            var durationXp = GetDurationXp(duration, existingDuration, baseXp);
-            return ApplyPetBonuses(durationXp, availablePets, bonusType);
-        }
-
-        public static ulong GetDurationXp(TimeSpan duration, TimeSpan existingDuration, double baseXp = 1)
-        {
-            TimeSpan AWeek = TimeSpan.FromDays(7);
-
-            double multiplier = 1 + (existingDuration / AWeek);
-
-            double totalXp = duration.TotalMinutes * baseXp * multiplier;
-
-            return Convert.ToUInt64(Math.Round(totalXp, MidpointRounding.AwayFromZero));
-        }
-
-        public static ulong ApplyPetBonuses(ulong baseXp, List<Pet> activePets, BonusType requiredBonus)
-        {
-            double multiplier = 1;
-            foreach (var pet in activePets)
-            {
-                foreach (var bonus in pet.Bonuses)
-                {
-                    if (bonus.BonusType.HasFlag(requiredBonus))
-                    {
-                        multiplier += bonus.Value;
-                    }
+                    multiplier += bonus.Value;
                 }
             }
-
-            var multipliedXp = Math.Round(baseXp * multiplier);
-            var earnedXp = Convert.ToUInt64(Math.Max(0, multipliedXp)); // Prevent negative from massive negative bonuses.
-            if(earnedXp > 0)
-            {
-                IncrementPetXp(earnedXp, activePets);
-            }
-            return earnedXp;
         }
 
-        public static ulong ApplyScalingFactor(ulong xp, double scalingFactor)
+        double multipliedXp = Math.Round(baseXp * multiplier);
+        ulong earnedXp = Convert.ToUInt64(Math.Max(0, multipliedXp)); // Prevent negative from massive negative bonuses.
+        if (earnedXp > 0)
         {
-            return Convert.ToUInt64(Math.Ceiling(xp * scalingFactor));
+            IncrementPetXp(earnedXp, activePets);
         }
+        return earnedXp;
+    }
 
-        public static void IncrementPetXp(ulong userEarnedXp, List<Pet> activePets)
+    public static ulong ApplyScalingFactor(ulong xp, double scalingFactor) => Convert.ToUInt64(Math.Ceiling(xp * scalingFactor));
+
+    public static void IncrementPetXp(ulong userEarnedXp, List<Pet> activePets)
+    {
+        const double maximumPercentage = 1;
+        const double minimumPercentage = 0.01;
+        double sharedXpMultiplier = PetShared.GetBonusValue(activePets, BonusType.PetSharedXp);
+
+        foreach (var pet in activePets)
         {
-            const double maximumPercentage = 1;
-            const double minimumPercentage = 0.01;
-            var sharedXpMultiplier = PetShared.GetBonusValue(activePets, BonusType.PetSharedXP);
+            int priorityDivisor = (pet.Priority + 1) * 2;
+            double thisPercentage = Math.Max(maximumPercentage / priorityDivisor * sharedXpMultiplier, minimumPercentage);
+            double earnedXp = userEarnedXp * thisPercentage;
 
-            foreach (var pet in activePets)
-            {
-                var priorityDivisor = (pet.Priority + 1) * 2;
-                double thisPercentage = Math.Max((maximumPercentage / priorityDivisor) * sharedXpMultiplier, minimumPercentage);
-                double earnedXp = userEarnedXp * thisPercentage;
-
-                pet.EarnedXp += earnedXp;
-            }
+            pet.EarnedXp += earnedXp;
         }
     }
 }

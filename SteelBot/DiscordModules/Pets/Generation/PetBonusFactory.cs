@@ -9,11 +9,11 @@ using System.Security.Cryptography;
 namespace SteelBot.DiscordModules.Pets.Generation;
 public static class PetBonusFactory
 {
-    private static readonly BonusType[] _excludedTypes = new BonusType[] { BonusType.None, BonusType.PetSlots, BonusType.OfflineXP };
+    private static readonly BonusType[] _excludedTypes = new BonusType[] { BonusType.None, BonusType.PetSlots, BonusType.OfflineXp };
 
     public static List<PetBonus> GenerateMany(Pet pet, int levelOfUser)
     {
-        var maxBonuses = pet.Rarity.GetStartingBonusCount();
+        int maxBonuses = pet.Rarity.GetStartingBonusCount();
         var bonuses = new List<PetBonus>(maxBonuses);
 
         for (int i = 0; i < maxBonuses; ++i)
@@ -42,7 +42,7 @@ public static class PetBonusFactory
             {
                 validBonus = HandlePercentageBonusGeneration(pet, maxPercentageBonus, bonus, existingBonuses, pet.CurrentLevel, levelOfUser);
             }
-            else if (bonus.BonusType == BonusType.OfflineXP)
+            else if (bonus.BonusType == BonusType.OfflineXp)
             {
                 HandleOfflineXpBonusGeneration(bonus, pet.Rarity, pet.CurrentLevel, levelOfUser);
             }
@@ -87,7 +87,7 @@ public static class PetBonusFactory
 
         // Generate single large positive bonus.
         var newBonus = Generate(pet, levelOfUser, pet.Bonuses);
-        var newBonusIsNegative = newBonus.BonusType.IsNegative();
+        bool newBonusIsNegative = newBonus.BonusType.IsNegative();
         if ((newBonus.Value > 0 && newBonusIsNegative)
             || (newBonus.Value < 0 && !newBonusIsNegative))
         {
@@ -101,12 +101,12 @@ public static class PetBonusFactory
             totalBonusValue *= 100;
         }
 
-        if(newBonus.Value < 0)
+        if (newBonus.Value < 0)
         {
             // Bonus is a negative value with positive effect, get new value up to max -1 limit.
             newBonus.Value = GetRandomPercentageBonus(maxValue: newBonus.Value, minValue: -1);
         }
-        else if(totalBonusValue > newBonus.Value)
+        else if (totalBonusValue > newBonus.Value)
         {
             // Sum of bonuses is higher than the generated bonus, get a new value between these limits.
             newBonus.Value = GetRandomPercentageBonus(totalBonusValue, newBonus.Value);
@@ -127,7 +127,7 @@ public static class PetBonusFactory
         return userLevel switch
         {
             > 20 when MathsHelper.TrueWithProbability(chanceToGeneratePetSlots) => BonusType.PetSlots,
-            > 50 when MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp) => BonusType.OfflineXP,
+            > 50 when MathsHelper.TrueWithProbability(chanceToGeneratePassiveXp) => BonusType.OfflineXp,
             _ => PetGenerationShared.GetRandomEnumValue(_excludedTypes),
         };
     }
@@ -164,7 +164,7 @@ public static class PetBonusFactory
             ++bonus.Value;
         }
 
-        var probabilityToGoNegative = ((double)rarity + 1) / 10;
+        double probabilityToGoNegative = ((double)rarity + 1) / 10;
         if (MathsHelper.TrueWithProbability(probabilityToGoNegative))
         {
             bonus.Value *= -1;
@@ -174,7 +174,7 @@ public static class PetBonusFactory
     private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses, int petLevel, int userLevel)
     {
         bool validBonus = true;
-        var minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
+        double minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
 
         bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
         if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
@@ -191,8 +191,8 @@ public static class PetBonusFactory
         // Check this won't cause negative bonuses to go far
         if (bonus.Value < 0 && existingBonuses?.Count > 0)
         {
-            var currentTotal = existingBonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
-            var newTotal = currentTotal + bonus.Value;
+            double currentTotal = existingBonuses.Where(p => p.BonusType == bonus.BonusType).Sum(x => x.Value);
+            double newTotal = currentTotal + bonus.Value;
             if (newTotal < -1)
             {
                 validBonus = false;
@@ -204,7 +204,7 @@ public static class PetBonusFactory
 
     private static double GetRandomPercentageBonus(double maxValue = 1, double minValue = -1)
     {
-        var random = GetRandomDouble();
+        double random = GetRandomDouble();
         return minValue + (random * (maxValue - minValue));
     }
 

@@ -164,12 +164,10 @@ public class RankRoleCreationService
         return false;
     }
 
-    private DiscordRole GetDiscordRole(DiscordGuild guild, ulong roleId, string roleName)
+    private static DiscordRole GetDiscordRole(DiscordGuild guild, ulong roleId, string roleName)
     {
-        if (roleId != default)
-        {
-            return guild.GetRole(roleId);
-        }
-        return guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+        return roleId != default
+            ? guild.GetRole(roleId)
+            : guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
     }
 }

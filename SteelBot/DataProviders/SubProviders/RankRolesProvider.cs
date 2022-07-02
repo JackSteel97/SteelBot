@@ -9,158 +9,153 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SteelBot.DataProviders.SubProviders
+namespace SteelBot.DataProviders.SubProviders;
+
+public class RankRolesProvider
 {
-    public class RankRolesProvider
+    private readonly ILogger<RankRolesProvider> _logger;
+    private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, RankRole>> _rankRolesByGuildAndRole;
+    private readonly IHub _sentry;
+
+    public RankRolesProvider(ILogger<RankRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
     {
-        private readonly ILogger<RankRolesProvider> Logger;
-        private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, RankRole>> RankRolesByGuildAndRole;
-        private readonly IHub _sentry;
+        _logger = logger;
+        _dbContextFactory = contextFactory;
+        _sentry = sentry;
 
-        public RankRolesProvider(ILogger<RankRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
+        _rankRolesByGuildAndRole = new ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, RankRole>>();
+        LoadRankRoleData();
+    }
+
+    private void LoadRankRoleData()
+    {
+        var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadRankRoleData));
+
+        _logger.LogInformation("Loading data from database: RankRoles");
+        RankRole[] allRoles;
+        using (var db = _dbContextFactory.CreateDbContext())
         {
-            Logger = logger;
-            DbContextFactory = contextFactory;
-            _sentry = sentry;
-
-            RankRolesByGuildAndRole = new ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, RankRole>>();
-            LoadRankRoleData();
+            allRoles = db.RankRoles.AsNoTracking().Include(rr => rr.Guild).ToArray();
+        }
+        foreach (var role in allRoles)
+        {
+            AddRoleToInternalCache(role.Guild.DiscordId, role);
         }
 
-        private void LoadRankRoleData()
+        transaction.Finish();
+    }
+
+    private void AddRoleToInternalCache(ulong guildId, RankRole role)
+    {
+        var guildRoles = _rankRolesByGuildAndRole.GetOrAdd(guildId, _ => new ConcurrentDictionary<ulong, RankRole>());
+        guildRoles.TryAdd(role.RoleDiscordId, role);
+    }
+
+    private void RemoveRoleFromInternalCache(ulong guildId, ulong roleId)
+    {
+        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles))
         {
-            var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadRankRoleData));
+            guildRoles.TryRemove(roleId, out _);
+        }
+    }
 
-            Logger.LogInformation("Loading data from database: RankRoles");
-            RankRole[] allRoles;
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
-            {
-                allRoles = db.RankRoles.AsNoTracking().Include(rr => rr.Guild).ToArray();
-            }
-            foreach (RankRole role in allRoles)
-            {
-                AddRoleToInternalCache(role.Guild.DiscordId, role);
-            }
+    public bool BotKnowsRole(ulong guildId, ulong roleId)
+    {
+        return _rankRolesByGuildAndRole.TryGetValue(guildId, out var roles) ? roles.ContainsKey(roleId) : false;
+    }
 
-            transaction.Finish();
+    public bool TryGetRole(ulong guildId, ulong roleId, out RankRole role)
+    {
+        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var roles))
+        {
+            return roles.TryGetValue(roleId, out role);
+        }
+        role = null;
+        return false;
+    }
+
+    public bool TryGetGuildRankRoles(ulong guildId, out List<RankRole> roles)
+    {
+        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles))
+        {
+            roles = guildRoles.Values.ToList();
+            return true;
+        }
+        roles = new List<RankRole>();
+        return false;
+    }
+
+    public async Task AddRole(ulong guildId, RankRole role)
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(AddRole));
+
+        if (!BotKnowsRole(guildId, role.RoleDiscordId))
+        {
+            await InsertRankRole(guildId, role);
         }
 
-        private void AddRoleToInternalCache(ulong guildId, RankRole role)
+        transaction.Finish();
+    }
+
+    public async Task RemoveRole(ulong guildId, ulong roleId)
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveRole));
+
+        if (TryGetRole(guildId, roleId, out var role))
         {
-            var guildRoles = RankRolesByGuildAndRole.GetOrAdd(guildId, _ => new ConcurrentDictionary<ulong, RankRole>());
-            guildRoles.TryAdd(role.RoleDiscordId, role);
+            await DeleteRankRole(guildId, role);
         }
 
-        private void RemoveRoleFromInternalCache(ulong guildId, ulong roleId)
+        transaction.Finish();
+    }
+
+    private async Task InsertRankRole(ulong guildId, RankRole role)
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertRankRole));
+
+        _logger.LogInformation("Writing a new Rank Role {RoleName} for Guild {GuildId} to the database", role.RoleName, guildId);
+        int writtenCount;
+        using (var db = _dbContextFactory.CreateDbContext())
         {
-            if(RankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles))
-            {
-                guildRoles.TryRemove(roleId, out _);
-            }
+            db.RankRoles.Add(role);
+            writtenCount = await db.SaveChangesAsync();
         }
 
-        public bool BotKnowsRole(ulong guildId, ulong roleId)
+        if (writtenCount > 0)
         {
-            if (RankRolesByGuildAndRole.TryGetValue(guildId, out var roles))
-            {
-                return roles.ContainsKey(roleId);
-            }
-            return false;
+            AddRoleToInternalCache(guildId, role);
+        }
+        else
+        {
+            _logger.LogError("Writing Rank Role {RoleName} for Guild {GuildId} to the database inserted no entities - The internal cache was not changed", role.RoleName, guildId);
         }
 
-        public bool TryGetRole(ulong guildId, ulong roleId, out RankRole role)
+        transaction.Finish();
+    }
+
+    private async Task DeleteRankRole(ulong guildId, RankRole role)
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(DeleteRankRole));
+
+        _logger.LogInformation("Deleting Rank Role {RoleName} for Guild {GuildId} from the database", role.RoleName, guildId);
+
+        int writtenCount;
+        using (var db = _dbContextFactory.CreateDbContext())
         {
-            if (RankRolesByGuildAndRole.TryGetValue(guildId, out var roles))
-            {
-                return roles.TryGetValue(roleId, out role);
-            }
-            role = null;
-            return false;
+            db.RankRoles.Remove(role);
+            writtenCount = await db.SaveChangesAsync();
         }
 
-        public bool TryGetGuildRankRoles(ulong guildId, out List<RankRole> roles)
+        if (writtenCount > 0)
         {
-            if(RankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles))
-            {
-                roles = guildRoles.Values.ToList();
-                return true;
-            }
-            roles = new List<RankRole>();
-            return false;
+            RemoveRoleFromInternalCache(guildId, role.RoleDiscordId);
+        }
+        else
+        {
+            _logger.LogWarning("Deleting Rank Role {RoleName} for Guild {GuildId} from the database deleted no entities. The internal cache was not changed", role.RoleName, guildId);
         }
 
-        public async Task AddRole(ulong guildId, RankRole role)
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(AddRole));
-
-            if (!BotKnowsRole(guildId, role.RoleDiscordId))
-            {
-                await InsertRankRole(guildId, role);
-            }
-
-            transaction.Finish();
-        }
-
-        public async Task RemoveRole(ulong guildId, ulong roleId)
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveRole));
-
-            if (TryGetRole(guildId, roleId, out var role))
-            {
-                await DeleteRankRole(guildId, role);
-            }
-
-            transaction.Finish();
-        }
-
-        private async Task InsertRankRole(ulong guildId, RankRole role)
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertRankRole));
-
-            Logger.LogInformation("Writing a new Rank Role {RoleName} for Guild {GuildId} to the database", role.RoleName, guildId);
-            int writtenCount;
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
-            {
-                db.RankRoles.Add(role);
-                writtenCount = await db.SaveChangesAsync();
-            }
-
-            if (writtenCount > 0)
-            {
-                AddRoleToInternalCache(guildId, role);
-            }
-            else
-            {
-                Logger.LogError("Writing Rank Role {RoleName} for Guild {GuildId} to the database inserted no entities - The internal cache was not changed", role.RoleName, guildId);
-            }
-
-            transaction.Finish();
-        }
-
-        private async Task DeleteRankRole(ulong guildId, RankRole role)
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(DeleteRankRole));
-
-            Logger.LogInformation("Deleting Rank Role {RoleName} for Guild {GuildId} from the database", role.RoleName, guildId);
-
-            int writtenCount;
-            using (SteelBotContext db = DbContextFactory.CreateDbContext())
-            {
-                db.RankRoles.Remove(role);
-                writtenCount = await db.SaveChangesAsync();
-            }
-
-            if (writtenCount > 0)
-            {
-                RemoveRoleFromInternalCache(guildId, role.RoleDiscordId);
-            }
-            else
-            {
-                Logger.LogWarning("Deleting Rank Role {RoleName} for Guild {GuildId} from the database deleted no entities. The internal cache was not changed", role.RoleName, guildId);
-            }
-
-            transaction.Finish();
-        }
+        transaction.Finish();
     }
 }

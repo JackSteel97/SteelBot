@@ -1,37 +1,36 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+using System;
 
 #nullable disable
 
-namespace SteelBot.Migrations
+namespace SteelBot.Migrations;
+
+public partial class AfkTiming : Migration
 {
-    public partial class AfkTiming : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "AfkStartTime",
-                table: "Users",
-                type: "timestamp with time zone",
-                nullable: true);
+        migrationBuilder.AddColumn<DateTime>(
+            name: "AfkStartTime",
+            table: "Users",
+            type: "timestamp with time zone",
+            nullable: true);
 
-            migrationBuilder.AddColumn<decimal>(
-                name: "TimeSpentAfkSeconds",
-                table: "Users",
-                type: "numeric(20,0)",
-                nullable: false,
-                defaultValue: 0m);
-        }
+        migrationBuilder.AddColumn<decimal>(
+            name: "TimeSpentAfkSeconds",
+            table: "Users",
+            type: "numeric(20,0)",
+            nullable: false,
+            defaultValue: 0m);
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "AfkStartTime",
-                table: "Users");
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "AfkStartTime",
+            table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "TimeSpentAfkSeconds",
-                table: "Users");
-        }
+        migrationBuilder.DropColumn(
+            name: "TimeSpentAfkSeconds",
+            table: "Users");
     }
 }

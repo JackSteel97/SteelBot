@@ -15,7 +15,7 @@ public static class RankRoleShared
         {
             if ((currentCandidate == default || rankRole?.LevelRequired >= currentCandidate?.LevelRequired) // Only bother checking if this is lower than the current candidate.
                 && (currentRankRole == default || rankRole?.LevelRequired > currentRankRole?.LevelRequired || currentRoleIsBeingRemoved) // Only bother checking if this is higher than the user's current rank role (if they have one)
-                && (currentUserLevel >= rankRole.LevelRequired && currentRankRole?.RowId != rankRole.RowId) // Make sure they are above the level for this role. and they do not already have it.
+                && currentUserLevel >= rankRole.LevelRequired && currentRankRole?.RowId != rankRole.RowId // Make sure they are above the level for this role. and they do not already have it.
                 && (excludedRoles == null || !excludedRoles.Contains(rankRole.RoleDiscordId))) // Make sure it's not excluded.
             {
                 currentCandidate = rankRole;
@@ -38,7 +38,7 @@ public static class RankRoleShared
                 {
                     // Remove any old rank role if one exists.
                     var discordRoleToRemove = guild.GetRole(user.CurrentRankRole.RoleDiscordId);
-                    if(discordRoleToGrant != default)
+                    if (discordRoleToGrant != default)
                     {
                         await member.RevokeRoleAsync(discordRoleToRemove, "User achieved a new rank role that overwrites this one.");
                     }

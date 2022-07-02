@@ -5,59 +5,55 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace SteelBot.Helpers.Algorithms
+namespace SteelBot.Helpers.Algorithms;
+
+public static class Uwuifyer
 {
-    public static class Uwuifyer
+    private static readonly string[] _faces = new string[]
+    { "(・`ω´・)",
+        ";;w;;",
+        "OwO",
+        "UwU",
+        ">w<",
+        "^w^",
+        "ÚwÚ",
+        "^-^",
+        ":3",
+        "x3"
+    };
+
+    private static readonly Random _random = new Random();
+
+    public static string Uwuify(string input, bool addFaces = true)
     {
-        private static readonly string[] Faces = new string[]
-        { "(・`ω´・)",
-            ";;w;;",
-            "OwO",
-            "UwU",
-            ">w<",
-            "^w^",
-            "ÚwÚ",
-            "^-^",
-            ":3",
-            "x3"
-        };
+        string output = input;
 
-        private static readonly Random Random = new Random();
+        output = output.Replace("R", "W");
+        output = output.Replace("r", "w");
 
-        public static string Uwuify(string input, bool addFaces = true)
+        output = output.Replace("L", "w");
+        output = output.Replace("l", "w");
+
+        output = output.Replace("THE ", "DA ");
+        output = output.Replace("the ", "da ");
+        output = output.Replace("The ", "Da ");
+
+        output = output.Replace("ove", "uv");
+        output = output.Replace("OVE", "UV");
+
+        output = output.Replace("AYS", "EZ");
+        output = output.Replace("ays", "ez");
+
+        output = output.Replace("Have ", "Haz ");
+        output = output.Replace("have ", "haz ");
+        output = output.Replace("HAVE ", "HAZ ");
+
+        if (addFaces)
         {
-            string output = input;
-
-            output = output.Replace("R", "W");
-            output = output.Replace("r", "w");
-
-            output = output.Replace("L", "w");
-            output = output.Replace("l", "w");
-
-            output = output.Replace("THE ", "DA ");
-            output = output.Replace("the ", "da ");
-            output = output.Replace("The ", "Da ");
-
-            output = output.Replace("ove", "uv");
-            output = output.Replace("OVE", "UV");
-
-            output = output.Replace("AYS", "EZ");
-            output = output.Replace("ays", "ez");
-
-            output = output.Replace("Have ", "Haz ");
-            output = output.Replace("have ", "haz ");
-            output = output.Replace("HAVE ", "HAZ ");
-
-            if (addFaces)
-            {
-                output = $"{output} {GetRandomFace()}";
-            }
-            return output;
+            output = $"{output} {GetRandomFace()}";
         }
-
-        private static string GetRandomFace()
-        {
-            return Faces[Random.Next(0, Faces.Length)];
-        }
+        return output;
     }
+
+    private static string GetRandomFace() => _faces[_random.Next(0, _faces.Length)];
 }

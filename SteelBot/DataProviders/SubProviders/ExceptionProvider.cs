@@ -5,29 +5,28 @@ using SteelBot.Database.Models;
 using SteelBot.Helpers.Sentry;
 using System.Threading.Tasks;
 
-namespace SteelBot.DataProviders.SubProviders
+namespace SteelBot.DataProviders.SubProviders;
+
+public class ExceptionProvider
 {
-    public class ExceptionProvider
+    private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly IHub _sentry;
+
+    public ExceptionProvider(IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
     {
-        private readonly IDbContextFactory<SteelBotContext> DbContextFactory;
-        private readonly IHub _sentry;
+        _dbContextFactory = contextFactory;
+        _sentry = sentry;
+    }
 
-        public ExceptionProvider(IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
+    public async Task InsertException(ExceptionLog ex)
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertException));
+        await using (var db = _dbContextFactory.CreateDbContext())
         {
-            DbContextFactory = contextFactory;
-            _sentry = sentry;
+            db.LoggedErrors.Add(ex);
+            await db.SaveChangesAsync();
         }
 
-        public async Task InsertException(ExceptionLog ex)
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertException));
-            await using (SteelBotContext db = DbContextFactory.CreateDbContext())
-            {
-                db.LoggedErrors.Add(ex);
-                await db.SaveChangesAsync();
-            }
-
-            transaction.Finish();
-        }
+        transaction.Finish();
     }
 }

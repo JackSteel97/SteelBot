@@ -9,30 +9,29 @@ using SteelBot.Services.Configuration;
 using System;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.NonGroupedCommands
+namespace SteelBot.DiscordModules.NonGroupedCommands;
+
+[Description("Miscellaneous commands.")]
+[RequireGuild]
+public class MiscCommands : TypingCommandModule
 {
-    [Description("Miscellaneous commands.")]
-    [RequireGuild]
-    public class MiscCommands : TypingCommandModule
+    private readonly AppConfigurationService _appConfigurationService;
+
+    public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
     {
-        private AppConfigurationService AppConfigurationService;
+        _appConfigurationService = appConfigurationService;
+    }
 
-        public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
-        {
-            AppConfigurationService = appConfigurationService;
-        }
-
-        [Command("Invite")]
-        [Aliases("inv", "add", "join")]
-        [Description("Get a link to add the bot to your own server.")]
-        [Cooldown(1, 60, CooldownBucketType.Channel)]
-        public async Task Invite(CommandContext context)
-        {
-            Uri invLink = new Uri(AppConfigurationService.Application.InviteLink);
-            DiscordMessageBuilder message = new DiscordMessageBuilder()
-                .WithReply(context.Message.Id, true)
-                .WithEmbed(EmbedGenerator.Info(Formatter.MaskedUrl("Here you go!", invLink, "Click me to invite to your own server.")));
-            await context.RespondAsync(message);
-        }
+    [Command("Invite")]
+    [Aliases("inv", "add", "join")]
+    [Description("Get a link to add the bot to your own server.")]
+    [Cooldown(1, 60, CooldownBucketType.Channel)]
+    public async Task Invite(CommandContext context)
+    {
+        var invLink = new Uri(_appConfigurationService.Application.InviteLink);
+        var message = new DiscordMessageBuilder()
+            .WithReply(context.Message.Id, true)
+            .WithEmbed(EmbedGenerator.Info(Formatter.MaskedUrl("Here you go!", invLink, "Click me to invite to your own server.")));
+        await context.RespondAsync(message);
     }
 }

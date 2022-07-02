@@ -22,98 +22,88 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.Stats
+namespace SteelBot.DiscordModules.Stats;
+
+public class StatsDataHelper
 {
-    public class StatsDataHelper
+    private readonly DataCache _cache;
+    private readonly AppConfigurationService _appConfigurationService;
+    private readonly ILogger<StatsDataHelper> _logger;
+    private readonly PetsDataHelper _petsDataHelper;
+
+    public StatsDataHelper(DataCache cache,
+        AppConfigurationService appConfigurationService,
+        ILogger<StatsDataHelper> logger,
+        PetsDataHelper petsDataHelper)
     {
-        private readonly DataCache Cache;
-        private readonly AppConfigurationService AppConfigurationService;
-        private readonly ILogger<StatsDataHelper> Logger;
-        private readonly PetsDataHelper PetsDataHelper;
+        _cache = cache;
+        _appConfigurationService = appConfigurationService;
+        _logger = logger;
+        _petsDataHelper = petsDataHelper;
+    }
 
-        public StatsDataHelper(DataCache cache,
-            AppConfigurationService appConfigurationService,
-            ILogger<StatsDataHelper> logger,
-            PetsDataHelper petsDataHelper)
+    public static DiscordEmbedBuilder GetStatsEmbed(User user, string username)
+    {
+        var embedBuilder = new DiscordEmbedBuilder()
+            .WithColor(EmbedGenerator.InfoColour)
+            .WithTitle($"{username} Stats")
+            .AddField("Message Count", $"`{user.MessageCount:N0} Messages`", true)
+            .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
+            .AddField("AFK Time", $"`{user.TimeSpentAfk.Humanize(2)}`", true)
+            .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)} (100%)`", true)
+            .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentStreaming, user.TimeSpentInVoice):P2})`", true)
+            .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentOnVideo, user.TimeSpentInVoice):P2})`", true)
+            .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentMuted, user.TimeSpentInVoice):P2})`", true)
+            .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentDeafened, user.TimeSpentInVoice):P2})`", true);
+
+        return embedBuilder;
+    }
+
+    /// <summary>
+    /// Called during app shutdown to make sure no timings get carried too long during downtime.
+    /// </summary>
+    public async Task DisconnectAllUsers()
+    {
+        _logger.LogInformation("Disconnecting all users from voice stats");
+        var allUsers = _cache.Users.GetAllUsers();
+
+        foreach (var user in allUsers)
         {
-            Cache = cache;
-            AppConfigurationService = appConfigurationService;
-            Logger = logger;
-            PetsDataHelper = petsDataHelper;
-        }
+            var copyOfUser = user.Clone();
+            var availablePets = _petsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
-        public DiscordEmbedBuilder GetStatsEmbed(User user, string username)
+            // Pass null to reset all start times.
+            copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, shouldEarnVideoXp: true, updateLastActivity: false);
+            copyOfUser.UpdateLevel();
+            await _cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
+            await _petsDataHelper.PetXpUpdated(availablePets, default, copyOfUser.CurrentLevel); // Default - Don't try to send level up messages
+        }
+    }
+
+    public bool TryGetUser(ulong guildId, ulong discordId, out User user) => _cache.Users.TryGetUser(guildId, discordId, out user);
+
+    public List<User> GetUsersInGuild(ulong guildId) => _cache.Users.GetUsersInGuild(guildId);
+
+    public List<CommandStatistic> GetCommandStatistics() => _cache.CommandStatistics.GetAllCommandStatistics();
+
+    public XpVelocity GetVelocity(DiscordMember target, List<Pet> availablePets)
+    {
+        var velocity = new XpVelocity();
+        var baseDuration = TimeSpan.FromMinutes(1);
+        var levelConfig = _appConfigurationService.Application.Levelling;
+
+        if (_cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user))
         {
-            var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle($"{username} Stats")
-                .AddField("Message Count", $"`{user.MessageCount:N0} Messages`", true)
-                .AddField("Average Message Length", $"`{user.GetAverageMessageLength()} Characters`", true)
-                .AddField("AFK Time", $"`{user.TimeSpentAfk.Humanize(2)}`", true)
-                .AddField("Voice Time", $"`{user.TimeSpentInVoice.Humanize(2)} (100%)`", true)
-                .AddField("Streaming Time", $"`{user.TimeSpentStreaming.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentStreaming, user.TimeSpentInVoice):P2})`", true)
-                .AddField("Video Time", $"`{user.TimeSpentOnVideo.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentOnVideo, user.TimeSpentInVoice):P2})`", true)
-                .AddField("Muted Time", $"`{user.TimeSpentMuted.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentMuted, user.TimeSpentInVoice):P2})`", true)
-                .AddField("Deafened Time", $"`{user.TimeSpentDeafened.Humanize(2)} ({MathsHelper.GetPercentageOfDuration(user.TimeSpentDeafened, user.TimeSpentInVoice):P2})`", true);
+            velocity.Message = LevellingMaths.ApplyPetBonuses(levelConfig.MessageXp, availablePets, BonusType.MessageXp);
+            velocity.Voice = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentInVoice, availablePets, BonusType.VoiceXp, levelConfig.VoiceXpPerMin);
+            velocity.Muted = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentMuted, availablePets, BonusType.MutedPenaltyXp, levelConfig.MutedXpPerMin);
+            velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenaltyXp, levelConfig.DeafenedXpPerMin);
+            velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.StreamingXp, levelConfig.StreamingXpPerMin);
+            velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.VideoXp, levelConfig.VideoXpPerMin);
 
-            return embedBuilder;
+            double disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXp);
+            velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
         }
-
-        /// <summary>
-        /// Called during app shutdown to make sure no timings get carried too long during downtime.
-        /// </summary>
-        public async Task DisconnectAllUsers()
-        {
-            Logger.LogInformation("Disconnecting all users from voice stats");
-            var allUsers = Cache.Users.GetAllUsers();
-
-            foreach (var user in allUsers)
-            {
-                var copyOfUser = user.Clone();
-                var availablePets = PetsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
-
-                // Pass null to reset all start times.
-                copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, shouldEarnVideoXp: true, updateLastActivity: false);
-                copyOfUser.UpdateLevel();
-                await Cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
-                await PetsDataHelper.PetXpUpdated(availablePets, default, copyOfUser.CurrentLevel); // Default - Don't try to send level up messages
-            }
-        }
-
-        public bool TryGetUser(ulong guildId, ulong discordId, out User user)
-        {
-            return Cache.Users.TryGetUser(guildId, discordId, out user);
-        }
-
-        public List<User> GetUsersInGuild(ulong guildId)
-        {
-            return Cache.Users.GetUsersInGuild(guildId);
-        }
-
-        public List<CommandStatistic> GetCommandStatistics()
-        {
-            return Cache.CommandStatistics.GetAllCommandStatistics();
-        }
-
-        public XpVelocity GetVelocity(DiscordMember target, List<Pet> availablePets)
-        {
-            var velocity = new XpVelocity();
-            var baseDuration = TimeSpan.FromMinutes(1);
-            var levelConfig = AppConfigurationService.Application.Levelling;
-
-            if (Cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user))
-            {
-                velocity.Message = LevellingMaths.ApplyPetBonuses(levelConfig.MessageXp, availablePets, BonusType.MessageXP);
-                velocity.Voice = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentInVoice, availablePets, BonusType.VoiceXP, levelConfig.VoiceXpPerMin);
-                velocity.Muted = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentMuted, availablePets, BonusType.MutedPenaltyXP, levelConfig.MutedXpPerMin);
-                velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenaltyXP, levelConfig.DeafenedXpPerMin);
-                velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.StreamingXP, levelConfig.StreamingXpPerMin);
-                velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.VideoXP, levelConfig.VideoXpPerMin);
-
-                var disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXP);
-                velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
-            }
-            return velocity;
-        }
+        return velocity;
     }
 }

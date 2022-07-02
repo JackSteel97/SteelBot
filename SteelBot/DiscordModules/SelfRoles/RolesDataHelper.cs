@@ -22,10 +22,7 @@ public class RolesDataHelper
         _selfRoleViewingService = selfRoleViewingService;
     }
 
-    public Task CreateRole(CommandContext context, DiscordRole role, string description)
-    {
-        return CreateRole(context, role.Name, description);
-    }
+    public Task CreateRole(CommandContext context, DiscordRole role, string description) => CreateRole(context, role.Name, description);
 
     public async Task CreateRole(CommandContext context, string roleName, string description)
     {
@@ -33,10 +30,7 @@ public class RolesDataHelper
         await _selfRoleManagementChannel.Write(change, _cancellationService.Token);
     }
 
-    public Task RemoveRole(CommandContext context, DiscordRole role)
-    {
-        return RemoveRole(context, role.Name);
-    }
+    public Task RemoveRole(CommandContext context, DiscordRole role) => RemoveRole(context, role.Name);
 
     public async Task RemoveRole(CommandContext context, string roleName)
     {
@@ -44,10 +38,7 @@ public class RolesDataHelper
         await _selfRoleManagementChannel.Write(change, _cancellationService.Token);
     }
 
-    public Task JoinRole(CommandContext context, DiscordRole role)
-    {
-        return JoinRole(context, role.Name);
-    }
+    public Task JoinRole(CommandContext context, DiscordRole role) => JoinRole(context, role.Name);
 
     public async Task JoinRole(CommandContext context, string roleName)
     {
@@ -55,10 +46,7 @@ public class RolesDataHelper
         await _selfRoleManagementChannel.Write(change, _cancellationService.Token);
     }
 
-    public Task LeaveRole(CommandContext context, DiscordRole role)
-    {
-        return LeaveRole(context, role.Name);
-    }
+    public Task LeaveRole(CommandContext context, DiscordRole role) => LeaveRole(context, role.Name);
 
     public async Task LeaveRole(CommandContext context, string roleName)
     {
@@ -72,8 +60,5 @@ public class RolesDataHelper
         await _selfRoleManagementChannel.Write(change, _cancellationService.Token);
     }
 
-    public void DisplayRoles(CommandContext context)
-    {
-        _selfRoleViewingService.DisplaySelfRoles(context);
-    }
+    public void DisplayRoles(CommandContext context) => _selfRoleViewingService.DisplaySelfRoles(context);
 }

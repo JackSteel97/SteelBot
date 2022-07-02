@@ -13,302 +13,301 @@ using SteelBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.Pets.Services
+namespace SteelBot.DiscordModules.Pets.Services;
+
+public class PetManagementService
 {
-    public class PetManagementService
+    private readonly DataCache _cache;
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly IHub _sentry;
+
+    public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry)
     {
-        private readonly DataCache Cache;
-        private readonly ErrorHandlingService ErrorHandlingService;
-        private readonly IHub _sentry;
+        _cache = cache;
+        _errorHandlingService = errorHandlingService;
+        _sentry = sentry;
+    }
 
-        public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry)
+    public async Task Manage(CommandContext context)
+    {
+        var transaction = _sentry.GetCurrentTransaction();
+        if (_cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
+            && _cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
         {
-            Cache = cache;
-            ErrorHandlingService = errorHandlingService;
-            _sentry = sentry;
-        }
+            var getPetsSpan = transaction.StartChild("Get Available Pets");
+            var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
+            var combinedPets = PetShared.Recombine(availablePets, disabledPets);
+            getPetsSpan.Finish();
 
-        public async Task Manage(CommandContext context)
-        {
-            var transaction = _sentry.GetCurrentTransaction();
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.User.Id, out var allPets))
+            var buildEmbedSpan = transaction.StartChild("Build Owned Pets Base Embed");
+            var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
+            buildEmbedSpan.Finish();
+
+            var capacitySpan = transaction.StartChild("Get Pet Capacity");
+            int maxCapacity = PetShared.GetPetCapacity(user, allPets);
+            int baseCapacity = PetShared.GetBasePetCapacity(user);
+            capacitySpan.Finish();
+
+            var pagesSpan = transaction.StartChild("Generate Embed Pages");
+            var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
+                (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
+                (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
+            pagesSpan.Finish();
+
+            transaction.Finish(SpanStatus.Ok);
+            (string resultId, _) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
+            var responseTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), "Handle Manage Response");
+            if (!string.IsNullOrWhiteSpace(resultId))
             {
-                var getPetsSpan = transaction.StartChild("Get Available Pets");
-                var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
-                var combinedPets = PetShared.Recombine(availablePets, disabledPets);
-                getPetsSpan.Finish();
-
-                var buildEmbedSpan = transaction.StartChild("Build Owned Pets Base Embed");
-                var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
-                buildEmbedSpan.Finish();
-
-                var capacitySpan = transaction.StartChild("Get Pet Capacity");
-                var maxCapacity = PetShared.GetPetCapacity(user, allPets);
-                var baseCapacity = PetShared.GetBasePetCapacity(user);
-                capacitySpan.Finish();
-
-                var pagesSpan = transaction.StartChild("Generate Embed Pages");
-                var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
-                    (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
-                    (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
-                pagesSpan.Finish();
-
-                transaction.Finish(SpanStatus.Ok);
-                (string resultId, _) = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(context.Channel, context.User, pages);
-                var responseTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), "Handle Manage Response");
-                if (!string.IsNullOrWhiteSpace(resultId))
+                var handleSpan = responseTransaction.StartChild("Handle Manage Pet");
+                // Figure out which pet they want to manage.
+                if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
                 {
-                    var handleSpan = responseTransaction.StartChild("Handle Manage Pet");
-                    // Figure out which pet they want to manage.
-                    if (PetShared.TryGetPetIdFromComponentId(resultId, out var petId))
-                    {
-                        await HandleManagePet(context, petId, handleSpan);
-                    }
-                    handleSpan.Finish();
+                    await HandleManagePet(context, petId, handleSpan);
                 }
-            }
-            else
-            {
-                context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true).FireAndForget(ErrorHandlingService);
+                handleSpan.Finish();
             }
         }
-
-        public async Task MovePetToPosition(Pet petBeingMoved, int newPriority)
+        else
         {
-            if (Cache.Pets.TryGetUsersPets(petBeingMoved.OwnerDiscordId, out var allPets))
-            {
-                if (newPriority < 0 || newPriority > allPets.Count - 1)
-                {
-                    // Invalid target position.
-                    return;
-                }
-
-                int oldPriority = petBeingMoved.Priority;
-
-                foreach (var ownedPet in allPets)
-                {
-                    if (ownedPet.RowId != petBeingMoved.RowId)
-                    {
-                        // "Remove" behaviour
-                        if (ownedPet.Priority > oldPriority)
-                        {
-                            ownedPet.Priority--;
-                        }
-
-                        // "Insert" behaviour
-                        if (ownedPet.Priority >= newPriority)
-                        {
-                            ownedPet.Priority++;
-                        }
-                    }
-                    else
-                    {
-                        petBeingMoved.Priority = newPriority;
-                    }
-                }
-
-                await Cache.Pets.UpdatePets(allPets);
-            }
+            context.RespondAsync(PetMessages.GetNoPetsAvailableMessage(), mention: true).FireAndForget(_errorHandlingService);
         }
+    }
 
-        private async Task HandleManagePet(CommandContext context, long petId, ISpan transaction)
+    public async Task MovePetToPosition(Pet petBeingMoved, int newPriority)
+    {
+        if (_cache.Pets.TryGetUsersPets(petBeingMoved.OwnerDiscordId, out var allPets))
         {
-            if (Cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
+            if (newPriority < 0 || newPriority > allPets.Count - 1)
             {
-                var countPetsSpan = transaction.StartChild("Count Pets");
-                Cache.Pets.TryGetUsersPetsCount(context.Member.Id, out var ownedPetCount);
-                countPetsSpan.Finish();
+                // Invalid target position.
+                return;
+            }
 
-                var buildMessageSpan = transaction.StartChild("Build Message");
-                var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet, showLevelProgress: true);
-                var initialResponseBuilder = new DiscordMessageBuilder()
-                    .WithEmbed(petDisplay);
+            int oldPriority = petBeingMoved.Priority;
 
-                initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, new DiscordComponent[]
-                    {
-                        Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
-                        Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
-                        Interactions.Pets.MoveToPosition.Disable(ownedPetCount <= 1),
-                        Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
-                        Interactions.Pets.MoveToBottom.Disable(pet.Priority == (ownedPetCount-1)),
-                        Interactions.Pets.Rename,
-                        Interactions.Pets.Abandon,
-                        Interactions.Confirmation.Cancel,
-                    });
-                buildMessageSpan.Finish();
-
-                var waitingForResponseSpan = transaction.StartChild("Wait for user selection");
-                var message = await context.RespondAsync(initialResponseBuilder, mention: true);
-                var result = await message.WaitForButtonAsync(context.Member);
-                waitingForResponseSpan.Finish();
-                initialResponseBuilder.ClearComponents();
-
-                if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
+            foreach (var ownedPet in allPets)
+            {
+                if (ownedPet.RowId != petBeingMoved.RowId)
                 {
-                    message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
-                    var performManageSpan = transaction.StartChild("Perform Manage Operation", result.Result.Id);
-                    switch (result.Result.Id)
+                    // "Remove" behaviour
+                    if (ownedPet.Priority > oldPriority)
                     {
-                        case InteractionIds.Pets.Rename:
-                            await PetModals.NamePet(result.Result.Interaction, pet);
-                            break;
-                        case InteractionIds.Pets.MakePrimary:
-                            await HandleMakePrimary(context, pet);
-                            break;
-                        case InteractionIds.Pets.IncreasePriority:
-                            await HandlePriorityIncrease(context, pet);
-                            break;
-                        case InteractionIds.Pets.DecreasePriority:
-                            await HandlePriorityDecrease(context, pet);
-                            break;
-                        case InteractionIds.Pets.MoveToBottom:
-                            await HandleMoveToBottom(context, pet);
-                            break;
-                        case InteractionIds.Pets.Abandon:
-                            await HandlePetAbandon(context, pet);
-                            break;
-                        case InteractionIds.Pets.MoveToButton:
-                            await PetModals.MovePet(result.Result.Interaction, pet, ownedPetCount);
-                            break;
+                        ownedPet.Priority--;
                     }
 
-                    performManageSpan.Finish();
+                    // "Insert" behaviour
+                    if (ownedPet.Priority >= newPriority)
+                    {
+                        ownedPet.Priority++;
+                    }
                 }
                 else
                 {
-                    message.ModifyAsync(initialResponseBuilder).FireAndForget(ErrorHandlingService);
+                    petBeingMoved.Priority = newPriority;
                 }
+            }
+
+            await _cache.Pets.UpdatePets(allPets);
+        }
+    }
+
+    private async Task HandleManagePet(CommandContext context, long petId, ISpan transaction)
+    {
+        if (_cache.Pets.TryGetPet(context.Member.Id, petId, out var pet))
+        {
+            var countPetsSpan = transaction.StartChild("Count Pets");
+            _cache.Pets.TryGetUsersPetsCount(context.Member.Id, out int ownedPetCount);
+            countPetsSpan.Finish();
+
+            var buildMessageSpan = transaction.StartChild("Build Message");
+            var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet, showLevelProgress: true);
+            var initialResponseBuilder = new DiscordMessageBuilder()
+                .WithEmbed(petDisplay);
+
+            initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, new DiscordComponent[]
+                {
+                    Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
+                    Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
+                    Interactions.Pets.MoveToPosition.Disable(ownedPetCount <= 1),
+                    Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
+                    Interactions.Pets.MoveToBottom.Disable(pet.Priority == (ownedPetCount-1)),
+                    Interactions.Pets.Rename,
+                    Interactions.Pets.Abandon,
+                    Interactions.Confirmation.Cancel,
+                });
+            buildMessageSpan.Finish();
+
+            var waitingForResponseSpan = transaction.StartChild("Wait for user selection");
+            var message = await context.RespondAsync(initialResponseBuilder, mention: true);
+            var result = await message.WaitForButtonAsync(context.Member);
+            waitingForResponseSpan.Finish();
+            initialResponseBuilder.ClearComponents();
+
+            if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
+            {
+                message.ModifyAsync(initialResponseBuilder).FireAndForget(_errorHandlingService);
+                var performManageSpan = transaction.StartChild("Perform Manage Operation", result.Result.Id);
+                switch (result.Result.Id)
+                {
+                    case InteractionIds.Pets.Rename:
+                        await PetModals.NamePet(result.Result.Interaction, pet);
+                        break;
+                    case InteractionIds.Pets.MakePrimary:
+                        await HandleMakePrimary(context, pet);
+                        break;
+                    case InteractionIds.Pets.IncreasePriority:
+                        await HandlePriorityIncrease(context, pet);
+                        break;
+                    case InteractionIds.Pets.DecreasePriority:
+                        await HandlePriorityDecrease(context, pet);
+                        break;
+                    case InteractionIds.Pets.MoveToBottom:
+                        await HandleMoveToBottom(context, pet);
+                        break;
+                    case InteractionIds.Pets.Abandon:
+                        await HandlePetAbandon(context, pet);
+                        break;
+                    case InteractionIds.Pets.MoveToButton:
+                        await PetModals.MovePet(result.Result.Interaction, pet, ownedPetCount);
+                        break;
+                }
+
+                performManageSpan.Finish();
             }
             else
             {
-                context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true).FireAndForget(ErrorHandlingService);
+                message.ModifyAsync(initialResponseBuilder).FireAndForget(_errorHandlingService);
             }
         }
-
-        private async Task HandleMakePrimary(CommandContext context, Pet pet)
+        else
         {
-            int oldPriority = pet.Priority;
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
-            {
-                var petsToUpdate = new List<Pet>(oldPriority + 1);
+            context.RespondAsync(EmbedGenerator.Error("Something went wrong and I couldn't find that pet. Please try again later."), mention: true).FireAndForget(_errorHandlingService);
+        }
+    }
 
-                foreach (var ownedPet in allPets)
+    private async Task HandleMakePrimary(CommandContext context, Pet pet)
+    {
+        int oldPriority = pet.Priority;
+        if (_cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out _)
+            && _cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+        {
+            var petsToUpdate = new List<Pet>(oldPriority + 1);
+
+            foreach (var ownedPet in allPets)
+            {
+                if (ownedPet.Priority < oldPriority)
                 {
-                    if (ownedPet.Priority < oldPriority)
-                    {
-                        ++ownedPet.Priority;
-                        petsToUpdate.Add(ownedPet);
-                    }
+                    ++ownedPet.Priority;
+                    petsToUpdate.Add(ownedPet);
                 }
-
-                pet.Priority = 0;
-                petsToUpdate.Add(pet);
-                await Cache.Pets.UpdatePets(petsToUpdate);
-
-                context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet)).FireAndForget(ErrorHandlingService);
             }
+
+            pet.Priority = 0;
+            petsToUpdate.Add(pet);
+            await _cache.Pets.UpdatePets(petsToUpdate);
+
+            context.Channel.SendMessageAsync(PetMessages.GetMakePrimarySuccessMessage(pet)).FireAndForget(_errorHandlingService);
         }
+    }
 
-        private async Task HandleMoveToBottom(CommandContext context, Pet pet)
+    private async Task HandleMoveToBottom(CommandContext context, Pet pet)
+    {
+        int oldPriority = pet.Priority;
+        if (_cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out _)
+            && _cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
         {
-            int oldPriority = pet.Priority;
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
-            {
-                var petsToUpdate = new List<Pet>(allPets.Count - oldPriority);
+            var petsToUpdate = new List<Pet>(allPets.Count - oldPriority);
 
+            foreach (var ownedPet in allPets)
+            {
+                if (ownedPet.Priority > oldPriority)
+                {
+                    --ownedPet.Priority;
+                    petsToUpdate.Add(ownedPet);
+                }
+            }
+            pet.Priority = allPets.Count - 1;
+            petsToUpdate.Add(pet);
+
+            await _cache.Pets.UpdatePets(petsToUpdate);
+            context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet)).FireAndForget(_errorHandlingService);
+        }
+    }
+
+    private async Task HandlePriorityIncrease(CommandContext context, Pet pet)
+    {
+        int oldPriority = pet.Priority;
+        if (_cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out _)
+            && _cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+        {
+            var petsToUpdate = new List<Pet>(2);
+            foreach (var ownedPet in allPets)
+            {
+                if (ownedPet.Priority == oldPriority - 1)
+                {
+                    ++ownedPet.Priority;
+                    petsToUpdate.Add(ownedPet);
+                    break;
+                }
+            }
+            --pet.Priority;
+            petsToUpdate.Add(pet);
+            await _cache.Pets.UpdatePets(petsToUpdate);
+
+            context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet)).FireAndForget(_errorHandlingService);
+        }
+    }
+
+    private async Task HandlePriorityDecrease(CommandContext context, Pet pet)
+    {
+        int oldPriority = pet.Priority;
+        if (_cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out _)
+            && _cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+        {
+            var petsToUpdate = new List<Pet>(2);
+            foreach (var ownedPet in allPets)
+            {
+                if (ownedPet.Priority == oldPriority + 1)
+                {
+                    --ownedPet.Priority;
+                    petsToUpdate.Add(ownedPet);
+                    break;
+                }
+            }
+            ++pet.Priority;
+            petsToUpdate.Add(pet);
+            await _cache.Pets.UpdatePets(petsToUpdate);
+
+            context.Channel.SendMessageAsync(PetMessages.GetPriorityDecreaseSuccessMessage(pet)).FireAndForget(_errorHandlingService);
+        }
+    }
+
+    private async Task HandlePetAbandon(CommandContext context, Pet pet)
+    {
+        var transaction = _sentry.GetCurrentTransaction();
+        transaction.Finish();
+        if (await InteractivityHelper.GetConfirmation(context, "Pet Release"))
+        {
+            var abandonTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), nameof(HandlePetAbandon));
+
+            await _cache.Pets.RemovePet(context.Member.Id, pet.RowId);
+
+            if (_cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
+            {
+                var petsToUpdate = new List<Pet>(allPets.Count - pet.Priority);
                 foreach (var ownedPet in allPets)
                 {
-                    if (ownedPet.Priority > oldPriority)
+                    if (ownedPet.Priority > pet.Priority)
                     {
                         --ownedPet.Priority;
                         petsToUpdate.Add(ownedPet);
                     }
                 }
-                pet.Priority = allPets.Count - 1;
-                petsToUpdate.Add(pet);
-
-                await Cache.Pets.UpdatePets(petsToUpdate);
-                context.Channel.SendMessageAsync(PetMessages.GetMoveToBottomSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
+                await _cache.Pets.UpdatePets(petsToUpdate);
             }
-        }
 
-        private async Task HandlePriorityIncrease(CommandContext context, Pet pet)
-        {
-            int oldPriority = pet.Priority;
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
-            {
-                var petsToUpdate = new List<Pet>(2);
-                foreach (var ownedPet in allPets)
-                {
-                    if (ownedPet.Priority == oldPriority - 1)
-                    {
-                        ++ownedPet.Priority;
-                        petsToUpdate.Add(ownedPet);
-                        break;
-                    }
-                }
-                --pet.Priority;
-                petsToUpdate.Add(pet);
-                await Cache.Pets.UpdatePets(petsToUpdate);
-
-                context.Channel.SendMessageAsync(PetMessages.GetPriorityIncreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
-            }
-        }
-
-        private async Task HandlePriorityDecrease(CommandContext context, Pet pet)
-        {
-            int oldPriority = pet.Priority;
-            if (Cache.Users.TryGetUser(context.Guild.Id, context.User.Id, out var user)
-                && Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
-            {
-                var petsToUpdate = new List<Pet>(2);
-                foreach (var ownedPet in allPets)
-                {
-                    if (ownedPet.Priority == oldPriority + 1)
-                    {
-                        --ownedPet.Priority;
-                        petsToUpdate.Add(ownedPet);
-                        break;
-                    }
-                }
-                ++pet.Priority;
-                petsToUpdate.Add(pet);
-                await Cache.Pets.UpdatePets(petsToUpdate);
-
-                context.Channel.SendMessageAsync(PetMessages.GetPriorityDecreaseSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
-            }
-        }
-
-        private async Task HandlePetAbandon(CommandContext context, Pet pet)
-        {
-            var transaction = _sentry.GetCurrentTransaction();
-            transaction.Finish();
-            if (await InteractivityHelper.GetConfirmation(context, "Pet Release"))
-            {
-                var abandonTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), nameof(HandlePetAbandon));
-
-                await Cache.Pets.RemovePet(context.Member.Id, pet.RowId);
-
-                if (Cache.Pets.TryGetUsersPets(context.Member.Id, out var allPets))
-                {
-                    List<Pet> petsToUpdate = new List<Pet>(allPets.Count - pet.Priority);
-                    foreach (var ownedPet in allPets)
-                    {
-                        if (ownedPet.Priority > pet.Priority)
-                        {
-                            --ownedPet.Priority;
-                            petsToUpdate.Add(ownedPet);
-                        }
-                    }
-                    await Cache.Pets.UpdatePets(petsToUpdate);
-                }
-
-                context.Channel.SendMessageAsync(PetMessages.GetAbandonSuccessMessage(pet)).FireAndForget(ErrorHandlingService);
-            }
+            context.Channel.SendMessageAsync(PetMessages.GetAbandonSuccessMessage(pet)).FireAndForget(_errorHandlingService);
         }
     }
 }

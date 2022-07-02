@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.Pets.Enums
+namespace SteelBot.DiscordModules.Pets.Enums;
+
+public enum Size
 {
-    public enum Size
-    {
-        Tiny,
-        Small,
-        Average,
-        Large,
-        Massive
-    }
+    Tiny,
+    Small,
+    Average,
+    Large,
+    Massive
 }

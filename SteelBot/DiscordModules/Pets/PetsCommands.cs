@@ -12,129 +12,128 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace SteelBot.DiscordModules.Pets
+namespace SteelBot.DiscordModules.Pets;
+
+[Group("Pet")]
+[Aliases("Pets")]
+[Description("Commands for interacting with user pets")]
+[RequireGuild]
+public class PetsCommands : TypingCommandModule
 {
-    [Group("Pet")]
-    [Aliases("Pets")]
-    [Description("Commands for interacting with user pets")]
-    [RequireGuild]
-    public class PetsCommands : TypingCommandModule
+    private readonly ILogger<PetsCommands> _logger;
+    private readonly PetFactory _petFactory;
+    private readonly DataHelpers _dataHelpers;
+    private const double _hourSeconds = 60 * 60;
+    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry) : base(sentry)
     {
-        private readonly ILogger<PetsCommands> Logger;
-        private readonly PetFactory PetFactory;
-        private readonly DataHelpers DataHelpers;
-        private const double HourSeconds = 60 * 60;
-        public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry) : base(sentry)
+        _logger = logger;
+        _petFactory = petFactory;
+        _dataHelpers = dataHelpers;
+    }
+
+    [GroupCommand]
+    [Description("Show all your owned pets")]
+    [Cooldown(10, 60, CooldownBucketType.User)]
+    public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
+    {
+        _logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
+        otherUser ??= context.Member;
+        await _dataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
+    }
+
+    [Command("manage")]
+    [Description("Manage your owned pets")]
+    [Cooldown(10, 60, CooldownBucketType.User)]
+    public async Task ManagePets(CommandContext context)
+    {
+        _logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
+
+        await _dataHelpers.Pets.HandleManage(context);
+    }
+
+    [Command("treat")]
+    [Aliases("reward", "gift")]
+    [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per hour")]
+    [Cooldown(2, _hourSeconds, CooldownBucketType.User)]
+    public async Task TreatPet(CommandContext context)
+    {
+        _logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
+
+        await _dataHelpers.Pets.HandleTreat(context);
+    }
+
+    [Command("Search")]
+    [Description("Search for a new pet. Allows 10 searches per hour.")]
+    [Cooldown(10, _hourSeconds, CooldownBucketType.User)]
+    public async Task Search(CommandContext context)
+    {
+        _logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
+
+        await _dataHelpers.Pets.HandleSearch(context);
+    }
+
+    [Command("Order")]
+    [Description("Order your pets by listing their names in a pipe-separated list")]
+    [Cooldown(2, 60, CooldownBucketType.User)]
+    public async Task Order(CommandContext context, [RemainingText] string input)
+    {
+        _logger.LogInformation("User [{UserId}] requested to re-order their pets in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
+        if (!string.IsNullOrWhiteSpace(input))
         {
-            Logger = logger;
-            PetFactory = petFactory;
-            DataHelpers = dataHelpers;
+            await _dataHelpers.Pets.Reorder(context, input.Trim('\"'));
         }
-
-        [GroupCommand]
-        [Description("Show all your owned pets")]
-        [Cooldown(10, 60, CooldownBucketType.User)]
-        public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
+        else
         {
-            Logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
-            otherUser ??= context.Member;
-            await DataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
+            await context.RespondAsync(EmbedGenerator.Warning("Please enter your pet names, separated by pipes `|`"));
         }
+    }
 
-        [Command("manage")]
-        [Description("Manage your owned pets")]
-        [Cooldown(10, 60, CooldownBucketType.User)]
-        public async Task ManagePets(CommandContext context)
+    [Command("Bonus")]
+    [Aliases("Bonuses", "b")]
+    [Description("View the bonuses from all your pets available in this server")]
+    [Cooldown(3, 60, CooldownBucketType.User)]
+    public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
+    {
+        _logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
+
+        otherUser ??= context.Member;
+        await _dataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
+    }
+
+    [Command("DebugStats")]
+    [RequireOwner]
+    public async Task GenerateLots(CommandContext context, double count)
+    {
+        var countByRarity = new ConcurrentDictionary<Rarity, int>();
+
+        var start = DateTime.UtcNow;
+        Parallel.For(0, (int)count, _ =>
         {
-            Logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
+            var pet = _petFactory.Generate(1);
+            countByRarity.AddOrUpdate(pet.Rarity, 1, (_, v) => ++v);
+        });
+        var end = DateTime.UtcNow;
 
-            await DataHelpers.Pets.HandleManage(context);
-        }
+        var embed = new DiscordEmbedBuilder().WithTitle("Stats").WithColor(EmbedGenerator.InfoColour)
+            .AddField("Generated", count.ToString(), true)
+            .AddField("Took", (end - start).Humanize(), true)
+            .AddField("Average Per Pet", $"{((end - start) / count).TotalMilliseconds * 1000} μs", true)
+            .AddField("Common", $"{countByRarity[Rarity.Common]} ({countByRarity[Rarity.Common] / count:P2})", true)
+            .AddField("Uncommon", $"{countByRarity[Rarity.Uncommon]} ({countByRarity[Rarity.Uncommon] / count:P2})", true)
+            .AddField("Rare", $"{countByRarity[Rarity.Rare]} ({countByRarity[Rarity.Rare] / count:P2})", true)
+            .AddField("Epic", $"{countByRarity[Rarity.Epic]} ({countByRarity[Rarity.Epic] / count:P2})", true)
+            .AddField("Legendary", $"{countByRarity[Rarity.Legendary]} ({countByRarity[Rarity.Legendary] / count:P2})", true)
+            .AddField("Mythical", $"{countByRarity[Rarity.Mythical]} ({countByRarity[Rarity.Mythical] / count:P2})", true);
 
-        [Command("treat")]
-        [Aliases("reward", "gift")]
-        [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per hour")]
-        [Cooldown(2, HourSeconds, CooldownBucketType.User)]
-        public async Task TreatPet(CommandContext context)
-        {
-            Logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
+        await context.RespondAsync(embed);
+    }
 
-            await DataHelpers.Pets.HandleTreat(context);
-        }
+    [Command("Combos")]
+    [RequireOwner]
+    public async Task CalculateCombinations(CommandContext context)
+    {
+        ulong count = _petFactory.CountPossibilities();
 
-        [Command("Search")]
-        [Description("Search for a new pet. Allows 10 searches per hour.")]
-        [Cooldown(10, HourSeconds, CooldownBucketType.User)]
-        public async Task Search(CommandContext context)
-        {
-            Logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-
-            await DataHelpers.Pets.HandleSearch(context);
-        }
-
-        [Command("Order")]
-        [Description("Order your pets by listing their names in a pipe-separated list")]
-        [Cooldown(2, 60, CooldownBucketType.User)]
-        public async Task Order(CommandContext context, [RemainingText] string input)
-        {
-            Logger.LogInformation("User [{UserId}] requested to re-order their pets in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-            if (!string.IsNullOrWhiteSpace(input))
-            {
-                await DataHelpers.Pets.Reorder(context, input.Trim('\"'));
-            }
-            else
-            {
-                await context.RespondAsync(EmbedGenerator.Warning("Please enter your pet names, separated by pipes `|`"));
-            }
-        }
-
-        [Command("Bonus")]
-        [Aliases("Bonuses", "b")]
-        [Description("View the bonuses from all your pets available in this server")]
-        [Cooldown(3, 60, CooldownBucketType.User)]
-        public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
-        {
-            Logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-
-            otherUser ??= context.Member;
-            await DataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
-        }
-
-        [Command("DebugStats")]
-        [RequireOwner]
-        public async Task GenerateLots(CommandContext context, double count)
-        {
-            var countByRarity = new ConcurrentDictionary<Rarity, int>();
-
-            var start = DateTime.UtcNow;
-            Parallel.For(0, (int)count, _ =>
-            {
-                var pet = PetFactory.Generate(1);
-                countByRarity.AddOrUpdate(pet.Rarity, 1, (_, v) => ++v);
-            });
-            var end = DateTime.UtcNow;
-
-            var embed = new DiscordEmbedBuilder().WithTitle("Stats").WithColor(EmbedGenerator.InfoColour)
-                .AddField("Generated", count.ToString(), true)
-                .AddField("Took", (end - start).Humanize(), true)
-                .AddField("Average Per Pet", $"{((end - start) / count).TotalMilliseconds * 1000} μs", true)
-                .AddField("Common", $"{countByRarity[Rarity.Common]} ({countByRarity[Rarity.Common] / count:P2})", true)
-                .AddField("Uncommon", $"{countByRarity[Rarity.Uncommon]} ({countByRarity[Rarity.Uncommon] / count:P2})", true)
-                .AddField("Rare", $"{countByRarity[Rarity.Rare]} ({countByRarity[Rarity.Rare] / count:P2})", true)
-                .AddField("Epic", $"{countByRarity[Rarity.Epic]} ({countByRarity[Rarity.Epic] / count:P2})", true)
-                .AddField("Legendary", $"{countByRarity[Rarity.Legendary]} ({countByRarity[Rarity.Legendary] / count:P2})", true)
-                .AddField("Mythical", $"{countByRarity[Rarity.Mythical]} ({countByRarity[Rarity.Mythical] / count:P2})", true);
-
-            await context.RespondAsync(embed);
-        }
-
-        [Command("Combos")]
-        [RequireOwner]
-        public async Task CalculateCombinations(CommandContext context)
-        {
-            ulong count = PetFactory.CountPossibilities();
-
-            await context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
-        }
+        await context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
     }
 }

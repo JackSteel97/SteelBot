@@ -6,43 +6,42 @@ using SteelBot.Helpers.Sentry;
 using System;
 using System.Threading.Tasks;
 
-namespace SteelBot.DataProviders.SubProviders
+namespace SteelBot.DataProviders.SubProviders;
+
+public class FunProvider
 {
-    public class FunProvider
+    private JokeWrapper _cachedJoke;
+    private readonly IHub _sentry;
+
+    public FunProvider(IHub sentry)
     {
-        private JokeWrapper CachedJoke;
-        private readonly IHub _sentry;
+        _sentry = sentry;
+    }
 
-        public FunProvider(IHub sentry)
+    private async Task UpdateJoke()
+    {
+        var client = new RestClient("https://api.jokes.one");
+        var request = new RestRequest("jod", Method.Get);
+
+        var response = await client.ExecuteAsync(request);
+
+        var jokeData = JsonConvert.DeserializeObject<JokeResponse>(response.Content);
+
+        _cachedJoke = jokeData.Contents;
+    }
+
+    public async Task<JokeWrapper> GetJoke()
+    {
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(GetJoke));
+        if (_cachedJoke == null || _cachedJoke.Jokes[0].Joke.Date.Date != DateTime.Today)
         {
-            _sentry = sentry;
-        }
-
-        private async Task UpdateJoke()
-        {
-            RestClient client = new RestClient("https://api.jokes.one");
-            RestRequest request = new RestRequest("jod", Method.Get);
-
-            RestResponse response = await client.ExecuteAsync(request);
-
-            JokeResponse jokeData = JsonConvert.DeserializeObject<JokeResponse>(response.Content);
-
-            CachedJoke = jokeData.Contents;
-        }
-
-        public async Task<JokeWrapper> GetJoke()
-        {
-            var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(GetJoke));
-            if (CachedJoke == null || CachedJoke.Jokes[0].Joke.Date.Date != DateTime.Today)
-            {
-                transaction.StartChild("Get Joke From API");
-                // Needs updating.
-                await UpdateJoke();
-                transaction.Finish();
-            }
-
+            transaction.StartChild("Get Joke From API");
+            // Needs updating.
+            await UpdateJoke();
             transaction.Finish();
-            return CachedJoke;
         }
+
+        transaction.Finish();
+        return _cachedJoke;
     }
 }

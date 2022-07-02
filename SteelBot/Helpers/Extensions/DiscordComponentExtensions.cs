@@ -5,17 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SteelBot.Helpers.Extensions
+namespace SteelBot.Helpers.Extensions;
+
+public static class DiscordComponentExtensions
 {
-    public static class DiscordComponentExtensions
+    public static DiscordButtonComponent Disable(this DiscordButtonComponent component, bool disable = true)
     {
-        public static DiscordButtonComponent Disable(this DiscordButtonComponent component, bool disable = true)
-        {
-            if (disable)
-            {
-                return new DiscordButtonComponent(component).Disable();
-            }
-            return component;
-        }
+        return disable ? new DiscordButtonComponent(component).Disable() : component;
     }
 }

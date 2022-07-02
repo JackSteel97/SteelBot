@@ -2,49 +2,45 @@
 using Sentry;
 using System.Threading.Tasks;
 
-namespace SteelBot.Helpers.Extensions
+namespace SteelBot.Helpers.Extensions;
+
+public class TypingCommandModule : BaseCommandModule
 {
-    public class TypingCommandModule : BaseCommandModule
+    protected readonly IHub Sentry;
+
+    protected TypingCommandModule(IHub sentry = null)
     {
-        protected readonly IHub _sentry;
+        Sentry = sentry;
+    }
 
-        protected TypingCommandModule(IHub sentry = null)
+    public override Task BeforeExecutionAsync(CommandContext ctx)
+    {
+        if (Sentry != null)
         {
-            _sentry = sentry;
-        }
-
-        public override Task BeforeExecutionAsync(CommandContext ctx)
-        {
-            if (_sentry != null)
+            var transaction = Sentry.StartTransaction(ctx.Command.Module.ModuleType.Name, ctx.Command.Name);
+            Sentry.ConfigureScope(scope =>
             {
-                var transaction = _sentry.StartTransaction(ctx.Command.Module.ModuleType.Name, ctx.Command.Name);
-                _sentry.ConfigureScope(scope =>
-                {
-                    scope.User = ctx.GetSentryUser();
-                    scope.Transaction = transaction;
-                });
-            }
-            ctx.TriggerTypingAsync();
-            return Task.CompletedTask;
+                scope.User = ctx.GetSentryUser();
+                scope.Transaction = transaction;
+            });
         }
+        ctx.TriggerTypingAsync();
+        return Task.CompletedTask;
+    }
 
-        public override Task AfterExecutionAsync(CommandContext ctx)
+    public override Task AfterExecutionAsync(CommandContext ctx)
+    {
+        if (Sentry != null)
         {
-            if (_sentry != null)
+            ITransaction transaction = null;
+            Sentry.ConfigureScope(scope => transaction = scope.Transaction);
+
+            if (transaction != null && !transaction.IsFinished)
             {
-                ITransaction transaction = null;
-                _sentry.ConfigureScope(scope =>
-                {
-                    transaction = scope.Transaction;
-                });
-
-                if (transaction != null && !transaction.IsFinished)
-                {
-                    transaction.Finish(SpanStatus.Ok);
-                }
+                transaction.Finish(SpanStatus.Ok);
             }
-
-            return Task.CompletedTask;
         }
+
+        return Task.CompletedTask;
     }
 }

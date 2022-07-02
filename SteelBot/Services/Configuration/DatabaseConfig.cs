@@ -1,7 +1,6 @@
-﻿namespace SteelBot.Services.Configuration
+﻿namespace SteelBot.Services.Configuration;
+
+public class DatabaseConfig
 {
-    public class DatabaseConfig
-    {
-        public string ConnectionString { get; set; }
-    }
+    public string ConnectionString { get; set; }
 }

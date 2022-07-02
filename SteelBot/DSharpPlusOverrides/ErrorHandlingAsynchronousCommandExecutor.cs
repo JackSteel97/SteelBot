@@ -7,34 +7,33 @@ using SteelBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SteelBot.DSharpPlusOverrides
+namespace SteelBot.DSharpPlusOverrides;
+
+public sealed class ErrorHandlingAsynchronousCommandExecutor : ICommandExecutor
 {
-    public sealed class ErrorHandlingAsynchronousCommandExecutor : ICommandExecutor
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly ILogger<ErrorHandlingAsynchronousCommandExecutor> _logger;
+    public ErrorHandlingAsynchronousCommandExecutor(ErrorHandlingService errorHandlingService, ILogger<ErrorHandlingAsynchronousCommandExecutor> logger)
     {
-        private readonly ErrorHandlingService ErrorHandlingService;
-        private readonly ILogger<ErrorHandlingAsynchronousCommandExecutor> _logger;
-        public ErrorHandlingAsynchronousCommandExecutor(ErrorHandlingService errorHandlingService, ILogger<ErrorHandlingAsynchronousCommandExecutor> logger)
-        {
-            ErrorHandlingService = errorHandlingService;
-            _logger = logger;
-        }
+        _errorHandlingService = errorHandlingService;
+        _logger = logger;
+    }
 
-        public Task ExecuteAsync(CommandContext ctx)
+    public Task ExecuteAsync(CommandContext ctx)
+    {
+        _logger.BeginScope(new Dictionary<string, object>
         {
-            _logger.BeginScope(new Dictionary<string, object>
-            {
-                ["Action"] = ctx.Command.QualifiedName
-            });
+            ["Action"] = ctx.Command.QualifiedName
+        });
 
-            // Don't wait for completion but also catch failed tasks.
-            ctx.CommandsNext.ExecuteCommandAsync(ctx).FireAndForget(ErrorHandlingService);
-            //transaction.Finish();
-            return Task.CompletedTask;
-        }
+        // Don't wait for completion but also catch failed tasks.
+        ctx.CommandsNext.ExecuteCommandAsync(ctx).FireAndForget(_errorHandlingService);
+        //transaction.Finish();
+        return Task.CompletedTask;
+    }
 
-        public void Dispose()
-        {
-            // Nothing to dispose
-        }
+    public void Dispose()
+    {
+        // Nothing to dispose
     }
 }

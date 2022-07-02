@@ -1,46 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SteelBot.Helpers.Algorithms
+namespace SteelBot.Helpers.Algorithms;
+
+public static class DadJokeExtractor
 {
-    public static class DadJokeExtractor
+    private static readonly string[] _possibilities = new string[] { "i'm", "i’m", "i‘m" };
+    private static readonly HashSet<char> _stopCharacters = new HashSet<char> { '.', ',', '?', '!' };
+
+    public static string Extract(string input)
     {
-        private static readonly string[] Possibilities = new string[] { "i'm", "i’m", "i‘m" };
-        private static readonly HashSet<char> StopCharacters = new HashSet<char> { '.', ',', '?', '!' };
-
-        public static string Extract(string input)
+        const string searchString = "i'm";
+        int startIndex = FindFirstIndexOfPossibilities(input, _possibilities);
+        if (startIndex < 0)
         {
-            const string searchString = "i'm";
-            int startIndex = FindFirstIndexOfPossibilities(input, Possibilities);
-            if (startIndex < 0)
-            {
-                return string.Empty;
-            }
-            startIndex += searchString.Length;
-            int endIndex;
-            for (endIndex = startIndex; endIndex < input.Length; endIndex++)
-            {
-                char currentChar = input[endIndex];
-                if (StopCharacters.Contains(currentChar))
-                {
-                    break;
-                }
-            }
-            string result = input[startIndex..endIndex].Trim();
-            return result;
+            return string.Empty;
         }
-
-        private static int FindFirstIndexOfPossibilities(string input, params string[] possibilities)
+        startIndex += searchString.Length;
+        int endIndex;
+        for (endIndex = startIndex; endIndex < input.Length; endIndex++)
         {
-            foreach (string possibility in possibilities)
+            char currentChar = input[endIndex];
+            if (_stopCharacters.Contains(currentChar))
             {
-                int index = input.IndexOf(possibility, StringComparison.OrdinalIgnoreCase);
-                if (index >= 0)
-                {
-                    return index;
-                }
+                break;
             }
-            return -1;
         }
+        string result = input[startIndex..endIndex].Trim();
+        return result;
+    }
+
+    private static int FindFirstIndexOfPossibilities(string input, params string[] possibilities)
+    {
+        foreach (string possibility in possibilities)
+        {
+            int index = input.IndexOf(possibility, StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                return index;
+            }
+        }
+        return -1;
     }
 }

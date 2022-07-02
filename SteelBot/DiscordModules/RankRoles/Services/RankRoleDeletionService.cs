@@ -107,13 +107,13 @@ public class RankRoleDeletionService
 
     private bool TryGetRankRole(RankRoleManagementAction request, out RankRole role)
     {
-        if(request.RoleId != default)
+        if (request.RoleId != default)
         {
             return _rankRolesProvider.TryGetRole(request.Guild.Id, request.RoleId, out role);
         }
 
         // Fallback to search by name.
-        if(_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var allGuildRoles))
+        if (_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var allGuildRoles))
         {
             role = allGuildRoles.Find(x => x.RoleName.Equals(request.RoleName, StringComparison.OrdinalIgnoreCase));
             return role != default;
