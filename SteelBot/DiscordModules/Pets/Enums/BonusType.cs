@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace SteelBot.DiscordModules.Pets.Enums;
 
@@ -6,17 +7,36 @@ namespace SteelBot.DiscordModules.Pets.Enums;
 public enum BonusType
 {
     None = 0,
+    
+    [Description("Message XP")]
     MessageXp = 1,
+    
+    [Description("Voice XP")]
     VoiceXp = 1 << 1,
+    
+    [Description("Streaming XP")]
     StreamingXp = 1 << 2,
+    
+    [Description("Video XP")]
     VideoXp = 1 << 3,
+    
+    [Description("Muted Penalty XP")]
     MutedPenaltyXp = 1 << 4,
+    
+    [Description("Deafened Penalty XP")]
     DeafenedPenaltyXp = 1 << 5,
+    
     SearchSuccessRate = 1 << 6,
     BefriendSuccessRate = 1 << 7,
     PetSlots = 1 << 8,
+    
+    [Description("Pet Shared XP")]
     PetSharedXp = 1 << 9,
+    
+    [Description("Offline XP")]
     OfflineXp = 1 << 10,
+    
+    [Description("All XP")]
     AllXp = MessageXp | VoiceXp | StreamingXp | VideoXp
 }
 

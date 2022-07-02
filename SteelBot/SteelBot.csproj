@@ -12,6 +12,11 @@
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DebugType>portable</DebugType>
 		<ImplicitUsings>disable</ImplicitUsings>
+		<PackageVersion>0.9.1.5</PackageVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <DefineConstants />
 	</PropertyGroup>
 
 	<ItemGroup>
