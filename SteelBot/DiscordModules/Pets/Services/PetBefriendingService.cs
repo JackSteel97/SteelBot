@@ -91,10 +91,7 @@ public class PetBefriendingService
         var initialResponseBuilder = new DiscordMessageBuilder()
             .WithContent($"You found a new potential friend!{(mustReplace ? Environment.NewLine + replacementWarning : "")}")
             .WithEmbed(initialPetDisplay)
-            .AddComponents(new DiscordComponent[] {
-                Interactions.Pets.Befriend,
-                Interactions.Pets.Leave
-            });
+            .AddComponents(Interactions.Pets.Befriend, Interactions.Pets.Leave);
 
         _logger.LogInformation("Sending pet found message to User {UserId} in Guild {GuildId}", context.User.Id, context.Guild.Id);
         buildPetDisplaySpan.Finish();

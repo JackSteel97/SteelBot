@@ -32,6 +32,7 @@ using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -69,6 +70,12 @@ namespace SteelBot;
 
 public class BotMain : IHostedService
 {
+    #if DEBUG
+    private static readonly ulong? _testServerId = 782237087352356876;
+    #else
+    private static readonly ulong? _testServerId = null;
+    #endif
+    
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ILogger<BotMain> _logger;
     private readonly DiscordClient _client;
@@ -76,6 +83,7 @@ public class BotMain : IHostedService
     private readonly DataHelpers _dataHelpers;
     private readonly DataCache _cache;
     private CommandsNextExtension _commands;
+    private SlashCommandsExtension _slashCommands;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
     private readonly UserLockingService _userLockingService;
@@ -222,6 +230,13 @@ public class BotMain : IHostedService
         _commands.RegisterCommands<WordGuesserCommands>();
 
         _commands.SetHelpFormatter<CustomHelpFormatter>();
+
+        _slashCommands = _client.UseSlashCommands(new SlashCommandsConfiguration()
+        {
+            Services = _serviceProvider,
+        });
+
+        _slashCommands.RegisterCommands<MiscSlashCommands>(_testServerId);
     }
 
     private void InitInteractivity()

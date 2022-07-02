@@ -41,6 +41,11 @@ public static class Interactions
         public static readonly DiscordButtonComponent PrevPage = new(ButtonStyle.Secondary, InteractionIds.Pagination.PrevPage, "", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.BackwardArrow));
         public static readonly DiscordButtonComponent Exit = new(ButtonStyle.Secondary, InteractionIds.Pagination.Exit, "", emoji: new DiscordComponentEmoji(EmojiConstants.Symbols.StopButton));
     }
+
+    public static class Links
+    {
+        public static DiscordLinkButtonComponent ExternalLink(string href, string label) => new(href, label);
+    }
 }
 
 public static class InteractionIds
