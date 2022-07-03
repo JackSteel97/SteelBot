@@ -86,7 +86,7 @@ public class PetFactory
     {
         var baseRarity = GetBaseRarity();
         var species = GetSpecies(baseRarity);
-        var finalRarity = GetFinalRarity(baseRarity);
+        var finalRarity = GetFinalRarity(baseRarity, levelOfUser);
         var size = PetGenerationShared.GetRandomEnumValue<Size>();
         var birthDate = GetBirthDate(species);
 
@@ -147,9 +147,11 @@ public class PetFactory
         }
     }
 
-    private static Rarity GetFinalRarity(Rarity rarity)
+    private static Rarity GetFinalRarity(Rarity rarity, int levelOfUser)
     {
-        const double rarityUpChance = 0.1;
+        const double baseChance = 0.1;
+        const double levelDivisor = 50;
+        double rarityUpChance = baseChance * Math.Max(1, levelOfUser / levelDivisor);
         const int maxRarity = (int)Rarity.Mythical;
         int currentRarity = (int)rarity;
 

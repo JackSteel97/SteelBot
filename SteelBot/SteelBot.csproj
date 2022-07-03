@@ -11,8 +11,8 @@
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DebugType>portable</DebugType>
 		<ImplicitUsings>disable</ImplicitUsings>
-		<PackageVersion>0.9.2.6</PackageVersion>
-		<AssemblyVersion>0.9.2.6</AssemblyVersion>
+		<PackageVersion>0.9.2.7</PackageVersion>
+		<AssemblyVersion>0.9.2.7</AssemblyVersion>
 		<Deterministic>false</Deterministic>
 		<PackageProjectUrl>https://github.com/JackSteel97/SteelBot</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/JackSteel97/SteelBot/blob/main/LICENSE</PackageLicenseUrl>
