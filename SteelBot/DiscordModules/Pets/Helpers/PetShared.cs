@@ -272,11 +272,7 @@ public static class PetShared
     {
         foreach (var bonus in pet.Bonuses)
         {
-            if (bonus.BonusType != BonusType.PetSlots)
-            {
-                double increase = Math.Abs(bonus.Value * 0.02);
-                bonus.Value += increase;
-            }
+            bonus.LevelUp();
         }
     }
 }

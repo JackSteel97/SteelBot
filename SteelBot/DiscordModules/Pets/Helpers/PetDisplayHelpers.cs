@@ -125,7 +125,7 @@ public static class PetDisplayHelpers
 
     private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus, bool isCorrupt)
     {
-        string emoji = GetEmoji(bonus.Value, bonus.BonusType.IsNegative());
+        string emoji = GetEmoji(bonus);
         double bonusValue = bonus.Value;
 
         string bonusValueFormat = bonus.BonusType.IsPercentage() ? "P2" : "N2";
@@ -154,10 +154,10 @@ public static class PetDisplayHelpers
         return bonuses;
     }
 
-    private static string GetEmoji(double value, bool isNegativeType = false)
+    private static string GetEmoji(PetBonus bonus)
     {
         string emoji = EmojiConstants.CustomDiscordEmojis.GreenArrowUp;
-        if ((isNegativeType && value > 0) || (!isNegativeType && value <= 0))
+        if (bonus.HasNegativeEffect())
         {
             emoji = EmojiConstants.CustomDiscordEmojis.RedArrowDown;
         }

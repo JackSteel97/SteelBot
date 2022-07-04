@@ -42,7 +42,7 @@ public enum BonusType
 
 public static class BonusTypeExtensions
 {
-    public static bool IsNegative(this BonusType type) => type.HasFlag(BonusType.MutedPenaltyXp) || type.HasFlag(BonusType.DeafenedPenaltyXp);
+    public static bool IsPenalty(this BonusType type) => type.HasFlag(BonusType.MutedPenaltyXp) || type.HasFlag(BonusType.DeafenedPenaltyXp);
 
     public static bool IsPercentage(this BonusType type)
     {

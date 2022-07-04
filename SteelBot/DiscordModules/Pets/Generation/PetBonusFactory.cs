@@ -76,7 +76,7 @@ public static class PetBonusFactory
                 totalBonusValue += Math.Abs(bonus.Value) / 100;
             }
 
-            bool isNegative = bonus.BonusType.IsNegative();
+            bool isNegative = bonus.BonusType.IsPenalty();
             if ((bonus.Value < 0 && isNegative)         // Negative bonus type that is providing a positive effect.
                 || (bonus.Value > 0 && !isNegative))    // Positive bonus type that is providing a positive effect
             {
@@ -87,7 +87,7 @@ public static class PetBonusFactory
 
         // Generate single large positive bonus.
         var newBonus = Generate(pet, levelOfUser, pet.Bonuses);
-        bool newBonusIsNegative = newBonus.BonusType.IsNegative();
+        bool newBonusIsNegative = newBonus.BonusType.IsPenalty();
         if ((newBonus.Value > 0 && newBonusIsNegative)
             || (newBonus.Value < 0 && !newBonusIsNegative))
         {
@@ -174,10 +174,10 @@ public static class PetBonusFactory
     private static bool HandlePercentageBonusGeneration(Pet pet, double maxBonus, PetBonus bonus, List<PetBonus> existingBonuses, int petLevel, int userLevel)
     {
         bool validBonus = true;
-        double minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsNegative() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
+        double minBonus = pet.Rarity < Rarity.Rare && !bonus.BonusType.IsPenalty() ? 0 : maxBonus * -1; // Lower rarities shouldn't have negative bonuses.
 
         bonus.Value = GetRandomPercentageBonus(maxBonus, minBonus);
-        if (bonus.Value < 0 && !bonus.BonusType.IsNegative())
+        if (bonus.Value < 0 && !bonus.BonusType.IsPenalty())
         {
             // Normally positive bonuses being negative should be less common.
             if (MathsHelper.TrueWithProbability(0.8))
