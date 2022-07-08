@@ -90,7 +90,7 @@ public class PetTreatingService
             double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
             int upperBound = Math.Max(101, (int)Math.Round(xpRequiredToLevel));
             int xpGain = RandomNumberGenerator.GetInt32(100, upperBound);
-            pet.EarnedXp += xpGain;
+            pet.EarnedXp += xpGain * petTreatXpBonus;
             xpMathsSpan.Finish();
 
             var xpChangedSpan = transaction.StartChild("Pet Xp Changed");
