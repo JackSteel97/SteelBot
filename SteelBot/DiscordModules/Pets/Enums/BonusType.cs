@@ -36,6 +36,9 @@ public enum BonusType
     [Description("Offline XP")]
     OfflineXp = 1 << 10,
     
+    [Description("Pet Treat XP")]
+    PetTreatXp = 1 << 11,
+    
     [Description("All XP")]
     AllXp = MessageXp | VoiceXp | StreamingXp | VideoXp
 }

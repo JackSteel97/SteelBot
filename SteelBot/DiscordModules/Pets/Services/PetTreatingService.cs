@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Sentry;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
@@ -66,7 +67,8 @@ public class PetTreatingService
                 // Figure out which pet they want to manage.
                 if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
                 {
-                    await HandleTreatGiven(context, petId);
+                    double treatBonus = PetShared.GetBonusValue(availablePets, BonusType.PetTreatXp);
+                    await HandleTreatGiven(context, petId, treatBonus);
                 }
                 handleSpan.Finish();
             }
@@ -77,7 +79,7 @@ public class PetTreatingService
         }
     }
 
-    private async Task HandleTreatGiven(CommandContext context, long petId)
+    private async Task HandleTreatGiven(CommandContext context, long petId, double petTreatXpBonus)
     {
         var transaction = _sentry.GetCurrentTransaction();
         if (_cache.Pets.TryGetPet(context.Member.Id, petId, out var pet) && _cache.Users.TryGetUser(context.Guild.Id, context.Member.Id, out var user))
