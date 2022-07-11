@@ -55,7 +55,7 @@ public class PetsDataHelper
     {
         try
         {
-            await _befriendingService.Search(context);
+            //await _befriendingService.Search(context);
         }
         catch (Exception e)
         {
@@ -79,7 +79,7 @@ public class PetsDataHelper
     {
         try
         {
-            await _treatingService.Treat(context);
+            //await _treatingService.Treat(context);
         }
         catch (Exception e)
         {

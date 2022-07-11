@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.SlashCommands;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Helpers.Interactivity.Models;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -22,9 +23,12 @@ public class InteractionResponder : IResponder
     }
 
     /// <inheritdoc />
-    public async Task RespondAsync(DiscordMessageBuilder messageBuilder)
+    public async Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
     {
         await RespondCore(messageBuilder);
+        
+        // TODO: Solve this.
+        return null;
     }
     
     /// <inheritdoc />
@@ -38,6 +42,9 @@ public class InteractionResponder : IResponder
 
     /// <inheritdoc />
     public void RespondPaginated(List<Page> pages) => RespondPaginatedCore(pages).FireAndForget(_errorHandlingService);
+
+    /// <inheritdoc />
+    public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages) => throw new NotImplementedException();
 
     private Task RespondCore(DiscordMessageBuilder messageBuilder)
     {
