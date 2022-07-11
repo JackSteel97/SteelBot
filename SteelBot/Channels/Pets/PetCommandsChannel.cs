@@ -9,7 +9,7 @@ namespace SteelBot.Channels.Pets;
 
 public class PetCommandsChannel : BaseChannel<PetCommandAction>
 {
-    private readonly PetBefriendingService _befriendingService;
+    private readonly PetSearchingService _searchingService;
     private readonly PetManagementService _managementService;
     private readonly PetTreatingService _treatingService;
     private readonly PetViewingService _viewingService;
@@ -17,7 +17,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
     private readonly IHub _sentry;
 
     /// <inheritdoc />
-    public PetCommandsChannel(PetBefriendingService befriendingService,
+    public PetCommandsChannel(PetSearchingService searchingService,
         PetManagementService managementService,
         PetTreatingService treatingService,
         PetViewingService viewingService,
@@ -27,7 +27,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         ErrorHandlingService errorHandlingService,
         string channelLabel = "Pets") : base(logger, errorHandlingService, channelLabel)
     {
-        _befriendingService = befriendingService;
+        _searchingService = searchingService;
         _managementService = managementService;
         _treatingService = treatingService;
         _viewingService = viewingService;
@@ -42,7 +42,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         switch (message.Action)
         {
             case PetCommandActionType.Search:
-                await _befriendingService.Search();
+                await _searchingService.Search(message);
                 break;
             case PetCommandActionType.ManageAll:
                 await _managementService.Manage();
