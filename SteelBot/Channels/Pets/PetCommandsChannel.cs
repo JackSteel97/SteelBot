@@ -38,14 +38,14 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
     /// <inheritdoc />
     protected override async ValueTask HandleMessage(PetCommandAction message)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Pets", message.Action.ToString(), message.User, message.Guild);
+        var transaction = _sentry.StartNewConfiguredTransaction("Pets", message.Action.ToString(), message.Member, message.Guild);
         switch (message.Action)
         {
             case PetCommandActionType.Search:
                 await _searchingService.Search(message);
                 break;
             case PetCommandActionType.ManageAll:
-                await _managementService.Manage();
+                //TODO: await _managementService.Manage();
                 break;
             case PetCommandActionType.Treat:
                 await _treatingService.Treat(message);
@@ -60,5 +60,5 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         }
 
         transaction.Finish();
-    };
+    }
 }
