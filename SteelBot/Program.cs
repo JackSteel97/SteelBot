@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Sentry;
 using Serilog;
 using SteelBot.Channels.Message;
+using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Voice;
@@ -187,6 +188,10 @@ public static class Program
         serviceProvider.AddSingleton<RankRoleCreationService>();
         serviceProvider.AddSingleton<RankRoleDeletionService>();
         serviceProvider.AddSingleton<RankRoleViewingService>();
+
+        serviceProvider.AddSingleton<PetCommandsChannel>();
+        serviceProvider.AddSingleton<PetViewingService>();
+        serviceProvider.AddSingleton<PetBonusViewingService>();
 
         serviceProvider.AddSingleton<UserLockingService>();
         serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();
