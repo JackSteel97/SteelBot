@@ -11,7 +11,7 @@ public enum PetCommandActionType
     ManageOne,
     Order,
     ViewBonuses,
-    ViewPets
+    View
 }
 public class PetCommandAction
 {

@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using SteelBot.Helpers.Interactivity.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,8 +12,8 @@ public interface IResponder
     /// Respond to the user with the provided message.
     /// </summary>
     /// <param name="messageBuilder">The message to send.</param>
-    /// <returns>A task that completes when the message is sent/</returns>
-    Task RespondAsync(DiscordMessageBuilder messageBuilder);
+    /// <returns>A task that completes when the message is sent containing the sent message./</returns>
+    Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder);
     
     /// <summary>
     /// Respond to the user with the provided message.
@@ -40,4 +41,6 @@ public interface IResponder
     /// </remarks>
     /// <param name="pages">The pages to use.</param>
     void RespondPaginated(List<Page> pages);
+
+    Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages);
 }

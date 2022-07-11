@@ -3,7 +3,9 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Helpers.Interactivity.Models;
 using SteelBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -28,9 +30,9 @@ public class MessageResponder : IResponder
     }
     
     /// <inheritdoc />
-    public async Task RespondAsync(DiscordMessageBuilder messageBuilder)
+    public async Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
     {
-        await RespondCore(messageBuilder);
+        return await RespondCore(messageBuilder);
     }
 
     /// <inheritdoc />
@@ -51,7 +53,13 @@ public class MessageResponder : IResponder
         RespondPaginatedCore(pages).FireAndForget(_errorHandlingService);
     }
 
-    private Task RespondCore(DiscordMessageBuilder messageBuilder)
+    /// <inheritdoc />
+    public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages)
+    {
+        return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(_channel, _user, pages);
+    };
+
+    private Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder)
     {
         return _sourceMessage.RespondAsync(messageBuilder);
     }

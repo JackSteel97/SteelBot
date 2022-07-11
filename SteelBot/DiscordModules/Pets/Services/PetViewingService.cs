@@ -28,7 +28,7 @@ public class PetViewingService
 
     public void View(PetCommandAction request)
     {
-        if (request.Action != PetCommandActionType.ViewPets) throw new ArgumentException($"Unexpected action type sent to {nameof(View)}");
+        if (request.Action != PetCommandActionType.View) throw new ArgumentException($"Unexpected action type sent to {nameof(View)}");
 
         var transaction = _sentry.GetCurrentTransaction();
         ViewPets(request, transaction);
@@ -37,7 +37,7 @@ public class PetViewingService
     private void ViewPets(PetCommandAction request, ITransaction transaction)
     {
         if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
-            || _cache.Pets.TryGetUsersPets(request.Member.Id, out var pets))
+            || !_cache.Pets.TryGetUsersPets(request.Member.Id, out var pets))
         {
             request.Responder.Respond(PetMessages.GetNoPetsAvailableMessage());
             return;

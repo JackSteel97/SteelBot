@@ -48,9 +48,9 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
                 await _managementService.Manage();
                 break;
             case PetCommandActionType.Treat:
-                await _treatingService.Treat();
+                await _treatingService.Treat(message);
                 break;
-            case PetCommandActionType.ViewPets:
+            case PetCommandActionType.View:
                 _viewingService.View(message);
                 break;
             case PetCommandActionType.ViewBonuses:

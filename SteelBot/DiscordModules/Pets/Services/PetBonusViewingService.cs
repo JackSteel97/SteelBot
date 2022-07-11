@@ -34,8 +34,8 @@ public class PetBonusViewingService
     private void ViewPetBonuses(PetCommandAction request, ITransaction transaction)
     {
         var userAndPetsSpan = transaction.StartChild("Get User and Pets");
-        if (_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
-            || _cache.Pets.TryGetUsersPets(request.Member.Id, out var pets))
+        if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
+            || !_cache.Pets.TryGetUsersPets(request.Member.Id, out var pets))
         {
             request.Responder.Respond(PetMessages.GetNoPetsAvailableMessage());
             return;
