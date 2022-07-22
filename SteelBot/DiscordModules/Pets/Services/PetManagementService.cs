@@ -11,6 +11,7 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Services;
@@ -40,7 +41,7 @@ public class PetManagementService
             getPetsSpan.Finish();
 
             var buildEmbedSpan = transaction.StartChild("Build Owned Pets Base Embed");
-            var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, availablePets, disabledPets.Count > 0);
+            var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, combinedPets.ConvertAll(x=>x.Pet), disabledPets.Count > 0);
             buildEmbedSpan.Finish();
 
             var capacitySpan = transaction.StartChild("Get Pet Capacity");
