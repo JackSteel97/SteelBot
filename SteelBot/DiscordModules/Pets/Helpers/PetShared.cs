@@ -25,6 +25,7 @@ namespace SteelBot.DiscordModules.Pets.Helpers;
 public static class PetShared
 {
     private const int _newPetSlotUnlockLevels = 20;
+    private const int _startingPetSlots = 3;
 
     public static DiscordEmbedBuilder GetOwnedPetsBaseEmbed(User user, List<Pet> allPets, bool hasDisabledPets, string username = "Your")
     {
@@ -94,7 +95,7 @@ public static class PetShared
 
     public static int GetBasePetCapacity(User user)
     {
-        int result = 3;
+        int result = _startingPetSlots;
 
         if (user != default)
         {
@@ -244,7 +245,7 @@ public static class PetShared
 
     public static int GetRequiredLevelForPet(int petPriority, double baseCapacity, double totalCapacity)
     {
-        double currentLevelBracket = (baseCapacity - 1) * _newPetSlotUnlockLevels;
+        double currentLevelBracket = (baseCapacity - _startingPetSlots) * _newPetSlotUnlockLevels;
         double extraRequiredLevels = (petPriority + 1 - totalCapacity) * _newPetSlotUnlockLevels;
         return Convert.ToInt32(currentLevelBracket + extraRequiredLevels);
     }
