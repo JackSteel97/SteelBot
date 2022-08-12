@@ -142,6 +142,19 @@ public class GuildsProvider
         transaction.Finish();
     }
 
+    public async Task UpdateGuildName(ulong guildId, string newName)
+    {
+        if (TryGetGuild(guildId, out var guild))
+        {
+            if (!newName.Equals(guild.Name))
+            {
+                _logger.LogInformation("The name of Guild {GuildId} has changed from {OldName} to {NewName} and will be updated in the database", guildId, guild.Name, newName);
+                guild.Name = newName;
+                await UpdateGuild(guild);
+            }
+        }
+    }
+
     public async Task RemoveGuild(ulong guildId)
     {
         var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveGuild));
@@ -196,7 +209,7 @@ public class GuildsProvider
     {
         var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateGuild));
 
-        _logger.LogInformation($"Updating the Guild [{guild.DiscordId}] in the database.");
+        _logger.LogInformation("Updating the Guild {GuildId} in the database", guild.DiscordId);
         guild.RowId = _guildsByDiscordId[guild.DiscordId].RowId;
         int writtenCount;
         using (var db = _dbContextFactory.CreateDbContext())
@@ -213,7 +226,7 @@ public class GuildsProvider
         }
         else
         {
-            _logger.LogError($"Updating Guild [{guild.DiscordId}] in the database altered no entities. The internal cache was not changed.");
+            _logger.LogError("Updating Guild {GuildId} in the database altered no entities. The internal cache was not changed", guild.DiscordId);
         }
 
         transaction.Finish();

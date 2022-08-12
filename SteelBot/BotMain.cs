@@ -180,11 +180,14 @@ public class BotMain : IHostedService
         _client.GuildDeleted += HandleLeavingGuild;
         _client.GuildMemberRemoved += HandleGuildMemberRemoved;
         _client.ModalSubmitted += HandleModalSubmitted;
+        _client.GuildAvailable += HandleGuildAvailable;
         //Client.GuildMemberAdded += HandleGuildMemberAdded; // TODO: Implement properly
 
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
     }
+
+
 
     private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
     {
@@ -299,7 +302,7 @@ public class BotMain : IHostedService
         {
             var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleJoiningGuild), "Create Guild");
 
-            var joinedGuild = new Guild(args.Guild.Id);
+            var joinedGuild = new Guild(args.Guild.Id, args.Guild.Name);
             await _cache.Guilds.UpsertGuild(joinedGuild);
             transaction.Finish();
         }
@@ -392,6 +395,15 @@ public class BotMain : IHostedService
         return Task.CompletedTask;
     }
 
+    private Task HandleGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
+    {
+        Task.Run(async () =>
+        {
+            await _cache.Guilds.UpdateGuildName(e.Guild.Id, e.Guild.Name);
+        }).FireAndForget(_errorHandlingService);
+        return Task.CompletedTask;
+    }
+    
     private async Task HandleGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs args)
     {
         try

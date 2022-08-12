@@ -27,6 +27,7 @@ public class Guild
 
     public int GoodBotVotes { get; set; }
     public int BadBotVotes { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
     /// Empty constructor.
@@ -34,7 +35,7 @@ public class Guild
     /// </summary>
     public Guild() { }
 
-    public Guild(ulong discordId)
+    public Guild(ulong discordId, string name)
     {
         DiscordId = discordId;
         BotAddedTo = DateTime.UtcNow;

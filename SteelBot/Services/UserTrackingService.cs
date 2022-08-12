@@ -41,7 +41,7 @@ public class UserTrackingService
             bool guildExists = _cache.Guilds.BotKnowsGuild(guildId);
             if (!guildExists)
             {
-                await _cache.Guilds.UpsertGuild(new Guild(guildId));
+                await _cache.Guilds.UpsertGuild(new Guild(guildId, discordGuild.Name));
             }
 
             _cache.Guilds.TryGetGuild(guildId, out var guild);
