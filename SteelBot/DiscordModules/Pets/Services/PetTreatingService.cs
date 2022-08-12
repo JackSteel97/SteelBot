@@ -110,7 +110,8 @@ public class PetTreatingService
         double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
         double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
         double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
-        int upperBound = Math.Max(101, (int)Math.Round(xpRequiredToLevel));
+        double scaledXp = xpRequiredToLevel / (1 + Math.Log2(Math.Max(1, pet.CurrentLevel-50)));
+        int upperBound = Math.Max(101, (int)Math.Round(scaledXp));
         int xpGain = RandomNumberGenerator.GetInt32(100, upperBound);
         pet.EarnedXp += xpGain * petTreatXpBonus;
         xpMathsSpan.Finish();

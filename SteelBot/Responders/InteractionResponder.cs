@@ -27,7 +27,7 @@ public class InteractionResponder : IResponder
     {
         await RespondCore(messageBuilder);
         
-        // TODO: Solve this.
+        // TODO: Solve this - the interface wants a message but we don't deal with messages like this in interactions.
         return null;
     }
     
