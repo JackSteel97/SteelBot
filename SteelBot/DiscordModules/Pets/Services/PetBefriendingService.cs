@@ -11,6 +11,7 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Sentry;
+using SteelBot.Responders;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using User = SteelBot.Database.Models.Users.User;
@@ -22,12 +23,14 @@ public class PetBefriendingService
     private readonly DataCache _cache;
     private readonly ILogger<PetBefriendingService> _logger;
     private readonly IHub _sentry;
+    private readonly PetManagementService _managementService;
 
-    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger, IHub sentry)
+    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger, IHub sentry, PetManagementService managementService)
     {
         _cache = cache;
         _logger = logger;
         _sentry = sentry;
+        _managementService = managementService;
     }
 
     public async Task Befriend(PetCommandAction request, Pet foundPet, DiscordInteraction interaction)
@@ -38,10 +41,10 @@ public class PetBefriendingService
         bool hasSpace = PetSpaceHelper.HasSpaceForAnotherPet(request.Member, _cache.Users, _cache.Pets, transaction);
         bool isReplacementBefriend = !hasSpace && PetSpaceHelper.CanReplaceToBefriend(request.Member, _cache.Users, _cache.Pets, transaction);
 
-        await BefriendCore(request, foundPet, hasSpace, isReplacementBefriend, interaction);
+        await BefriendCore(request, foundPet, hasSpace, isReplacementBefriend, interaction, transaction);
     }
 
-    private async Task BefriendCore(PetCommandAction request, Pet foundPet, bool hasSpace, bool isReplacementBefriend, DiscordInteraction interaction)
+    private async Task BefriendCore(PetCommandAction request, Pet foundPet, bool hasSpace, bool isReplacementBefriend, DiscordInteraction interaction, ITransaction transaction)
     {
         if ((!hasSpace && !isReplacementBefriend) || !BefriendSuccess(request.Member, foundPet))
         {
@@ -66,7 +69,9 @@ public class PetBefriendingService
             foundPet = await HandlePetCorruptionChance(request, foundPet);
             
             request.Responder.Respond(PetMessages.GetPetOwnedSuccessMessage(request.Member, foundPet));
+            
             await PetModals.NamePet(interaction, foundPet);
+            await _managementService.ManagePet(request, foundPet.RowId, transaction);
         }
         else
         {

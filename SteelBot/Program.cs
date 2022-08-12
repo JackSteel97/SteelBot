@@ -40,7 +40,7 @@ namespace SteelBot;
 
 public static class Program
 {
-    private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Test";
+    private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Development";
     
     private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
     {
@@ -162,13 +162,12 @@ public static class Program
 
     private static void ConfigureCustomServices(IServiceCollection serviceProvider)
     {
+        // TODO: Scope services?
         // Add custom services.
         serviceProvider.AddSingleton<UserTrackingService>();
         serviceProvider.AddSingleton<LevelCardGenerator>();
         serviceProvider.AddSingleton<PetFactory>();
-        serviceProvider.AddTransient<PetBefriendingService>();
-        serviceProvider.AddTransient<PetManagementService>();
-        serviceProvider.AddTransient<PetTreatingService>();
+        
         serviceProvider.AddSingleton<ErrorHandlingService>();
         serviceProvider.AddSingleton<CancellationService>();
 
@@ -192,6 +191,9 @@ public static class Program
         serviceProvider.AddSingleton<PetCommandsChannel>();
         serviceProvider.AddSingleton<PetViewingService>();
         serviceProvider.AddSingleton<PetBonusViewingService>();
+        serviceProvider.AddSingleton<PetBefriendingService>();
+        serviceProvider.AddSingleton<PetManagementService>();
+        serviceProvider.AddSingleton<PetTreatingService>();
 
         serviceProvider.AddSingleton<UserLockingService>();
         serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();
