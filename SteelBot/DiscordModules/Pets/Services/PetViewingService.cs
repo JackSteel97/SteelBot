@@ -36,8 +36,8 @@ public class PetViewingService
 
     private void ViewPets(PetCommandAction request, ITransaction transaction)
     {
-        if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
-            || !_cache.Pets.TryGetUsersPets(request.Member.Id, out var pets))
+        if (!_cache.Users.TryGetUser(request.Guild.Id, request.Target.Id, out var user)
+            || !_cache.Pets.TryGetUsersPets(request.Target.Id, out var pets))
         {
             request.Responder.Respond(PetMessages.GetNoPetsAvailableMessage());
             return;
@@ -49,8 +49,8 @@ public class PetViewingService
         getPetsSpan.Finish();
         
         var messageBuilderSpan = transaction.StartChild("Build Message");
-        var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, pets, disabledPets.Count > 0, request.Member.DisplayName)
-            .WithThumbnail(request.Member.AvatarUrl);
+        var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, pets, disabledPets.Count > 0, request.Target.DisplayName)
+            .WithThumbnail(request.Target.AvatarUrl);
 
         if (combinedPets.Count == 0)
         {
@@ -64,11 +64,13 @@ public class PetViewingService
         request.Responder.RespondPaginated(pages);
     }
 
-    private List<Page> BuildPages(DiscordEmbedBuilder baseEmbed, User user, List<PetWithActivation> allPets)
+    private static List<Page> BuildPages(DiscordEmbedBuilder baseEmbed, User user, List<PetWithActivation> allPets)
     {
         int maxCapacity = PetShared.GetPetCapacity(user, allPets.ConvertAll(p=>p.Pet));
         int baseCapacity = PetShared.GetBasePetCapacity(user);
-        var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, allPets, 10, (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
+        var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, allPets, 
+            itemsPerPage: 10,
+            (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
 
         return pages;
     }

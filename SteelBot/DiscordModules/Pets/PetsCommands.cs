@@ -4,12 +4,16 @@ using DSharpPlus.Entities;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.Channels.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Responders;
+using SteelBot.Services;
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets;
@@ -23,12 +27,18 @@ public class PetsCommands : TypingCommandModule
     private readonly ILogger<PetsCommands> _logger;
     private readonly PetFactory _petFactory;
     private readonly DataHelpers _dataHelpers;
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly PetCommandsChannel _petCommandsChannel;
+    private readonly CancellationService _cancellationService;
     private const double _hourSeconds = 60 * 60;
-    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry) : base(sentry)
+    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService) : base(sentry)
     {
         _logger = logger;
         _petFactory = petFactory;
         _dataHelpers = dataHelpers;
+        _errorHandlingService = errorHandlingService;
+        _petCommandsChannel = petCommandsChannel;
+        _cancellationService = cancellationService;
     }
 
     [GroupCommand]
@@ -37,8 +47,8 @@ public class PetsCommands : TypingCommandModule
     public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
     {
         _logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
-        otherUser ??= context.Member;
-        await _dataHelpers.Pets.SendOwnedPetsDisplay(context, otherUser);
+        var message = new PetCommandAction(PetCommandActionType.View, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, otherUser);
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("manage")]
@@ -47,8 +57,8 @@ public class PetsCommands : TypingCommandModule
     public async Task ManagePets(CommandContext context)
     {
         _logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
-
-        await _dataHelpers.Pets.HandleManage(context);
+        var message = new PetCommandAction(PetCommandActionType.ManageAll, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("treat")]
@@ -58,8 +68,8 @@ public class PetsCommands : TypingCommandModule
     public async Task TreatPet(CommandContext context)
     {
         _logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
-
-        await _dataHelpers.Pets.HandleTreat(context);
+        var message = new PetCommandAction(PetCommandActionType.Treat, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("Search")]
@@ -68,24 +78,8 @@ public class PetsCommands : TypingCommandModule
     public async Task Search(CommandContext context)
     {
         _logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-
-        await _dataHelpers.Pets.HandleSearch(context);
-    }
-
-    [Command("Order")]
-    [Description("Order your pets by listing their names in a pipe-separated list")]
-    [Cooldown(2, 60, CooldownBucketType.User)]
-    public async Task Order(CommandContext context, [RemainingText] string input)
-    {
-        _logger.LogInformation("User [{UserId}] requested to re-order their pets in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-        if (!string.IsNullOrWhiteSpace(input))
-        {
-            await _dataHelpers.Pets.Reorder(context, input.Trim('\"'));
-        }
-        else
-        {
-            await context.RespondAsync(EmbedGenerator.Warning("Please enter your pet names, separated by pipes `|`"));
-        }
+        var message = new PetCommandAction(PetCommandActionType.Search, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("Bonus")]
@@ -95,9 +89,8 @@ public class PetsCommands : TypingCommandModule
     public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
     {
         _logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
-
-        otherUser ??= context.Member;
-        await _dataHelpers.Pets.SendPetBonusesDisplay(context, otherUser);
+        var message = new PetCommandAction(PetCommandActionType.ViewBonuses, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, otherUser);
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("DebugStats")]
@@ -126,14 +119,5 @@ public class PetsCommands : TypingCommandModule
             .AddField("Mythical", $"{countByRarity[Rarity.Mythical]} ({countByRarity[Rarity.Mythical] / count:P2})", true);
 
         await context.RespondAsync(embed);
-    }
-
-    [Command("Combos")]
-    [RequireOwner]
-    public async Task CalculateCombinations(CommandContext context)
-    {
-        ulong count = _petFactory.CountPossibilities();
-
-        await context.RespondAsync(EmbedGenerator.Info($"There are a possible `{count:N0}` unique pet combinations", "Calculated"));
     }
 }

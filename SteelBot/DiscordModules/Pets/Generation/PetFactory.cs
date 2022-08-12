@@ -38,50 +38,6 @@ public class PetFactory
         }
     }
 
-    public ulong CountPossibilities()
-    {
-        ulong possibilities = 0;
-        var colours = Enum.GetValues(typeof(Colour)).Cast<Colour>().ToArray();
-        var colourMixings = Enum.GetValues(typeof(ColourMixing)).Cast<ColourMixing>().ToArray();
-        var bonuses = Enum.GetValues(typeof(BonusType)).Cast<BonusType>().ToArray();
-        var sizes = Enum.GetValues(typeof(Size)).Cast<Size>().ToArray();
-
-        foreach (var speciesGrouping in _speciesByRarity)
-        {
-            int startingBonuses = speciesGrouping.Key.GetStartingBonusCount();
-
-            foreach (var species in speciesGrouping.Value)
-            {
-                foreach (var size in sizes)
-                {
-                    long bonusMultiplier = PermutationsAndCombinations.NCr(bonuses.Length, startingBonuses);
-                    for (int i = 0; i < bonusMultiplier; ++i)
-                    {
-                        foreach (var bodyPart in species.GetBodyParts())
-                        {
-                            foreach (var colour in colours)
-                            {
-                                ++possibilities;
-                            }
-                            foreach (var mixing in colourMixings)
-                            {
-                                foreach (var colour in colours)
-                                {
-                                    foreach (var colour2 in colours)
-                                    {
-                                        ++possibilities;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return possibilities;
-    }
-
     public Pet Generate(int levelOfUser = 0)
     {
         var baseRarity = GetBaseRarity();

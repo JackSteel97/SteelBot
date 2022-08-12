@@ -3,9 +3,11 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using Microsoft.VisualBasic;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Interactivity.Models;
+using SteelBot.Responders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,6 +102,27 @@ public static class InteractivityHelper
             await message.DeleteAsync();
             return false;
         }
+    }
+
+    public static async Task<bool> GetConfirmation(IResponder responder, DiscordMember member, string actionDescription)
+    {
+        var confirmMessageBuilder = new DiscordMessageBuilder()
+            .WithContent($"Attention {member.Mention}!")
+            .WithEmbed(EmbedGenerator.Warning($"This action ({actionDescription}) **cannot** be undone, please confirm you want to continue.")
+            ).AddComponents((new[] { Interactions.Confirmation.Confirm, Interactions.Confirmation.Cancel }));
+
+        var message = await responder.RespondAsync(confirmMessageBuilder);
+        var result = await message.WaitForButtonAsync(member);
+        confirmMessageBuilder.ClearComponents();
+
+        if (!result.TimedOut)
+        {
+            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(confirmMessageBuilder));
+            return result.Result.Id == InteractionIds.Confirmation.Confirm;
+        }
+
+        await message.DeleteAsync();
+        return false;
     }
 
     public static async Task<(string selectedId, DiscordInteraction interaction)> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
