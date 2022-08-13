@@ -58,16 +58,13 @@ public class PetManagementService
 
             transaction.Finish(SpanStatus.Ok);
             (string resultId, _) = await request.Responder.RespondPaginatedWithComponents(pages);
-            var responseTransaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), "Handle Manage Response");
             if (!string.IsNullOrWhiteSpace(resultId))
             {
-                var handleSpan = responseTransaction.StartChild("Handle Manage Pet");
                 // Figure out which pet they want to manage.
                 if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
                 {
-                    await ManagePet(request, petId, handleSpan);
+                    await ManagePet(request, petId);
                 }
-                handleSpan.Finish();
             }
         }
         else
@@ -114,8 +111,9 @@ public class PetManagementService
         }
     }
 
-    public async Task ManagePet(PetCommandAction request, long petId, ISpan transaction)
+    public async Task ManagePet(PetCommandAction request, long petId)
     {
+        var transaction = _sentry.StartNewConfiguredTransaction(nameof(PetManagementService), "Manage Pet", request.Member, request.Guild);
         if (_cache.Pets.TryGetPet(request.Member.Id, petId, out var pet))
         {
             var countPetsSpan = transaction.StartChild("Count Pets");

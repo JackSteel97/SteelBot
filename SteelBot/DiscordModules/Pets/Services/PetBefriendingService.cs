@@ -71,7 +71,7 @@ public class PetBefriendingService
             request.Responder.Respond(PetMessages.GetPetOwnedSuccessMessage(request.Member, foundPet));
             
             await PetModals.NamePet(interaction, foundPet);
-            await _managementService.ManagePet(request, foundPet.RowId, transaction);
+            await _managementService.ManagePet(request, foundPet.RowId);
         }
         else
         {

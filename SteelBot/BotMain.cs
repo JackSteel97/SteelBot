@@ -196,6 +196,7 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
+            // TODO: this overwrites the transaction used by the pet command handler when managing a pet after befriending it - need to fix this scoping.
             var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
             switch (e.Interaction.Data.CustomId)
             {

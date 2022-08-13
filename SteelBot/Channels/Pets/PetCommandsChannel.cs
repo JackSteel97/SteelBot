@@ -48,7 +48,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
                     await _searchingService.Search(message);
                     break;
                 case PetCommandActionType.ManageOne:
-                    await _managementService.ManagePet(message, message.PetId, transaction);
+                    await _managementService.ManagePet(message, message.PetId);
                     break;
                 case PetCommandActionType.ManageAll:
                     await _managementService.Manage(message);
@@ -65,7 +65,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
             }
 
             transaction.Finish();
-        }).FireAndForget(_errorHandlingService);
+        }).FireAndForget(ErrorHandlingService);
         
         return ValueTask.CompletedTask;
     }
