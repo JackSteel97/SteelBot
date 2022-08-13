@@ -61,7 +61,7 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
         catch (Exception e)
         {
             const string source = $"{nameof(VoiceStateChannel)}.{nameof(HandleMessage)}";
-            await ErrorHandlingService.Log(e, source);
+            await _errorHandlingService.Log(e, source);
         }
     }
 }

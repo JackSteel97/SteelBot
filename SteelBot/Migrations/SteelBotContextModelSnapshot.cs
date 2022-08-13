@@ -17,7 +17,7 @@ namespace SteelBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.6")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -103,6 +103,10 @@ namespace SteelBot.Migrations
 
                     b.Property<decimal?>("LevelAnnouncementChannelId")
                         .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RowId");
 

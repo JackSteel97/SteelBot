@@ -79,7 +79,7 @@ public class MessagesChannel : BaseChannel<IncomingMessage>
         catch (Exception e)
         {
             const string source = $"{nameof(MessagesChannel)}.{nameof(HandleMessage)}";
-            await ErrorHandlingService.Log(e, source);
+            await _errorHandlingService.Log(e, source);
         }
     }
 }

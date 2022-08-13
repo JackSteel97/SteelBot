@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DiscordModules.Pets.Services;
+using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         PetViewingService viewingService,
         PetBonusViewingService bonusViewingService,
         IHub sentry,
-        ILogger logger,
+        ILogger<PetCommandsChannel> logger,
         ErrorHandlingService errorHandlingService,
         string channelLabel = "Pets") : base(logger, errorHandlingService, channelLabel)
     {
@@ -36,31 +37,36 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
     }
 
     /// <inheritdoc />
-    protected override async ValueTask HandleMessage(PetCommandAction message)
+    protected override ValueTask HandleMessage(PetCommandAction message)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Pets", message.Action.ToString(), message.Member, message.Guild);
-        switch (message.Action)
+        Task.Run(async () =>
         {
-            case PetCommandActionType.Search:
-                await _searchingService.Search(message);
-                break;
-            case PetCommandActionType.ManageOne:
-                await _managementService.ManagePet(message, message.PetId, transaction);
-                break;
-            case PetCommandActionType.ManageAll:
-                await _managementService.Manage(message);
-                break;
-            case PetCommandActionType.Treat:
-                await _treatingService.Treat(message);
-                break;
-            case PetCommandActionType.View:
-                _viewingService.View(message);
-                break;
-            case PetCommandActionType.ViewBonuses:
-                _bonusViewingService.View(message);
-                break;
-        }
+            var transaction = _sentry.StartNewConfiguredTransaction("Pets", message.Action.ToString(), message.Member, message.Guild);
+            switch (message.Action)
+            {
+                case PetCommandActionType.Search:
+                    await _searchingService.Search(message);
+                    break;
+                case PetCommandActionType.ManageOne:
+                    await _managementService.ManagePet(message, message.PetId, transaction);
+                    break;
+                case PetCommandActionType.ManageAll:
+                    await _managementService.Manage(message);
+                    break;
+                case PetCommandActionType.Treat:
+                    await _treatingService.Treat(message);
+                    break;
+                case PetCommandActionType.View:
+                    _viewingService.View(message);
+                    break;
+                case PetCommandActionType.ViewBonuses:
+                    _bonusViewingService.View(message);
+                    break;
+            }
 
-        transaction.Finish();
+            transaction.Finish();
+        }).FireAndForget(_errorHandlingService);
+        
+        return ValueTask.CompletedTask;
     }
 }

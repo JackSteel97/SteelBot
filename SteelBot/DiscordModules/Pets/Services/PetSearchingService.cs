@@ -115,6 +115,7 @@ public class PetSearchingService
         transaction.Finish();
         var message = await request.Responder.RespondAsync(response);
         var result = await message.WaitForButtonAsync(request.Member);
+        _sentry.StartNewConfiguredTransaction(nameof(HandlePetFound), "Befriend Response", request.Member, request.Guild);
         if (result.TimedOut)
         {
             _logger.LogInformation("Pet found message timed out waiting for a user response from User {UserId} in Guild {GuildId}", request.Member.Id, request.Guild.Id);

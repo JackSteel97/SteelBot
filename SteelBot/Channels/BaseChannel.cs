@@ -15,13 +15,13 @@ public abstract class BaseChannel<TMsg>
 
     private readonly Channel<TMsg> _channel;
     private readonly ILogger _logger;
-    protected readonly ErrorHandlingService ErrorHandlingService;
+    protected readonly ErrorHandlingService _errorHandlingService;
     private readonly string _label;
 
     protected BaseChannel(ILogger logger, ErrorHandlingService errorHandlingService, string channelLabel = "Unlabelled")
     {
         _logger = logger;
-        ErrorHandlingService = errorHandlingService;
+        _errorHandlingService = errorHandlingService;
         _label = channelLabel;
 
         var options = new BoundedChannelOptions(_maxCapacity)
@@ -54,7 +54,7 @@ public abstract class BaseChannel<TMsg>
         if (!Started)
         {
             Started = true;
-            StartConsumer(token).FireAndForget(ErrorHandlingService);
+            StartConsumer(token).FireAndForget(_errorHandlingService);
         }
     }
 

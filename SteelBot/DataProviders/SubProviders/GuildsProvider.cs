@@ -153,6 +153,11 @@ public class GuildsProvider
                 await UpdateGuild(guild);
             }
         }
+        else
+        {
+            _logger.LogInformation("The Guild {GuildId} does not exist so will be created in the database", guildId);
+            await InsertGuild(new Guild(guildId, newName));
+        }
     }
 
     public async Task RemoveGuild(ulong guildId)

@@ -38,6 +38,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.Message;
+using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Voice;
@@ -95,6 +96,7 @@ public class BotMain : IHostedService
     private readonly MessagesChannel _incomingMessageChannel;
     private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
     private readonly RankRoleManagementChannel _rankRoleManagementChannel;
+    private readonly PetCommandsChannel _petCommandsChannel;
 
     public BotMain(AppConfigurationService appConfigurationService,
         ILogger<BotMain> logger,
@@ -110,7 +112,8 @@ public class BotMain : IHostedService
         SelfRoleManagementChannel selfRoleManagementChannel,
         RankRoleManagementChannel rankRoleManagementChannel,
         ErrorHandlingAsynchronousCommandExecutor commandExecutor,
-        IHub sentry)
+        IHub sentry,
+        PetCommandsChannel petCommandsChannel)
     {
         _appConfigurationService = appConfigurationService;
         _logger = logger;
@@ -127,6 +130,7 @@ public class BotMain : IHostedService
         _rankRoleManagementChannel = rankRoleManagementChannel;
         _commandExecutor = commandExecutor;
         _sentry = sentry;
+        _petCommandsChannel = petCommandsChannel;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -170,6 +174,7 @@ public class BotMain : IHostedService
         _incomingMessageChannel.Start(_cancellationService.Token);
         _selfRoleManagementChannel.Start(_cancellationService.Token);
         _rankRoleManagementChannel.Start(_cancellationService.Token);
+        _petCommandsChannel.Start(_cancellationService.Token);
     }
 
     private void InitHandlers()
@@ -186,8 +191,6 @@ public class BotMain : IHostedService
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
     }
-
-
 
     private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
     {
@@ -399,7 +402,9 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
+            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildAvailable), "Update Guild Name");
             await _cache.Guilds.UpdateGuildName(e.Guild.Id, e.Guild.Name);
+            transaction.Finish();
         }).FireAndForget(_errorHandlingService);
         return Task.CompletedTask;
     }

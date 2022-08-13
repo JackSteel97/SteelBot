@@ -27,6 +27,7 @@ public class Guild
 
     public int GoodBotVotes { get; set; }
     public int BadBotVotes { get; set; }
+    [MaxLength(255)]
     public string Name { get; set; }
 
     /// <summary>
@@ -39,6 +40,7 @@ public class Guild
     {
         DiscordId = discordId;
         BotAddedTo = DateTime.UtcNow;
+        Name = name;
     }
 
     public Guild Clone()

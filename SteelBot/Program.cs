@@ -192,6 +192,7 @@ public static class Program
         serviceProvider.AddSingleton<PetViewingService>();
         serviceProvider.AddSingleton<PetBonusViewingService>();
         serviceProvider.AddSingleton<PetBefriendingService>();
+        serviceProvider.AddSingleton<PetSearchingService>();
         serviceProvider.AddSingleton<PetManagementService>();
         serviceProvider.AddSingleton<PetTreatingService>();
 
