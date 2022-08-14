@@ -6,6 +6,7 @@ using SteelBot.Database.Models;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Roles.Helpers;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Responders;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -35,10 +36,10 @@ public class SelfRoleMembershipService
         _logger.LogInformation("Request for user {UserId} to join self role {RoleName} in Guild {GuildId} received", request.Member.Id, request.RoleName, request.Member.Guild.Id);
 
         if (ValidateRequest(request, out var discordRole)
-            && ValidateUserDoesNotAlreadyHaveRole(request.Member, discordRole.Id, discordRole.Mention, request.RespondAsync))
+            && ValidateUserDoesNotAlreadyHaveRole(request.Member, discordRole.Id, discordRole.Mention, request.Responder))
         {
             await JoinRole(request.Member, discordRole);
-            request.RespondAsync(SelfRoleMessages.JoinedRoleSuccess(request.Member.Mention, discordRole.Mention)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.JoinedRoleSuccess(request.Member.Mention, discordRole.Mention));
         }
     }
 
@@ -53,11 +54,11 @@ public class SelfRoleMembershipService
             var joinedRolesBuilder = await JoinRoles(request, allSelfRoles);
             if (joinedRolesBuilder.Length > 0)
             {
-                request.RespondAsync(SelfRoleMessages.JoinedRolesSuccess(joinedRolesBuilder)).FireAndForget(_errorHandlingService);
+                request.Responder.Respond(SelfRoleMessages.JoinedRolesSuccess(joinedRolesBuilder));
             }
             else
             {
-                request.RespondAsync(SelfRoleMessages.NoSelfRolesLeftToJoin()).FireAndForget(_errorHandlingService);
+                request.Responder.Respond(SelfRoleMessages.NoSelfRolesLeftToJoin());
             }
         }
     }
@@ -69,7 +70,7 @@ public class SelfRoleMembershipService
         if (ValidateRequest(request, out var discordRole))
         {
             await LeaveRole(request.Member, discordRole);
-            request.RespondAsync(SelfRoleMessages.LeftRoleSuccess(request.Member.Mention, discordRole.Mention)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.LeftRoleSuccess(request.Member.Mention, discordRole.Mention));
         }
     }
 
@@ -79,22 +80,22 @@ public class SelfRoleMembershipService
         discordRole = request.Member.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(request.RoleName, StringComparison.OrdinalIgnoreCase));
         if (discordRole == default)
         {
-            request.RespondAsync(SelfRoleMessages.RoleDoesNotExist(request.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleDoesNotExist(request.RoleName));
             valid = false;
         }
         else if (!_selfRolesProvider.BotKnowsRole(request.Member.Guild.Id, discordRole.Id))
         {
-            request.RespondAsync(SelfRoleMessages.InvalidRole(discordRole.Mention)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.InvalidRole(discordRole.Mention));
             valid = false;
         }
         return valid;
     }
 
-    private bool ValidateUserDoesNotAlreadyHaveRole(DiscordMember member, ulong discordRoleId, string roleMention, Func<DiscordMessageBuilder, Task> respondAsync)
+    private bool ValidateUserDoesNotAlreadyHaveRole(DiscordMember member, ulong discordRoleId, string roleMention, IResponder responder)
     {
         if (member.Roles.Any(r => r.Id == discordRoleId))
         {
-            respondAsync(SelfRoleMessages.AlreadyHasRole(roleMention)).FireAndForget(_errorHandlingService);
+            responder.Respond(SelfRoleMessages.AlreadyHasRole(roleMention));
             return false;
         }
 

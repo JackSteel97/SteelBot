@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Entities;
+using SteelBot.Responders;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.SelfRole;
@@ -12,37 +13,23 @@ public enum SelfRoleActionType
     JoinAll
 }
 
-public class SelfRoleManagementAction
+public class SelfRoleManagementAction : BaseAction<SelfRoleActionType>
 {
-    public SelfRoleActionType Action { get; init; }
-    public DiscordMember Member { get; init; }
-    public DiscordMessage SourceMessage { get; init; }
-    public string RoleName { get; init; }
-    public string Description { get; init; }
+    public string RoleName { get; }
+    public string Description { get; }
 
-    public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage, string roleName, string description)
+    public SelfRoleManagementAction(SelfRoleActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, string roleName, string description)
+    : base(action, responder, member, guild)
     {
-        Action = action;
-        Member = member;
-        SourceMessage = sourceMessage;
         RoleName = roleName;
         Description = description;
     }
 
-    public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage, string roleName)
+    public SelfRoleManagementAction(SelfRoleActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, string roleName)
+    : base(action, responder, member, guild)
     {
-        Action = action;
-        Member = member;
-        SourceMessage = sourceMessage;
         RoleName = roleName;
     }
-
-    public SelfRoleManagementAction(SelfRoleActionType action, DiscordMember member, DiscordMessage sourceMessage)
-    {
-        Action = action;
-        Member = member;
-        SourceMessage = sourceMessage;
-    }
-
-    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder msg) => SourceMessage.RespondAsync(msg);
+    public SelfRoleManagementAction(SelfRoleActionType action, IResponder responder, DiscordMember member, DiscordGuild guild)
+    :base(action, responder, member, guild) {}
 }

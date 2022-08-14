@@ -53,11 +53,11 @@ public class SelfRoleCreationService
         if (_selfRolesProvider.TryGetRole(request.Member.Guild.Id, request.RoleName, out var role))
         {
             await _selfRolesProvider.RemoveRole(request.Member.Guild.Id, role.DiscordRoleId);
-            request.RespondAsync(SelfRoleMessages.RoleRemovedSuccess(request.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleRemovedSuccess(request.RoleName));
         }
         else
         {
-            request.RespondAsync(SelfRoleMessages.RoleDoesNotExist(request.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleDoesNotExist(request.RoleName));
         }
     }
 
@@ -68,7 +68,7 @@ public class SelfRoleCreationService
             var role = new SelfRole(discordRole.Id, request.RoleName, guild.RowId, request.Description);
             await _selfRolesProvider.AddRole(guild.DiscordId, role);
 
-            request.RespondAsync(SelfRoleMessages.RoleCreatedSuccess(discordRole.Mention)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleCreatedSuccess(discordRole.Mention));
         }
         else
         {
@@ -82,19 +82,19 @@ public class SelfRoleCreationService
         bool valid = false;
         if (string.IsNullOrWhiteSpace(request.RoleName))
         {
-            request.RespondAsync(SelfRoleMessages.NoRoleNameProvided()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.NoRoleNameProvided());
         }
         else if (string.IsNullOrWhiteSpace(request.Description))
         {
-            request.RespondAsync(SelfRoleMessages.NoRoleDescriptionProvided()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.NoRoleDescriptionProvided());
         }
         else if (request.RoleName.Length > 255)
         {
-            request.RespondAsync(SelfRoleMessages.RoleNameTooLong()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleNameTooLong());
         }
         else if (request.Description.Length > 255)
         {
-            request.RespondAsync(SelfRoleMessages.RoleDescriptionTooLong()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleDescriptionTooLong());
         }
         else
         {
@@ -109,11 +109,11 @@ public class SelfRoleCreationService
         discordRole = request.Member.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(request.RoleName, StringComparison.OrdinalIgnoreCase));
         if (discordRole == null)
         {
-            request.RespondAsync(SelfRoleMessages.RoleNotCreatedYet()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(SelfRoleMessages.RoleNotCreatedYet());
         }
         else if (_selfRolesProvider.BotKnowsRole(request.Member.Guild.Id, discordRole.Id))
         {
-            request.RespondAsync(SelfRoleMessages.RoleAlreadyExists(discordRole.Mention));
+            request.Responder.Respond(SelfRoleMessages.RoleAlreadyExists(discordRole.Mention));
         }
         else
         {

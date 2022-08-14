@@ -3,8 +3,12 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Sentry;
+using SteelBot.Channels.SelfRole;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Responders;
+using SteelBot.Services;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles;
@@ -16,10 +20,16 @@ namespace SteelBot.DiscordModules.Roles;
 public class RolesCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly CancellationService _cancellationService;
+    private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
 
-    public RolesCommands(DataHelpers dataHelper, IHub sentry) : base(sentry)
+    public RolesCommands(DataHelpers dataHelper, IHub sentry, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel) : base(sentry)
     {
         _dataHelpers = dataHelper;
+        _errorHandlingService = errorHandlingService;
+        _cancellationService = cancellationService;
+        _selfRoleManagementChannel = selfRoleManagementChannel;
     }
 
     [GroupCommand]
@@ -37,49 +47,75 @@ public class RolesCommands : TypingCommandModule
     [Cooldown(10, 60, CooldownBucketType.User)]
     public async Task JoinRole(CommandContext context, [RemainingText] string roleName)
     {
-        if (roleName.Equals("All", StringComparison.OrdinalIgnoreCase))
-        {
-            await _dataHelpers.Roles.JoinAllRoles(context);
-        }
-        else
-        {
-            await _dataHelpers.Roles.JoinRole(context, roleName);
-        }
+        var actionType = roleName.Equals("All", StringComparison.OrdinalIgnoreCase)
+            ? SelfRoleActionType.JoinAll
+            : SelfRoleActionType.Join;
+
+        var action = new SelfRoleManagementAction(actionType, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, roleName);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
     }
 
     [Command("Join")]
     [Priority(10)]
-    public async Task JoinRole(CommandContext context, DiscordRole role) => await _dataHelpers.Roles.JoinRole(context, role);
+    public async Task JoinRole(CommandContext context, DiscordRole role)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Join, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Leave")]
     [Aliases("l")]
     [Description("Leaves the self role specified.")]
     [Cooldown(10, 60, CooldownBucketType.User)]
-    public async Task LeaveRole(CommandContext context, [RemainingText] string roleName) => await _dataHelpers.Roles.LeaveRole(context, roleName);
+    public async Task LeaveRole(CommandContext context, [RemainingText] string roleName)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Leave, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, roleName);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Leave")]
     [Priority(10)]
-    public async Task LeaveRole(CommandContext context, DiscordRole role) => await _dataHelpers.Roles.LeaveRole(context, role);
+    public async Task LeaveRole(CommandContext context, DiscordRole role)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Leave, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Set")]
     [Aliases("Create")]
     [Description("Sets the given role as a self role that users can join themselves.")]
     [RequireUserPermissions(Permissions.ManageRoles)]
     [Cooldown(10, 60, CooldownBucketType.Guild)]
-    public Task SetSelfRole(CommandContext context, string roleName, string description) => _dataHelpers.Roles.CreateRole(context, roleName, description);
+    public async Task SetSelfRole(CommandContext context, string roleName, string description)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Create, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, roleName, description);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Set")]
     [Priority(10)]
-    public Task SetSelfRole(CommandContext context, DiscordRole role, string description) => _dataHelpers.Roles.CreateRole(context, role, description);
+    public async Task SetSelfRole(CommandContext context, DiscordRole role, string description)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Create, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name, description);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Remove")]
     [Aliases("Delete")]
     [Description("Removes the given role from the list of self roles, users will no longer be able to join the role themselves.")]
     [RequireUserPermissions(Permissions.ManageRoles)]
     [Cooldown(10, 60, CooldownBucketType.Guild)]
-    public Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName) => _dataHelpers.Roles.RemoveRole(context, roleName);
+    public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Delete, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, roleName);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 
     [Command("Remove")]
     [Priority(10)]
-    public Task RemoveSelfRole(CommandContext context, DiscordRole role) => _dataHelpers.Roles.RemoveRole(context, role);
+    public async Task RemoveSelfRole(CommandContext context, DiscordRole role)
+    {
+        var action = new SelfRoleManagementAction(SelfRoleActionType.Delete, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name);
+        await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
+    }
 }
