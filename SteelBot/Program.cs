@@ -85,6 +85,7 @@ public static class Program
                 opt.AddSentry(o =>
                 {
                     o.MinimumEventLevel = LogLevel.Warning;
+                    o.Environment = _environment;
                     o.Release = appConfigurationService.Version;
                     o.AutoSessionTracking = true;
                     o.DetectStartupTime = StartupTimeDetectionMode.Best;
@@ -123,7 +124,7 @@ public static class Program
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "A Fatal exception occurred during startup.");
+            Log.Fatal(ex, "A Fatal exception occurred during startup");
             throw;
         }
     }
@@ -135,7 +136,6 @@ public static class Program
         serviceProvider.AddSingleton<StatsDataHelper>();
         serviceProvider.AddSingleton<ConfigDataHelper>();
         serviceProvider.AddSingleton<RolesDataHelper>();
-        serviceProvider.AddSingleton<RankRoleDataHelper>();
         serviceProvider.AddSingleton<TriggerDataHelper>();
         serviceProvider.AddSingleton<FunDataHelper>();
         serviceProvider.AddSingleton<PetsDataHelper>();
@@ -202,14 +202,17 @@ public static class Program
 
     public static async Task Main(string[] args)
     {
-        try
+        using (SentrySdk.Init())
         {
-            await CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync();
-        }
-        finally
-        {
-            await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
-            Log.CloseAndFlush();
+            try
+            {
+                await CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync();
+            }
+            finally
+            {
+                await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
+                Log.CloseAndFlush();
+            } 
         }
     }
 

@@ -16,8 +16,6 @@ public class DataHelpers
 
     public RolesDataHelper Roles { get; }
 
-    public RankRoleDataHelper RankRoles { get; }
-
     public TriggerDataHelper Triggers { get; }
 
     public FunDataHelper Fun { get; }
@@ -27,7 +25,6 @@ public class DataHelpers
     public DataHelpers(StatsDataHelper statsHelper,
         ConfigDataHelper configHelper,
         RolesDataHelper rolesHelper,
-        RankRoleDataHelper rankRolesHelper,
         TriggerDataHelper triggersDataHelper,
         FunDataHelper fun,
         PetsDataHelper pets)
@@ -35,7 +32,6 @@ public class DataHelpers
         Stats = statsHelper;
         Config = configHelper;
         Roles = rolesHelper;
-        RankRoles = rankRolesHelper;
         Triggers = triggersDataHelper;
         Fun = fun;
         Pets = pets;

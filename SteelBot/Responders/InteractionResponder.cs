@@ -54,7 +54,7 @@ public class InteractionResponder : IResponder
 
     private Task RespondPaginatedCore(List<Page> pages)
     {
-        // TODO: Implement
+        // TODO: Implement for interactions.
         throw new NotImplementedException();
     }
 }

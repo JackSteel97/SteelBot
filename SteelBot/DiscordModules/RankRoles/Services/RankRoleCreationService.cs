@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 namespace SteelBot.DiscordModules.RankRoles.Services;
 public class RankRoleCreationService
 {
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly RankRolesProvider _rankRolesProvider;
     private readonly GuildsProvider _guildsProvider;
     private readonly ILogger<RankRoleCreationService> _logger;
@@ -22,15 +21,13 @@ public class RankRoleCreationService
     private readonly UserLockingService _userLockingService;
     private readonly LevelMessageSender _levelMessageSender;
 
-    public RankRoleCreationService(ErrorHandlingService errorHandlingService,
-        RankRolesProvider rankRolesProvider,
+    public RankRoleCreationService(RankRolesProvider rankRolesProvider,
         GuildsProvider guildsProvider,
         ILogger<RankRoleCreationService> logger,
         UsersProvider usersProvider,
         UserLockingService userLockingService,
         LevelMessageSender levelMessageSender)
     {
-        _errorHandlingService = errorHandlingService;
         _rankRolesProvider = rankRolesProvider;
         _guildsProvider = guildsProvider;
         _logger = logger;
@@ -90,7 +87,7 @@ public class RankRoleCreationService
             alreadyAchievedUsersSection += usersGainedRole.ToString();
         }
 
-        request.RespondAsync(RankRoleMessages.RankRoleCreatedSuccess(newRoleName, newRoleRank, alreadyAchievedUsersSection)).FireAndForget(_errorHandlingService);
+        request.Responder.Respond(RankRoleMessages.RankRoleCreatedSuccess(newRoleName, newRoleRank, alreadyAchievedUsersSection));
     }
 
     private bool Validate(RankRoleManagementAction request, out DiscordRole discordRole)
@@ -98,38 +95,38 @@ public class RankRoleCreationService
         discordRole = null;
         if (request.RoleId == default && string.IsNullOrWhiteSpace(request.RoleName))
         {
-            request.RespondAsync(RankRoleMessages.NoRoleNameProvided()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.NoRoleNameProvided());
             return false;
         }
 
         discordRole = GetDiscordRole(request.Guild, request.RoleId, request.RoleName);
         if (discordRole == null)
         {
-            request.RespondAsync(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName));
             return false;
         }
 
         if (discordRole.Name.Length > 255)
         {
-            request.RespondAsync(RankRoleMessages.RoleNameTooLong()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RoleNameTooLong());
             return false;
         }
 
         if (request.RequiredRank < 0)
         {
-            request.RespondAsync(RankRoleMessages.RequiredRankMustBePositive()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RequiredRankMustBePositive());
             return false;
         }
 
         if (_rankRolesProvider.BotKnowsRole(request.Guild.Id, discordRole.Id))
         {
-            request.RespondAsync(RankRoleMessages.RoleAlreadyExists()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RoleAlreadyExists());
             return false;
         }
 
         if (RoleExistsAtLevel(request.Guild.Id, request.RequiredRank, out string existingRoleName))
         {
-            request.RespondAsync(RankRoleMessages.RoleAlreadyExistsForLevel(request.RequiredRank, existingRoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RoleAlreadyExistsForLevel(request.RequiredRank, existingRoleName));
             return false;
         }
 

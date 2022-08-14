@@ -28,10 +28,10 @@ public class RankRoleViewingService
 
     public void View(RankRoleManagementAction request)
     {
-        _logger.LogInformation("User {UserId} requested to view the Rank Roles in Guild {GuildId}", request.SourceMessage.Author.Id, request.Guild.Id);
+        _logger.LogInformation("User {UserId} requested to view the Rank Roles in Guild {GuildId}", request.Member.Id, request.Guild.Id);
         if (!_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var guildRoles) || guildRoles.Count == 0)
         {
-            request.RespondAsync(RankRoleMessages.NoRankRolesForThisServer()).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.NoRankRolesForThisServer());
             return;
         }
 
@@ -50,6 +50,6 @@ public class RankRoleViewingService
             20,
             (builder, item, _) => builder.Append("Level ").Append(Formatter.InlineCode(item.LevelRequired.ToString())).Append(" - ").AppendLine(item.RoleDiscordId.ToRoleMention()));
 
-        interactivity.SendPaginatedMessageAsync(request.SourceMessage.Channel, request.SourceMessage.Author, rolesPages).FireAndForget(_errorHandlingService);
+        request.Responder.RespondPaginated(rolesPages);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Entities;
+using SteelBot.Responders;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.RankRole;
@@ -10,39 +11,30 @@ public enum RankRoleManagementActionType
     View
 }
 
-public class RankRoleManagementAction
+public class RankRoleManagementAction : BaseAction<RankRoleManagementActionType>
 {
-    public RankRoleManagementActionType Action { get; init; }
-    public DiscordMessage SourceMessage { get; init; }
-    public string RoleName { get; init; }
-    public ulong RoleId { get; init; }
-    public int RequiredRank { get; init; }
-    public DiscordGuild Guild => SourceMessage.Channel.Guild;
+    public string RoleName { get; }
+    public ulong RoleId { get; }
+    public int RequiredRank { get; }
 
-    public RankRoleManagementAction(RankRoleManagementActionType action, DiscordMessage sourceMessage, string roleName, int requiredRank = default)
+    public RankRoleManagementAction(RankRoleManagementActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, string roleName, int requiredRank = default)
+    : base (action, responder, member, guild)
     {
-        Action = action;
-        SourceMessage = sourceMessage;
         RoleName = roleName;
         RequiredRank = requiredRank;
     }
 
-    public RankRoleManagementAction(RankRoleManagementActionType action, DiscordMessage sourceMessage, ulong roleId, string roleName, int requiredRank = default)
+    public RankRoleManagementAction(RankRoleManagementActionType action, IResponder responder, DiscordMember member, DiscordGuild guild,ulong roleId, string roleName, int requiredRank = default)
+    :base(action, responder, member, guild)
     {
-        Action = action;
-        SourceMessage = sourceMessage;
         RoleId = roleId;
         RoleName = roleName;
         RequiredRank = requiredRank;
     }
 
-    public RankRoleManagementAction(RankRoleManagementActionType action, DiscordMessage sourceMessage)
-    {
-        Action = action;
-        SourceMessage = sourceMessage;
-    }
-
-    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder msg) => SourceMessage.RespondAsync(msg);
+    public RankRoleManagementAction(RankRoleManagementActionType action, IResponder responder, DiscordMember member, DiscordGuild guild)
+    :base(action, responder, member, guild)
+    {}
 
     public string GetRoleIdentifier() => RoleId == default ? RoleName : RoleId.ToString();
 }

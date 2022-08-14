@@ -45,9 +45,21 @@ public static class SentryExtensions
 
     public static ITransaction GetCurrentTransaction(this IHub sentry)
     {
+        var transaction = GetCurrentTransactionCore(sentry);
+        Debug.Assert(transaction != null, "Transaction has not been configured. Configure a transaction at the start of this flow.");
+        return transaction;
+    }
+
+    public static bool TryGetCurrentTransaction(this IHub sentry, out ITransaction transaction)
+    {
+        transaction = GetCurrentTransactionCore(sentry);
+        return transaction != null;
+    }
+
+    private static ITransaction GetCurrentTransactionCore(IHub sentry)
+    {
         ITransaction transaction = null;
         sentry.ConfigureScope(scope => transaction = scope.Transaction);
-        Debug.Assert(transaction != null, "Transaction has not been configured. Configure a transaction at the start of this flow.");
         return transaction;
     }
 

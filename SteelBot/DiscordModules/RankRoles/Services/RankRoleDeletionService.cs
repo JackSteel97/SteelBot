@@ -47,11 +47,11 @@ public class RankRoleDeletionService
 
             await _rankRolesProvider.RemoveRole(request.Guild.Id, roleToDelete.RoleDiscordId);
 
-            request.RespondAsync(RankRoleMessages.RankRoleDeletedSuccess(roleToDelete.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RankRoleDeletedSuccess(roleToDelete.RoleName));
         }
         else
         {
-            request.RespondAsync(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName)).FireAndForget(_errorHandlingService);
+            request.Responder.Respond(RankRoleMessages.RoleDoesNotExistOnServer(request.RoleName));
         }
     }
 

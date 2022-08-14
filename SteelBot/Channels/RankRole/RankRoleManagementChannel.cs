@@ -28,7 +28,7 @@ public class RankRoleManagementChannel : BaseChannel<RankRoleManagementAction>
 
     protected override async ValueTask HandleMessage(RankRoleManagementAction message)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Rank Roles", message.Action.ToString(), message.SourceMessage.Author, message.Guild);
+        var transaction = _sentry.StartNewConfiguredTransaction("Rank Roles", message.Action.ToString(), message.Member, message.Guild);
         switch (message.Action)
         {
             case RankRoleManagementActionType.Create:
