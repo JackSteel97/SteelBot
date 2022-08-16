@@ -40,7 +40,7 @@ namespace SteelBot;
 
 public static class Program
 {
-    private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Development";
+    private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Test";
     
     private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
     {
