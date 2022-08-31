@@ -34,9 +34,11 @@ using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
@@ -140,6 +142,7 @@ public class BotMain : IHostedService
         Console.CancelKeyPress += async (s, a) => await ShutdownDiscordClient();
 
         _logger.LogInformation("Initialising Command Modules");
+        SetupChannelsController();
         InitCommands();
         _logger.LogInformation("Initialising Interactivity");
         InitInteractivity();
@@ -150,6 +153,15 @@ public class BotMain : IHostedService
 
         _logger.LogInformation("Starting Client");
         return _client.ConnectAsync(new DiscordActivity("+Help", ActivityType.ListeningTo));
+    }
+
+    private void SetupChannelsController()
+    {
+        ChannelsController.MessagesChannel = _serviceProvider.GetRequiredService<MessagesChannel>();
+        ChannelsController.PetCommandsChannel = _serviceProvider.GetRequiredService<PetCommandsChannel>();
+        ChannelsController.RankRoleManagementChannel = _serviceProvider.GetRequiredService<RankRoleManagementChannel>();
+        ChannelsController.SelfRoleManagementChannel = _serviceProvider.GetRequiredService<SelfRoleManagementChannel>();
+        ChannelsController.VoiceStateChannel = _serviceProvider.GetRequiredService<VoiceStateChannel>();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -194,21 +206,24 @@ public class BotMain : IHostedService
 
     private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
     {
-        Task.Run(async () =>
+        using (ExecutionContext.SuppressFlow())
         {
-            // TODO: this overwrites the transaction used by the pet command handler when managing a pet after befriending it - need to fix this scoping.
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
-            switch (e.Interaction.Data.CustomId)
+            Task.Run(async () =>
             {
-                case InteractionIds.Modals.PetNameEntry:
-                    await _dataHelpers.Pets.HandleNamingPet(e);
-                    break;
-                case InteractionIds.Modals.PetMove:
-                    await _dataHelpers.Pets.HandleMovingPet(e);
-                    break;
-            }
-            transaction.Finish();
-        }).FireAndForget(_errorHandlingService);
+                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
+                switch (e.Interaction.Data.CustomId)
+                {
+                    case InteractionIds.Modals.PetNameEntry:
+                        await _dataHelpers.Pets.HandleNamingPet(e);
+                        break;
+                    case InteractionIds.Modals.PetMove:
+                        await _dataHelpers.Pets.HandleMovingPet(e);
+                        break;
+                }
+                transaction.Finish();
+            }).FireAndForget(_errorHandlingService);
+        }
+        
 
         return Task.CompletedTask;
     }
