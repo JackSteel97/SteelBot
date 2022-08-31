@@ -206,6 +206,7 @@ public class BotMain : IHostedService
 
     private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
     {
+        // Prevent the sentry context clashing with the existing one.
         using (ExecutionContext.SuppressFlow())
         {
             Task.Run(async () =>
