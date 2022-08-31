@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using Serilog;
+using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
@@ -198,6 +199,7 @@ public static class Program
 
         serviceProvider.AddSingleton<UserLockingService>();
         serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();
+
     }
 
     public static async Task Main(string[] args)

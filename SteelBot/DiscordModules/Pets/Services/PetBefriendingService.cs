@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.Channels;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
@@ -12,6 +13,7 @@ using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Responders;
+using SteelBot.Services;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using User = SteelBot.Database.Models.Users.User;
@@ -23,14 +25,14 @@ public class PetBefriendingService
     private readonly DataCache _cache;
     private readonly ILogger<PetBefriendingService> _logger;
     private readonly IHub _sentry;
-    private readonly PetManagementService _managementService;
+    private readonly CancellationService _cancellationService;
 
-    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger, IHub sentry, PetManagementService managementService)
+    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger, IHub sentry, CancellationService cancellationService)
     {
         _cache = cache;
         _logger = logger;
         _sentry = sentry;
-        _managementService = managementService;
+        _cancellationService = cancellationService;
     }
 
     public async Task Befriend(PetCommandAction request, Pet foundPet, DiscordInteraction interaction)
@@ -71,7 +73,7 @@ public class PetBefriendingService
             request.Responder.Respond(PetMessages.GetPetOwnedSuccessMessage(request.Member, foundPet));
             
             await PetModals.NamePet(interaction, foundPet);
-            await _managementService.ManagePet(request, foundPet.RowId);
+            await ChannelsController.SendMessage(request with {Action = PetCommandActionType.ManageOne, PetId = foundPet.RowId}, _cancellationService.Token);
         }
         else
         {

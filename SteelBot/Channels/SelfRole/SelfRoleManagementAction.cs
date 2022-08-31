@@ -13,7 +13,7 @@ public enum SelfRoleActionType
     JoinAll
 }
 
-public class SelfRoleManagementAction : BaseAction<SelfRoleActionType>
+public record SelfRoleManagementAction : BaseAction<SelfRoleActionType>
 {
     public string RoleName { get; }
     public string Description { get; }

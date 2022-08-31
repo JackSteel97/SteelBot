@@ -11,7 +11,7 @@ public enum RankRoleManagementActionType
     View
 }
 
-public class RankRoleManagementAction : BaseAction<RankRoleManagementActionType>
+public record RankRoleManagementAction : BaseAction<RankRoleManagementActionType>
 {
     public string RoleName { get; }
     public ulong RoleId { get; }

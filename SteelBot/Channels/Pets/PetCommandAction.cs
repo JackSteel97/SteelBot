@@ -12,10 +12,10 @@ public enum PetCommandActionType
     ViewBonuses,
     View
 }
-public class PetCommandAction : BaseAction<PetCommandActionType>
+public record PetCommandAction : BaseAction<PetCommandActionType>
 {
     public DiscordMember Target { get; }
-    public long PetId { get; }
+    public long PetId { get; init; }
 
     public PetCommandAction(PetCommandActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, DiscordMember target = null)
     : base(action, responder, member, guild)
