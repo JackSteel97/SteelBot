@@ -86,24 +86,5 @@ public class StatsDataHelper
 
     public List<CommandStatistic> GetCommandStatistics() => _cache.CommandStatistics.GetAllCommandStatistics();
 
-    public XpVelocity GetVelocity(DiscordMember target, List<Pet> availablePets)
-    {
-        var velocity = new XpVelocity();
-        var baseDuration = TimeSpan.FromMinutes(1);
-        var levelConfig = _appConfigurationService.Application.Levelling;
-
-        if (_cache.Users.TryGetUser(target.Guild.Id, target.Id, out var user))
-        {
-            velocity.Message = LevellingMaths.ApplyPetBonuses(levelConfig.MessageXp, availablePets, BonusType.MessageXp);
-            velocity.Voice = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentInVoice, availablePets, BonusType.VoiceXp, levelConfig.VoiceXpPerMin);
-            velocity.Muted = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentMuted, availablePets, BonusType.MutedPenaltyXp, levelConfig.MutedXpPerMin);
-            velocity.Deafened = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentDeafened, availablePets, BonusType.DeafenedPenaltyXp, levelConfig.DeafenedXpPerMin);
-            velocity.Streaming = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentStreaming, availablePets, BonusType.StreamingXp, levelConfig.StreamingXpPerMin);
-            velocity.Video = LevellingMaths.GetDurationXp(baseDuration, user.TimeSpentOnVideo, availablePets, BonusType.VideoXp, levelConfig.VideoXpPerMin);
-
-            double disconnectedXpPerMin = PetShared.GetBonusValue(availablePets, BonusType.OfflineXp);
-            velocity.Passive = LevellingMaths.GetDurationXp(baseDuration, TimeSpan.Zero, disconnectedXpPerMin);
-        }
-        return velocity;
-    }
+    
 }

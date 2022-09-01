@@ -43,6 +43,7 @@ using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
+using SteelBot.Channels.Stats;
 using SteelBot.Channels.Voice;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
@@ -99,6 +100,7 @@ public class BotMain : IHostedService
     private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
     private readonly RankRoleManagementChannel _rankRoleManagementChannel;
     private readonly PetCommandsChannel _petCommandsChannel;
+    private readonly StatsCommandsChannel _statsCommandsChannel;
 
     public BotMain(AppConfigurationService appConfigurationService,
         ILogger<BotMain> logger,
@@ -115,7 +117,8 @@ public class BotMain : IHostedService
         RankRoleManagementChannel rankRoleManagementChannel,
         ErrorHandlingAsynchronousCommandExecutor commandExecutor,
         IHub sentry,
-        PetCommandsChannel petCommandsChannel)
+        PetCommandsChannel petCommandsChannel,
+        StatsCommandsChannel statsCommandsChannel)
     {
         _appConfigurationService = appConfigurationService;
         _logger = logger;
@@ -133,6 +136,7 @@ public class BotMain : IHostedService
         _commandExecutor = commandExecutor;
         _sentry = sentry;
         _petCommandsChannel = petCommandsChannel;
+        _statsCommandsChannel = statsCommandsChannel;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -187,6 +191,7 @@ public class BotMain : IHostedService
         _selfRoleManagementChannel.Start(_cancellationService.Token);
         _rankRoleManagementChannel.Start(_cancellationService.Token);
         _petCommandsChannel.Start(_cancellationService.Token);
+        _statsCommandsChannel.Start(_cancellationService.Token);
     }
 
     private void InitHandlers()

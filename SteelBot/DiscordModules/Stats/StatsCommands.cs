@@ -91,6 +91,7 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(1, 30, CooldownBucketType.User)]
     public async Task TheirStats(CommandContext context, DiscordMember discordUser)
     {
+        // TODO: Replace with channel.
         using (await _userLockingService.ReaderLockAsync(discordUser.Guild.Id, discordUser.Id))
         {
             if (!_dataHelper.Stats.TryGetUser(context.Guild.Id, discordUser.Id, out var user))
@@ -117,6 +118,7 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(3, 30, CooldownBucketType.User)]
     public async Task MyStats(CommandContext context)
     {
+        // TODO: Replace with channel.
         using (await _userLockingService.ReaderLockAsync(context.Guild.Id, context.User.Id))
         {
             if (!_dataHelper.Stats.TryGetUser(context.Guild.Id, context.Member.Id, out var user))
@@ -144,6 +146,7 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(2, 30, CooldownBucketType.User)]
     public async Task StatsBreakdown(CommandContext context, DiscordMember discordUser = null)
     {
+        // TODO: Replace with channel.
         if (discordUser == null)
         {
             discordUser = context.Member;
@@ -301,6 +304,7 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(2, 60, CooldownBucketType.Channel)]
     public async Task LevelsLeaderboard(CommandContext context, int top = 100)
     {
+        // TODO: Replace with channel.
         if (top <= 0)
         {
             context.RespondAsync(embed: EmbedGenerator.Warning("You cannot get a leaderboard with no entries.")).FireAndForget(_errorHandlingService);
@@ -349,6 +353,7 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(1, 60, CooldownBucketType.Channel)]
     public async Task AllStats(CommandContext context, int top = 10)
     {
+        // TODO: Replace with channel.
         if (top <= 0)
         {
             context.RespondAsync(embed: EmbedGenerator.Warning("You cannot get a leaderboard with no entries.")).FireAndForget(_errorHandlingService);
@@ -408,6 +413,7 @@ public class StatsCommands : TypingCommandModule
     [RequirePermissions(Permissions.Administrator)]
     public async Task Velocity(CommandContext context, DiscordMember target = null)
     {
+        // TODO: replace with channel.
         target ??= context.Member;
 
         XpVelocity velocity;

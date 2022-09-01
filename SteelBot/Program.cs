@@ -11,6 +11,7 @@ using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
+using SteelBot.Channels.Stats;
 using SteelBot.Channels.Voice;
 using SteelBot.Database;
 using SteelBot.DataProviders;
@@ -26,6 +27,7 @@ using SteelBot.DiscordModules.RankRoles.Services;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Roles.Services;
 using SteelBot.DiscordModules.Stats;
+using SteelBot.DiscordModules.Stats.Services;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DSharpPlusOverrides;
 using SteelBot.Helpers;
@@ -200,6 +202,10 @@ public static class Program
         serviceProvider.AddSingleton<UserLockingService>();
         serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();
 
+        serviceProvider.AddSingleton<StatsCommandsChannel>();
+        serviceProvider.AddSingleton<StatsAdminService>();
+        serviceProvider.AddSingleton<StatsCardService>();
+        serviceProvider.AddSingleton<StatsLeaderboardService>();
     }
 
     public static async Task Main(string[] args)
