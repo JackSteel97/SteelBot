@@ -89,11 +89,17 @@ public static class StatsMessages
         return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no users with statistics in this server yet."));
     }
 
-    public static DiscordEmbedBuilder LeaderboardBase(string guildName)
+    public static DiscordEmbedBuilder LeaderboardBase(string guildName, string metric = null)
     {
+        string metricInsert = string.Empty;
+        if (!string.IsNullOrWhiteSpace(metric))
+        {
+            metricInsert = $" {metric.Transform(To.TitleCase)}";
+        }
+        
         return new DiscordEmbedBuilder()
             .WithColor(EmbedGenerator.InfoColour)
-            .WithTitle($"{guildName} Leaderboard")
+            .WithTitle($"{guildName}{metricInsert} Leaderboard")
             .WithTimestamp(DateTime.Now);
     }
 
@@ -113,6 +119,13 @@ public static class StatsMessages
             .Append(EmojiConstants.Symbols.Zzz).Append(" - **AFK** `").Append(user.TimeSpentAfk.Humanize(3)).AppendLine("`");
     }
 
+    public static StringBuilder AppendUserMetric(StringBuilder builder, User user, int index, string[] metricValues)
+    {
+        return builder
+            .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
+            .AppendLine(metricValues[index]);
+    }
+
     public static DiscordMessageBuilder NoEntriesToShow()
     {
         return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("There are no entries to show"));
@@ -124,5 +137,18 @@ public static class StatsMessages
             .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
             .Append("Level `").Append(user.CurrentLevel).AppendLine("`")
             .Append("XP `").Append(user.TotalXp.ToString("N0")).AppendLine("`");
+    }
+
+    public static DiscordMessageBuilder MissingMetric()
+    {
+        return new DiscordMessageBuilder()
+            .WithEmbed(EmbedGenerator.Warning($"Missing metric parameter.{Environment.NewLine}Available Metrics are: {AllowedMetrics.MetricsList}"));
+    }
+
+    public static DiscordMessageBuilder InvalidMetric(string invalidMetric)
+    {
+        return new DiscordMessageBuilder()
+            .WithEmbed(EmbedGenerator.Warning($"Invalid metric: {Formatter.Bold(invalidMetric)}{Environment.NewLine}Available Metrics are: {AllowedMetrics.MetricsList}"));
+
     }
 }
