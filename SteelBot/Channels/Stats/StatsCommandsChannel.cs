@@ -41,12 +41,16 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
             switch (message.Action)
             {
                 case StatsCommandActionType.ViewMetricLeaderboard:
+                    await _statsLeaderboardService.MetricLeaderboard(message);
                     break;
                 case StatsCommandActionType.ViewLevelsLeaderboard:
+                    await _statsLeaderboardService.LevelsLeaderboard(message);
                     break;
                 case StatsCommandActionType.ViewAll:
+                    await _statsLeaderboardService.AllStats(message);
                     break;
                 case StatsCommandActionType.ViewPersonalStats:
+                    await _statsCardService.View(message);
                     break;
                 case StatsCommandActionType.ViewBreakdown:
                     await _statsAdminService.Breakdown(message);

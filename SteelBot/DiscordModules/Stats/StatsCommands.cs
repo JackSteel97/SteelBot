@@ -2,26 +2,13 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
-using Humanizer;
-using ScottPlot;
+using Microsoft.Extensions.Logging;
 using Sentry;
-using SteelBot.Database.Models;
-using SteelBot.DiscordModules.Stats.Models;
-using SteelBot.Helpers;
+using SteelBot.Channels.Stats;
 using SteelBot.Helpers.Extensions;
+using SteelBot.Responders;
 using SteelBot.Services;
-using SteelBot.Services.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DiscordModules.Stats;
 
@@ -30,60 +17,17 @@ namespace SteelBot.DiscordModules.Stats;
 [RequireGuild]
 public class StatsCommands : TypingCommandModule
 {
-    private readonly HashSet<string> _allowedMetrics = new() { "xp", "level", "message count", "message length", "afk", "voice", "muted", "deafened", "last active", "stream", "video" };
-    private readonly DataHelpers _dataHelper;
-    private readonly LevelCardGenerator _levelCardGenerator;
-    private readonly AppConfigurationService _appConfigurationService;
-    private readonly UserLockingService _userLockingService;
     private readonly ErrorHandlingService _errorHandlingService;
-
-    public StatsCommands(DataHelpers dataHelpers, LevelCardGenerator levelCardGenerator, AppConfigurationService appConfigurationService, UserLockingService userLockingService, ErrorHandlingService errorHandlingService, IHub sentry) : base(sentry)
+    private readonly ILogger<StatsCommands> _logger;
+    private readonly StatsCommandsChannel _statsCommandsChannel;
+    private readonly CancellationService _cancellationService;
+    
+    public StatsCommands(ErrorHandlingService errorHandlingService, IHub sentry, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService) : base(sentry)
     {
-        _dataHelper = dataHelpers;
-        _levelCardGenerator = levelCardGenerator;
-        _appConfigurationService = appConfigurationService;
-        _userLockingService = userLockingService;
         _errorHandlingService = errorHandlingService;
-    }
-
-    [Command("commands")]
-    [Description("Displays statistics about what commands are used most globally.")]
-    [Cooldown(3, 60, CooldownBucketType.Global)]
-    [RequireOwner]
-    public async Task CommandStatistics(CommandContext context)
-    {
-        const string imageName = "commandstats.png";
-        var allStats = _dataHelper.Stats.GetCommandStatistics();
-
-        // Sort descending.
-        allStats.Sort((cs1, cs2) => cs2.UsageCount.CompareTo(cs1.UsageCount));
-
-        int barCount = allStats.Count;
-
-        var plt = new ScottPlot.Plot(1280, 720);
-        plt.Style(Style.Gray1);
-
-        string[] labels = allStats.ConvertAll(s => s.CommandName).ToArray();
-        double[] yData = allStats.ConvertAll(s => (double)s.UsageCount).ToArray();
-
-        var bar = plt.AddBar(yData);
-        bar.ShowValuesAboveBars = true;
-        plt.SetAxisLimits(yMin: 0);
-        plt.XTicks(labels);
-        plt.XAxis.TickLabelStyle(Color.White, rotation: 20);
-        plt.YAxis.TickLabelStyle(Color.White);
-        plt.Grid(false);
-
-        plt.Title("Command Usage");
-        plt.YLabel("Usage Count");
-        plt.SaveFig(imageName);
-
-        using (var imageStream = File.OpenRead(imageName))
-        {
-            var message = new DiscordMessageBuilder().WithFile(imageName, imageStream);
-            await context.RespondAsync(message);
-        }
-        File.Delete(imageName);
+        _logger = logger;
+        _statsCommandsChannel = statsCommandsChannel;
+        _cancellationService = cancellationService;
     }
 
     [GroupCommand]
@@ -91,25 +35,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(1, 30, CooldownBucketType.User)]
     public async Task TheirStats(CommandContext context, DiscordMember discordUser)
     {
-        // TODO: Replace with channel.
-        using (await _userLockingService.ReaderLockAsync(discordUser.Guild.Id, discordUser.Id))
-        {
-            if (!_dataHelper.Stats.TryGetUser(context.Guild.Id, discordUser.Id, out var user))
-            {
-                context.RespondAsync(embed: EmbedGenerator.Error("I could not find their stats, are they new here?")).FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            var embedBuilder = StatsDataHelper.GetStatsEmbed(user, discordUser.Username);
-            using (var imageStream = await LevelCardGenerator.GenerateCard(user, discordUser))
-            {
-                string fileName = $"{user.DiscordId}_stats.png";
-                var message = new DiscordMessageBuilder()
-                    .WithFile(fileName, imageStream)
-                    .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
-                context.RespondAsync(message).FireAndForget(_errorHandlingService);
-            }
-        }
+        _logger.LogInformation("User {UserId} requested to view User {TargetId} stats", context.Member.Id, discordUser.Id);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewPersonalStats, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, discordUser);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("me")]
@@ -118,26 +46,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(3, 30, CooldownBucketType.User)]
     public async Task MyStats(CommandContext context)
     {
-        // TODO: Replace with channel.
-        using (await _userLockingService.ReaderLockAsync(context.Guild.Id, context.User.Id))
-        {
-            if (!_dataHelper.Stats.TryGetUser(context.Guild.Id, context.Member.Id, out var user))
-            {
-                context.RespondAsync(embed: EmbedGenerator.Error("I could not find your stats, are you new here?")).FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            var embedBuilder = StatsDataHelper.GetStatsEmbed(user, context.Member.Username);
-
-            using (var imageStream = await LevelCardGenerator.GenerateCard(user, context.Member))
-            {
-                string fileName = $"{user.DiscordId}_stats.png";
-                var message = new DiscordMessageBuilder()
-                    .WithFile(fileName, imageStream)
-                    .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
-                context.RespondAsync(message).FireAndForget(_errorHandlingService);
-            }
-        }
+        _logger.LogInformation("User {UserId} requested to view Their Stats", context.Member.Id);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewPersonalStats, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("breakdown")]
@@ -146,40 +57,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(2, 30, CooldownBucketType.User)]
     public async Task StatsBreakdown(CommandContext context, DiscordMember discordUser = null)
     {
-        // TODO: Replace with channel.
-        if (discordUser == null)
-        {
-            discordUser = context.Member;
-        }
-
-        using (await _userLockingService.ReaderLockAsync(discordUser.Guild.Id, discordUser.Id))
-        {
-            ulong userId = discordUser.Id;
-
-            if (!_dataHelper.Stats.TryGetUser(context.Guild.Id, userId, out var user))
-            {
-                context.RespondAsync(embed: EmbedGenerator.Error("I could not find their stats, are they new here?")).FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            var memberUser = await context.Guild.GetMemberAsync(userId);
-
-            var builder = new StringBuilder()
-                .Append(Formatter.Bold("Voice ")).AppendLine(Formatter.InlineCode(user.VoiceXpEarned.ToString("N0")))
-                .Append(Formatter.Bold("Streaming ")).AppendLine(Formatter.InlineCode(user.StreamingXpEarned.ToString("N0")))
-                .Append(Formatter.Bold("Video ")).AppendLine(Formatter.InlineCode(user.VideoXpEarned.ToString("N0")))
-                .Append(Formatter.Bold("Muted ")).AppendLine(Formatter.InlineCode($"-{user.MutedXpEarned:N0}"))
-                .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned:N0}"))
-                .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
-                .Append(Formatter.Bold("Offline ")).AppendLine(Formatter.InlineCode(user.DisconnectedXpEarned.ToString("N0")))
-                .AppendLine()
-                .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.ToString("N0")));
-
-            var embed = EmbedGenerator.Info(builder.ToString(), $"{memberUser.DisplayName} XP Breakdown");
-            var message = new DiscordMessageBuilder().WithEmbed(embed).WithReply(context.Message.Id, mention: true);
-
-            context.RespondAsync(message).FireAndForget(_errorHandlingService);
-        }
+        _logger.LogInformation("User {UserId} requested to view Stats Breakdown for User {Target}", context.Member.Id, (discordUser ?? context.Member).Id);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewBreakdown, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, discordUser);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [GroupCommand]
@@ -187,116 +67,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(2, 60, CooldownBucketType.Channel)]
     public async Task MetricLeaderboard(CommandContext context, [RemainingText] string metric)
     {
-        const int top = 50;
-        if (string.IsNullOrWhiteSpace(metric))
-        {
-            context.RespondAsync(embed: EmbedGenerator.Warning($"Missing metric parameter.\nAvailable Metrics are: {string.Join(", ", _allowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"))
-                .FireAndForget(_errorHandlingService);
-            return;
-        }
-        if (!_allowedMetrics.Contains(metric))
-        {
-            context.RespondAsync(embed: EmbedGenerator.Warning($"Invalid metric: {Formatter.Bold(metric)}\nAvailable Metrics are: {string.Join(", ", _allowedMetrics.Select(m => Formatter.InlineCode(m.Transform(To.TitleCase))))}"))
-                .FireAndForget(_errorHandlingService);
-            return;
-        }
-
-        string[] metricValues;
-        User[] orderedUsers;
-        using (await _userLockingService.ReadLockAllUsersAsync(context.Guild.Id))
-        {
-            var guildUsers = _dataHelper.Stats.GetUsersInGuild(context.Guild.Id);
-            if (guildUsers.Count == 0)
-            {
-                context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet."))
-                    .FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            switch (metric.ToLower())
-            {
-                case "xp":
-                    orderedUsers = guildUsers.Where(u => u.TotalXp > 0).OrderByDescending(u => u.TotalXp).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"XP: `{u.TotalXp:N0}`");
-                    break;
-
-                case "level":
-                    orderedUsers = guildUsers.Where(u => u.CurrentLevel > 0).OrderByDescending(u => u.CurrentLevel).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Level: `{u.CurrentLevel}`");
-                    break;
-
-                case "message count":
-                    orderedUsers = guildUsers.Where(u => u.MessageCount > 0).OrderByDescending(u => u.MessageCount).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Message Count: `{u.MessageCount:N0}`");
-                    break;
-
-                case "message length":
-                    orderedUsers = guildUsers.Where(u => u.GetAverageMessageLength() > 0).OrderByDescending(u => u.GetAverageMessageLength()).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Average Message Length: `{u.GetAverageMessageLength()} Characters`");
-                    break;
-
-                case "afk":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentAfk > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentAfk).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"AFK Time: `{u.TimeSpentAfk.Humanize(3)}`");
-                    break;
-
-                case "voice":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentInVoice > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentInVoice).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Voice Time: `{u.TimeSpentInVoice.Humanize(3)}`");
-                    break;
-
-                case "muted":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentMuted > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentMuted).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Muted Time: `{u.TimeSpentMuted.Humanize(3)}`");
-                    break;
-
-                case "deafened":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentDeafened > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentDeafened).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Deafened Time: `{u.TimeSpentDeafened.Humanize(3)}`");
-                    break;
-
-                case "last active":
-                    orderedUsers = guildUsers.Where(u => u.LastActivity != default).OrderByDescending(u => u.LastActivity).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Last Active: `{u.LastActivity.Humanize()}`");
-                    break;
-
-                case "stream":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentStreaming > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentStreaming).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Streaming Time: `{u.TimeSpentStreaming.Humanize(3)}`");
-                    break;
-
-                case "video":
-                    orderedUsers = guildUsers.Where(u => u.TimeSpentOnVideo > TimeSpan.Zero).OrderByDescending(u => u.TimeSpentOnVideo).Take(top).ToArray();
-                    metricValues = Array.ConvertAll(orderedUsers, u => $"Video Time: `{u.TimeSpentOnVideo.Humanize(3)}`");
-                    break;
-
-                default:
-                    context.RespondAsync(embed: EmbedGenerator.Error("Invalid Metric selected.")).FireAndForget(_errorHandlingService);
-                    return;
-            }
-        }
-
-        if (orderedUsers.Length == 0)
-        {
-            context.RespondAsync(EmbedGenerator.Info("There are no entries to show")).FireAndForget(_errorHandlingService);
-            return;
-        }
-
-        var embedBuilder = new DiscordEmbedBuilder()
-            .WithColor(EmbedGenerator.InfoColour)
-            .WithTitle($"{context.Guild.Name} {metric.Transform(To.TitleCase)} Leaderboard")
-            .WithTimestamp(DateTime.UtcNow);
-
-        var pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedUsers, 5, (builder, user, index) =>
-        {
-            return builder
-                .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
-                .AppendLine(metricValues[index]);
-        });
-
-        var interactivity = context.Client.GetInteractivity();
-
-        await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+        _logger.LogInformation("User {UserId} requested to view {Metric} Leaderboard", context.Member.Id, metric);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewMetricLeaderboard, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, metric: metric);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("Leaderboard")]
@@ -304,48 +77,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(2, 60, CooldownBucketType.Channel)]
     public async Task LevelsLeaderboard(CommandContext context, int top = 100)
     {
-        // TODO: Replace with channel.
-        if (top <= 0)
-        {
-            context.RespondAsync(embed: EmbedGenerator.Warning("You cannot get a leaderboard with no entries.")).FireAndForget(_errorHandlingService);
-            return;
-        }
-
-        List<Page> pages;
-        using (await _userLockingService.ReadLockAllUsersAsync(context.Guild.Id))
-        {
-            var guildUsers = _dataHelper.Stats.GetUsersInGuild(context.Guild.Id);
-            if (guildUsers.Count == 0)
-            {
-                context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet.")).FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            var orderedByXp = guildUsers.Where(u => u.TotalXp > 0).OrderByDescending(u => u.TotalXp).Take(top).ToArray();
-
-            if (orderedByXp.Length == 0)
-            {
-                context.RespondAsync(EmbedGenerator.Info("There are no entries to show")).FireAndForget(_errorHandlingService);
-                return;
-            }
-
-            var embedBuilder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle($"{context.Guild.Name} Leaderboard")
-                .WithTimestamp(DateTime.UtcNow);
-
-            pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 5, (builder, user, index) =>
-            {
-                return builder
-                    .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
-                    .Append("Level `").Append(user.CurrentLevel).AppendLine("`")
-                    .Append("XP `").Append(user.TotalXp.ToString("N0")).AppendLine("`");
-            });
-        }
-
-        var interactivity = context.Client.GetInteractivity();
-
-        await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+        _logger.LogInformation("User {UserId} requested to view Levels Leaderboard for top {Top} users", context.Member.Id, top);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewLevelsLeaderboard, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, top: top);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("All")]
@@ -353,57 +87,9 @@ public class StatsCommands : TypingCommandModule
     [Cooldown(1, 60, CooldownBucketType.Channel)]
     public async Task AllStats(CommandContext context, int top = 10)
     {
-        // TODO: Replace with channel.
-        if (top <= 0)
-        {
-            context.RespondAsync(embed: EmbedGenerator.Warning("You cannot get a leaderboard with no entries.")).FireAndForget(_errorHandlingService);
-            return;
-        }
-
-        List<Page> pages;
-        using (await _userLockingService.ReadLockAllUsersAsync(context.Guild.Id))
-        {
-            var guildUsers = _dataHelper.Stats.GetUsersInGuild(context.Guild.Id);
-            if (guildUsers.Count == 0)
-            {
-                context.RespondAsync(embed: EmbedGenerator.Warning("There are no users with statistics in this server yet.")).FireAndForget(_errorHandlingService);
-                return;
-            }
-            if (top > guildUsers.Count)
-            {
-                top = guildUsers.Count;
-            }
-
-            // Sort by xp.
-            guildUsers.Sort((u1, u2) => u2.TotalXp.CompareTo(u1.TotalXp));
-
-            // Get top x.
-            var orderedByXp = guildUsers.GetRange(0, top);
-
-            var embedBuilder = new DiscordEmbedBuilder()
-               .WithColor(EmbedGenerator.InfoColour)
-               .WithTitle($"{context.Guild.Name} Leaderboard")
-               .WithTimestamp(DateTime.Now);
-
-            pages = PaginationHelper.GenerateEmbedPages(embedBuilder, orderedByXp, 2, (builder, user, index) =>
-            {
-                return builder
-                    .Append("**__").Append((index + 1).Ordinalize()).Append("__** - <@").Append(user.DiscordId).Append("> - **Level** `").Append(user.CurrentLevel).AppendLine("`")
-                    .AppendLine("**__Messages__**")
-                    .Append(EmojiConstants.Numbers.HashKeycap).Append(" - **Count** `").AppendFormat("{0:N0}", user.MessageCount).AppendLine("`")
-                    .Append(EmojiConstants.Objects.Ruler).Append(" - **Average Length** `").Append(user.GetAverageMessageLength()).AppendLine(" Characters`")
-                    .AppendLine("**__Durations__**")
-                    .Append(EmojiConstants.Objects.Microphone).Append(" - **Voice** `").Append(user.TimeSpentInVoice.Humanize(3)).AppendLine("`")
-                    .Append(EmojiConstants.Objects.Television).Append(" - **Streaming** `").Append(user.TimeSpentStreaming.Humanize(3)).AppendLine("`")
-                    .Append(EmojiConstants.Objects.Camera).Append(" - **Video** `").Append(user.TimeSpentOnVideo.Humanize(3)).AppendLine("`")
-                    .Append(EmojiConstants.Objects.MutedSpeaker).Append(" - **Muted** `").Append(user.TimeSpentMuted.Humanize(3)).AppendLine("`")
-                    .Append(EmojiConstants.Objects.BellWithSlash).Append(" - **Deafened** `").Append(user.TimeSpentDeafened.Humanize(3)).AppendLine("`")
-                    .Append(EmojiConstants.Symbols.Zzz).Append(" - **AFK** `").Append(user.TimeSpentAfk.Humanize(3)).AppendLine("`");
-            });
-        }
-
-        var interactivity = context.Client.GetInteractivity();
-        await interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
+        _logger.LogInformation("User {UserId} requested to view All Stats for top {Top} users", context.Member.Id, top);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewAll, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, top: top);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [Command("Velocity")]
@@ -413,28 +99,10 @@ public class StatsCommands : TypingCommandModule
     [RequirePermissions(Permissions.Administrator)]
     public async Task Velocity(CommandContext context, DiscordMember target = null)
     {
-        // TODO: replace with channel.
         target ??= context.Member;
+        _logger.LogInformation("User {UserId} requested to view the XP velocity of {TargetId}", context.Member.Id, target.Id);
 
-        XpVelocity velocity;
-        using (await _userLockingService.ReaderLockAsync(target.Guild.Id, target.Id))
-        {
-            var availablePets = _dataHelper.Pets.GetAvailablePets(target.Guild.Id, target.Id, out _);
-            velocity = _dataHelper.Stats.GetVelocity(target, availablePets);
-        }
-
-        var embed = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
-            .WithTitle($"{target.DisplayName} XP Velocity")
-            .WithDescription("XP earned per unit for each action")
-            .WithTimestamp(DateTime.Now)
-            .AddField("Message", Formatter.InlineCode(velocity.Message.ToString("N0")), true)
-            .AddField("Voice", Formatter.InlineCode(velocity.Voice.ToString("N0")), true)
-            .AddField("Muted", Formatter.InlineCode($"-{velocity.Muted:N0}"), true)
-            .AddField("Deafened", Formatter.InlineCode($"-{velocity.Deafened:N0}"), true)
-            .AddField("Streaming", Formatter.InlineCode(velocity.Streaming.ToString("N0")), true)
-            .AddField("Video", Formatter.InlineCode(velocity.Video.ToString("N0")), true)
-            .AddField("Offline", Formatter.InlineCode(velocity.Passive.ToString("N0")), true);
-
-        context.RespondAsync(embed).FireAndForget(_errorHandlingService);
+        var message = new StatsCommandAction(StatsCommandActionType.ViewVelocity, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, target);
+        await _statsCommandsChannel.Write(message, _cancellationService.Token);
     }
 }
