@@ -107,13 +107,8 @@ public class PetTreatingService
     private async Task HandleTreatGivenCore(PetCommandAction request, Pet pet, User user, double petTreatXpBonus, ITransaction transaction)
     {
         var xpMathsSpan = transaction.StartChild("Calculate Treat Xp");
-        double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
-        double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
-        double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
-        double scaledXp = xpRequiredToLevel / (1 + Math.Log(Math.Max(1, pet.CurrentLevel-50), 1.5));
-        int upperBound = Math.Max(101, (int)Math.Round(scaledXp));
-        int xpGain = RandomNumberGenerator.GetInt32(100, upperBound);
-        pet.EarnedXp += xpGain * petTreatXpBonus;
+        int xpGain = (int)PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus);
+        pet.EarnedXp += xpGain;
         xpMathsSpan.Finish();
 
         var xpChangedSpan = transaction.StartChild("Pet Xp Changed");
@@ -121,7 +116,7 @@ public class PetTreatingService
         bool levelledUp = PetShared.PetXpChanged(pet, changes, user.CurrentLevel, out bool shouldPingOwner);
         xpChangedSpan.Finish();
         await _cache.Pets.UpdatePet(pet);
-        request.Responder.Respond(PetMessages.GetPetTreatedMessage(pet, xpGain));
+        request.Responder.Respond(PetMessages.GetPetTreatedMessage(pet, (int)xpGain));
         if (levelledUp && _cache.Guilds.TryGetGuild(request.Guild.Id, out var guild))
         {
             PetShared.SendPetLevelledUpMessage(changes, guild, request.Guild, request.Member.Id, shouldPingOwner).FireAndForget(_errorHandlingService);
