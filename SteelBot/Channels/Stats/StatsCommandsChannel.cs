@@ -15,7 +15,6 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
     private readonly StatsAdminService _statsAdminService;
     private readonly IHub _sentry;
 
-
     /// <inheritdoc />
     public StatsCommandsChannel(StatsLeaderboardService statsLeaderboardService,
         StatsCardService statsCardService,

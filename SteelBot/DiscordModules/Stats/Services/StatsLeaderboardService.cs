@@ -33,7 +33,7 @@ public class StatsLeaderboardService
             request.Responder.Respond(StatsMessages.MissingMetric());
             return;
         }
-        if (!AllowedMetrics.Metrics.Contains(request.Metric))
+        if (!AllowedMetrics.Metrics.Contains(request.Metric.ToLower()))
         {
             request.Responder.Respond(StatsMessages.InvalidMetric(request.Metric));
             return;

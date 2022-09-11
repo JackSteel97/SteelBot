@@ -20,14 +20,20 @@ public class ConfigDataHelper
 
     public async Task SetPrefix(ulong guildId, string newPrefix)
     {
-        _logger.LogInformation($"Setting bot prefix for Guild [{guildId}] to [{newPrefix}]");
+        _logger.LogInformation("Setting bot prefix for Guild {GuildId} to {NewPrefix}", guildId, newPrefix);
         await _cache.Guilds.SetNewPrefix(guildId, newPrefix);
     }
 
     public async Task SetLevellingChannel(ulong guildId, ulong channelId)
     {
-        _logger.LogInformation($"Setting Levelling Channel for Guild [{guildId}] to [{channelId}]");
+        _logger.LogInformation("Setting Levelling Channel for Guild {GuildId} to {ChannelId}", guildId, channelId);
         await _cache.Guilds.SetLevellingChannel(guildId, channelId);
+    }
+
+    public Task<bool> ToggleDadJoke(ulong guildId)
+    {
+        _logger.LogInformation("Toggling Dad Joke Detection for Guild {GuildId}", guildId);
+        return _cache.Guilds.ToggleDadJoke(guildId);
     }
 
     public string GetPrefix(ulong guildId) => _cache.Guilds.GetGuildPrefix(guildId);
