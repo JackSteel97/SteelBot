@@ -95,6 +95,9 @@ namespace SteelBot.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("+");
 
+                    b.Property<bool>("DadJokesEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<decimal>("DiscordId")
                         .HasColumnType("numeric(20,0)");
 

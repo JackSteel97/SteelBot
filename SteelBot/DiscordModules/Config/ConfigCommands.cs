@@ -54,6 +54,16 @@ public class ConfigCommands : TypingCommandModule
         await _dataHelpers.Config.SetPrefix(context.Guild.Id, newPrefix);
         await context.RespondAsync(embed: EmbedGenerator.Success($"Prefix changed to **{newPrefix}**"));
     }
+    
+    [Command("ToggleDadJoke")]
+    [Description("Toggles Dad Joke Detector on/off for this server.")]
+    [RequireUserPermissions(Permissions.Administrator)]
+    [Cooldown(2, 300, CooldownBucketType.Guild)]
+    public async Task ToggleDadJoke(CommandContext context)
+    {
+        bool newSetting = await _dataHelpers.Config.ToggleDadJoke(context.Guild.Id);
+        await context.RespondAsync(embed: EmbedGenerator.Success($"Dad Joke Detector Toggled **{(newSetting ? "On" : "Off")}**"));
+    }
 
     [Command("SetLevelChannel")]
     [Aliases("SetAnnouncementChannel", "SetChannel", "SetLC", "SetAC")]

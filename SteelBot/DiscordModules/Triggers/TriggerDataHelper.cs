@@ -79,17 +79,20 @@ public class TriggerDataHelper
 
     public bool GetGuildTriggers(ulong guildId, out Dictionary<string, Trigger> triggers) => _cache.Triggers.TryGetGuildTriggers(guildId, out triggers);
 
-    public async Task CheckForDadJoke(DiscordChannel channel, string messageContent)
+    private async Task CheckForDadJoke(DiscordChannel channel, string messageContent)
     {
-        string jokeResult = DadJokeExtractor.Extract(messageContent);
-        if (!string.IsNullOrWhiteSpace(jokeResult))
+        if (_cache.Guilds.TryGetGuild(channel.Guild.Id, out var guild) && guild.DadJokesEnabled)
         {
-            string response = $"Hi {Formatter.Italic(jokeResult)}, I'm Dad!";
-            if (_random.Next(10) == 1)
+            string jokeResult = DadJokeExtractor.Extract(messageContent);
+            if (!string.IsNullOrWhiteSpace(jokeResult))
             {
-                response = Uwuifyer.Uwuify(response);
+                string response = $"Hi {Formatter.Italic(jokeResult)}, I'm Dad!";
+                if (_random.Next(10) == 1)
+                {
+                    response = Uwuifyer.Uwuify(response);
+                }
+                await channel.SendMessageAsync(response);
             }
-            await channel.SendMessageAsync(response);
         }
     }
 
