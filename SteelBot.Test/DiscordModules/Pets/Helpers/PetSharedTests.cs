@@ -18,6 +18,30 @@ namespace SteelBot.Test.DiscordModules.Pets.Helpers;
 public class PetSharedTests
 {
     [Fact]
+    public void GetCapacity_NoPets()
+    {
+        var user = GetUser(1);
+        var pets = new List<Pet>();
+        
+        var capacity = PetShared.GetPetCapacity(user, pets);
+        capacity.Should().Be(3);
+    }
+    
+    [Theory]
+    [InlineData(3, 1, 0, 20)]
+    [InlineData(4, 1, 0, 40)]
+    [InlineData(16, 60, 10, 80)]
+    public void GetLevelRequired(int index, int userLevel, int petBonusCapacity, int expectedLevel)
+    {
+        var user = GetUser(userLevel);
+
+        var baseCapacity = PetShared.GetBasePetCapacity(user);
+        var totalCapacity = baseCapacity + petBonusCapacity;
+        var levelRequired = PetShared.GetRequiredLevelForPet(index, baseCapacity, totalCapacity);
+        levelRequired.Should().Be(expectedLevel);
+    }
+    
+    [Fact]
     public void GetAvailablePets_NoPets()
     {
         var user = GetUser(1);
@@ -74,6 +98,18 @@ public class PetSharedTests
         var activePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
 
         activePets.Should().HaveCount(1);
+        disabledPets.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void GetAvailablePets()
+    {
+        var user = GetUser(1);
+        var pets = GetPets_NegativesMixedWithPositives();
+
+        var activePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
+
+        activePets.Should().HaveCount(3);
         disabledPets.Should().HaveCount(2);
     }
 
@@ -181,88 +217,68 @@ public class PetSharedTests
 
     private static User GetUser(int level)
     {
-        return new User
-        {
-            CurrentLevel = level
-        };
+        return new User { CurrentLevel = level };
     }
 
     private List<Pet> GetPets_OnePet(int slots)
     {
         var factory = GetPetFactory();
         var pet = factory.Generate();
-        pet.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(slots)
-        };
+        pet.Bonuses = new List<PetBonus> { GetPetBonus(slots) };
 
-        return new List<Pet>
-        {
-            pet
-        };
+        return new List<Pet> { pet };
     }
 
     private List<Pet> GetPets_LastNegatives()
     {
         var factory = GetPetFactory();
         var pet1 = factory.Generate();
-        pet1.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(1)
-        };
+        pet1.Bonuses = new List<PetBonus> { GetPetBonus(1) };
         var pet2 = factory.Generate();
-        pet2.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(2)
-        };
+        pet2.Bonuses = new List<PetBonus> { GetPetBonus(2) };
         var pet3 = factory.Generate();
-        pet3.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(-5)
-        };
+        pet3.Bonuses = new List<PetBonus> { GetPetBonus(-5) };
 
-        return new List<Pet>
-        {
-            pet1, pet2, pet3
-        };
+        return new List<Pet> { pet1, pet2, pet3 };
+    }
+
+    private List<Pet> GetPets_NegativesMixedWithPositives()
+    {
+        var factory = GetPetFactory();
+        var pet1 = factory.Generate();
+        pet1.Bonuses = new List<PetBonus> { GetPetBonus(1) };
+        var pet2 = factory.Generate();
+        pet2.Bonuses = new List<PetBonus> { GetPetBonus(2) };
+        var pet3 = factory.Generate();
+        pet3.Bonuses = new List<PetBonus> { GetPetBonus(-5) };
+        var pet4 = factory.Generate();
+        pet4.Bonuses = new List<PetBonus> { GetPetBonus(4) };
+        var pet5 = factory.Generate();
+        pet5.Bonuses = new List<PetBonus> { GetPetBonus(-2) };
+
+        return new List<Pet> { pet1, pet2, pet3, pet4, pet5 };
     }
 
     private List<Pet> GetPets_AtCapacityWithLastNegatives()
     {
         var factory = GetPetFactory();
         var pet1 = factory.Generate();
-        pet1.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(0)
-        };
+        pet1.Bonuses = new List<PetBonus> { GetPetBonus(0) };
         var pet2 = factory.Generate();
         pet2.Bonuses = new List<PetBonus>();
 
         var pet3 = factory.Generate();
-        pet3.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(0)
-        };
+        pet3.Bonuses = new List<PetBonus> { GetPetBonus(0) };
 
         var pet4 = factory.Generate();
-        pet4.Bonuses = new List<PetBonus>
-        {
-            GetPetBonus(-1)
-        };
+        pet4.Bonuses = new List<PetBonus> { GetPetBonus(-1) };
 
-        return new List<Pet>
-        {
-            pet1, pet2, pet3, pet4
-        };
+        return new List<Pet> { pet1, pet2, pet3, pet4 };
     }
 
     private static PetBonus GetPetBonus(double value, BonusType type = BonusType.PetSlots)
     {
-        return new PetBonus
-        {
-            Value = value,
-            BonusType = type
-        };
+        return new PetBonus { Value = value, BonusType = type };
     }
 
     private static PetFactory GetPetFactory()
