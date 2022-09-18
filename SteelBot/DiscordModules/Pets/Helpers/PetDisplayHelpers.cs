@@ -60,16 +60,11 @@ public static class PetDisplayHelpers
         bool anyDisabled = false;
         foreach (var pet in allPets)
         {
-            if (pet.Active)
+            totals.Add(pet);
+
+            if (!anyDisabled && !pet.Active)
             {
-                totals.Add(pet.Pet);
-            }
-            else
-            {
-                if (!anyDisabled)
-                {
-                    anyDisabled = true;
-                }
+                anyDisabled = true;
             }
         }
 
@@ -118,9 +113,7 @@ public static class PetDisplayHelpers
     private static StringBuilder AppendBonuses(StringBuilder bonuses, Pet pet)
     {
         var bonusTotals = new BonusTotals(pet);
-        AppendBonuses(bonuses, bonusTotals, pet.IsCorrupt);
-
-        return bonuses;
+        return AppendBonuses(bonuses, bonusTotals, pet.IsCorrupt);
     }
 
     private static StringBuilder AppendBonus(StringBuilder bonuses, PetBonus bonus, bool isCorrupt)
