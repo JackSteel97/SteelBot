@@ -75,7 +75,10 @@ public static class PetDisplayHelpers
 
         var totalsBuilder = new StringBuilder();
         AppendBonuses(totalsBuilder, totals, false);
-        embedBuilder.AddField("Totals", totalsBuilder.ToString());
+        if (totalsBuilder.Length > 0)
+        {
+            embedBuilder.AddField("Totals", totalsBuilder.ToString());
+        }
 
         return PaginationHelper.GenerateEmbedPages(embedBuilder, allPets, 5, (builder, petWithActivation, _) =>
         {
