@@ -1,5 +1,5 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="SteelBot/Test/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+  <configuration default="false" name="SteelBot/Test/Dockerfile" type="docker-deploy" factoryName="dockerfile">
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="test" />

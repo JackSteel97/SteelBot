@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
@@ -29,12 +30,14 @@ public class PetTreatingService
     private readonly DataCache _cache;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly IHub _sentry;
+    private readonly ILogger<PetTreatingService> _logger;
 
-    public PetTreatingService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry)
+    public PetTreatingService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry, ILogger<PetTreatingService> logger)
     {
         _cache = cache;
         _errorHandlingService = errorHandlingService;
         _sentry = sentry;
+        _logger = logger;
     }
 
     public async Task Treat(PetCommandAction request)
@@ -107,7 +110,11 @@ public class PetTreatingService
     private async Task HandleTreatGivenCore(PetCommandAction request, Pet pet, User user, double petTreatXpBonus, ITransaction transaction)
     {
         var xpMathsSpan = transaction.StartChild("Calculate Treat Xp");
-        int xpGain = (int)PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus);
+        int xpGain;
+        using (_logger.BeginScope("Calculating Treat XP for User {UserId}, Pet {PetId} with Rarity {Rarity}", user.DiscordId, pet.RowId, pet.Rarity))
+        {
+            xpGain = (int)PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, _logger);
+        }
         pet.EarnedXp += xpGain;
         xpMathsSpan.Finish();
 

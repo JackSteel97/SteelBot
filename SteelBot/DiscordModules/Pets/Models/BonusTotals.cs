@@ -2,6 +2,7 @@
 using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SteelBot.DiscordModules.Pets.Models;
 
@@ -18,16 +19,32 @@ public class BonusTotals
     /// Immediately add pet bonuses to the total.
     /// </summary>
     /// <param name="pet">Pet to calculate totals of.</param>
-    public BonusTotals(Pet pet)
+    public BonusTotals(PetWithActivation pet)
     {
         Add(pet);
     }
 
-    public void Add(Pet pet)
+    public BonusTotals(Pet pet)
     {
-        foreach (var bonus in pet.Bonuses)
+        Add(new PetWithActivation(pet, true));
+    }
+
+    public void Add(PetWithActivation petWithActivation)
+    {
+        if (petWithActivation.Active)
         {
-            Add(bonus);
+            foreach (var bonus in petWithActivation.Pet.Bonuses)
+            {
+                Add(bonus);
+            }
+        }
+        else
+        {
+            var slotsBonus = petWithActivation.Pet.Bonuses.Find(b => b.BonusType == BonusType.PetSlots);
+            if (slotsBonus != default)
+            {
+                Add(slotsBonus);
+            }
         }
     }
 
@@ -41,6 +58,7 @@ public class BonusTotals
             {
                 value = Math.Round(bonus.Value);
             }
+
             bonusTotal.Value += value;
         }
         else

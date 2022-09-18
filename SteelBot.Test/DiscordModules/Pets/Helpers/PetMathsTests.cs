@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers.Levelling;
@@ -25,8 +27,8 @@ public class PetMathsTests
         double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity);
         double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity);
         double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
-        
-        double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1);
+        var loggerMock = new Mock<ILogger>();
+        double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, loggerMock.Object);
         xpGain.Should()
             .BeLessThan(xpRequiredToLevel)
             .And
@@ -48,12 +50,13 @@ public class PetMathsTests
         double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity);
         double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity);
         double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
+        var loggerMock = new Mock<ILogger>();
 
         const int iterations = 1000;
         var percentBucketCounter = new Dictionary<int, int>();
         for (int i = 0; i < iterations; ++i)
         {
-            double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1);
+            double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, loggerMock.Object);
             double gainPercent = (xpGain / xpRequiredToLevel) * 100;
 
             int roundedPercent = (int)Math.Round(gainPercent, MidpointRounding.AwayFromZero);
