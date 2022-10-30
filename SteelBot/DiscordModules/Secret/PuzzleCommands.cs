@@ -18,11 +18,10 @@ namespace SteelBot.DiscordModules.Secret;
 [Group("Puzzle")]
 [Aliases("Question")]
 [RequireGuild]
-[GuildCheck(287309906137055247, 782237087352356876)]
-[Description("Commands for playing the puzzle. These commands only work in the puzzle channels.")]
+[Description("Commands for playing the puzzle.")]
 public class PuzzleCommands : TypingCommandModule
 {
-    private const string _puzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity\n\nIf you find any problems DM Jack.";
+    private const string _puzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity";
     private const int _numberOfQuestions = 30;
     private readonly List<string> _numberWords;
     private readonly AppConfigurationService _appConfigurationService;
