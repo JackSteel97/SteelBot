@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Puzzle;
 using SteelBot.Database.Models.Users;
 using System;
 
@@ -22,6 +23,8 @@ public class SteelBotContext : DbContext
     public DbSet<PetAttribute> PetAttributes { get; set; }
     public DbSet<PetBonus> PetBonuses { get; set; }
     public DbSet<UserAudit> UserAudits { get; set; }
+    public DbSet<Guess> Guesses { get; set; }
+    public DbSet<Progress> PuzzleProgress { get; set; }
 
     public SteelBotContext(DbContextOptions<SteelBotContext> options) : base(options)
     {
@@ -91,6 +94,14 @@ public class SteelBotContext : DbContext
 
         modelBuilder.Entity<PetBonus>(entity => entity.HasKey(pb => pb.RowId));
 
+        modelBuilder.Entity<Progress>(entity =>
+        {
+            entity.HasKey(p => p.UserId);
+            entity.Property(p => p.UserId).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<Guess>(entity => entity.HasKey(g => g.Id));
+        
         ApplyDateTimeConverters(modelBuilder);
     }
 
