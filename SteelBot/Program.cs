@@ -9,6 +9,7 @@ using Serilog;
 using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
+using SteelBot.Channels.Puzzle;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Stats;
@@ -22,7 +23,8 @@ using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Services;
-using SteelBot.DiscordModules.RankRoles;
+using SteelBot.DiscordModules.Puzzle.Questions;
+using SteelBot.DiscordModules.Puzzle.Services;
 using SteelBot.DiscordModules.RankRoles.Services;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Roles.Services;
@@ -158,6 +160,7 @@ public static class Program
         serviceProvider.AddSingleton<CommandStatisticProvider>();
         serviceProvider.AddSingleton<FunProvider>();
         serviceProvider.AddSingleton<PetsProvider>();
+        serviceProvider.AddSingleton<PuzzleProvider>();
 
         // Add base provider.
         serviceProvider.AddSingleton<DataCache>();
@@ -206,6 +209,10 @@ public static class Program
         serviceProvider.AddSingleton<StatsAdminService>();
         serviceProvider.AddSingleton<StatsCardService>();
         serviceProvider.AddSingleton<StatsLeaderboardService>();
+
+        serviceProvider.AddSingleton<PuzzleCommandsChannel>();
+        serviceProvider.AddSingleton<PuzzleService>();
+        serviceProvider.AddSingleton<QuestionFactory>();
     }
 
     public static async Task Main(string[] args)

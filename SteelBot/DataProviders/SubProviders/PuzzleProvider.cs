@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Nito.AsyncEx;
 using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models.Puzzle;
@@ -57,8 +56,17 @@ public class PuzzleProvider
         }
     }
 
-    public void RecordGuess(ulong userId, int puzzleLevel, string guess)
+    public async Task RecordGuess(ulong userId, int puzzleLevel, string guess)
     {
-        
+        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RecordGuess));
+
+        await using (var db = await _dbContextFactory.CreateDbContextAsync())
+        {
+            var guessRecord = new Guess() { UserId = userId, PuzzleLevel = puzzleLevel, GuessContent = guess };
+            db.Guesses.Add(guessRecord);
+            db.SaveChangesAsync();
+        }
+
+        transaction.Finish();
     }
 }
