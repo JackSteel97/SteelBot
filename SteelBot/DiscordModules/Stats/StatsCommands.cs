@@ -22,7 +22,8 @@ public class StatsCommands : TypingCommandModule
     private readonly StatsCommandsChannel _statsCommandsChannel;
     private readonly CancellationService _cancellationService;
     
-    public StatsCommands(ErrorHandlingService errorHandlingService, IHub sentry, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService) : base(sentry)
+    public StatsCommands(ErrorHandlingService errorHandlingService, IHub sentry, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService)
+        : base(logger, sentry)
     {
         _errorHandlingService = errorHandlingService;
         _logger = logger;

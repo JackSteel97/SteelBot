@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -17,7 +18,7 @@ public class ConfigCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
 
-    public ConfigCommands(DataHelpers dataHelpers, IHub sentry) : base(sentry)
+    public ConfigCommands(DataHelpers dataHelpers, IHub sentry, ILogger<ConfigCommands> logger) : base(logger, sentry)
     {
         _dataHelpers = dataHelpers;
     }

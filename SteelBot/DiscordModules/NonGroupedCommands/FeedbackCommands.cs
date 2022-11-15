@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
@@ -15,7 +16,7 @@ public class FeedbackCommands : TypingCommandModule
 {
     private readonly DataCache _cache;
 
-    public FeedbackCommands(DataCache cache, IHub sentry) : base(sentry)
+    public FeedbackCommands(DataCache cache, IHub sentry, ILogger<FeedbackCommands> logger) : base(logger, sentry)
     {
         _cache = cache;
     }

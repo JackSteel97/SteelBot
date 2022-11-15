@@ -46,7 +46,8 @@ public class WordGuesserCommands : TypingCommandModule
     private readonly Dictionary<ulong, WordGuesserStats> _stats = new Dictionary<ulong, WordGuesserStats>();
     private readonly StringBuilder _currentResponse = new StringBuilder();
 
-    public WordGuesserCommands(ILogger<WordGuesserCommands> logger, AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
+    public WordGuesserCommands(ILogger<WordGuesserCommands> logger, AppConfigurationService appConfigurationService, IHub sentry)
+        : base(logger, sentry)
     {
         _logger = logger;
         _appConfigurationService = appConfigurationService;

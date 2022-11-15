@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Helpers.Extensions;
@@ -24,7 +25,8 @@ public class RolesCommands : TypingCommandModule
     private readonly CancellationService _cancellationService;
     private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
 
-    public RolesCommands(DataHelpers dataHelper, IHub sentry, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel) : base(sentry)
+    public RolesCommands(DataHelpers dataHelper, IHub sentry, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesCommands> logger)
+        : base(logger, sentry)
     {
         _dataHelpers = dataHelper;
         _errorHandlingService = errorHandlingService;

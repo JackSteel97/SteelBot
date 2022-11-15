@@ -31,7 +31,8 @@ public class PetsCommands : TypingCommandModule
     private readonly PetCommandsChannel _petCommandsChannel;
     private readonly CancellationService _cancellationService;
     private const double _hourSeconds = 60 * 60;
-    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService) : base(sentry)
+    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService)
+        : base(logger, sentry)
     {
         _logger = logger;
         _petFactory = petFactory;
