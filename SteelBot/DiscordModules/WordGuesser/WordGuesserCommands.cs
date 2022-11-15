@@ -62,12 +62,14 @@ public class WordGuesserCommands : TypingCommandModule
     {
         if (string.IsNullOrWhiteSpace(guess) || guess.Length != _currentWord.Length)
         {
+            _logger.LogWarning("Invalid Guess command request, guess {Guess} is not the same length as the target word", guess);
             await context.RespondAsync(EmbedGenerator.Error($"Please guess a {Formatter.Bold(_currentWord.Length.ToString())} letter word", "Wrong Length"));
             return;
         }
 
         if (ContainsNonAlphaCharacters(guess))
         {
+            _logger.LogWarning("Invalid Guess command request, guess {Guess} contains non-alpha characters", guess);
             await context.RespondAsync(EmbedGenerator.Error("Only letters are allowed in guesses", "Invalid characters"));
             return;
         }

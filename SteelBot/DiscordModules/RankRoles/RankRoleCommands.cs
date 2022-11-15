@@ -37,7 +37,6 @@ public class RankRoleCommands : TypingCommandModule
     [Cooldown(1, 60, CooldownBucketType.Channel)]
     public async Task ViewRankRoles(CommandContext context)
     {
-
         var action = new RankRoleManagementAction(RankRoleManagementActionType.View, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
         await _rankRoleManagementChannel.Write(action, _cancellationService.Token);
     }

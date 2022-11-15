@@ -17,10 +17,12 @@ namespace SteelBot.DiscordModules.Config;
 public class ConfigCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
+    private ILogger<ConfigCommands> _logger;
 
     public ConfigCommands(DataHelpers dataHelpers, IHub sentry, ILogger<ConfigCommands> logger) : base(logger, sentry)
     {
         _dataHelpers = dataHelpers;
+        _logger = logger;
     }
 
     [Command("Environment")]
@@ -44,11 +46,13 @@ public class ConfigCommands : TypingCommandModule
     {
         if (newPrefix.Length > 20)
         {
+            _logger.LogWarning("The new prefix must be 20 characters or less '{Prefix}' was too long", newPrefix);
             await context.RespondAsync(embed: EmbedGenerator.Error("The new prefix must be 20 characters or less."));
             return;
         }
         if (string.IsNullOrWhiteSpace(newPrefix))
         {
+            _logger.LogWarning("No prefix was specified");
             await context.RespondAsync(embed: EmbedGenerator.Error("No valid prefix specified."));
             return;
         }
@@ -75,6 +79,7 @@ public class ConfigCommands : TypingCommandModule
     {
         if (channel == null || !context.Guild.Channels.ContainsKey(channel.Id))
         {
+            _logger.LogWarning("Invalid channel entered for setting the levelling channel");
             await context.RespondAsync(embed: EmbedGenerator.Error("That channel is not valid."));
             return;
         }

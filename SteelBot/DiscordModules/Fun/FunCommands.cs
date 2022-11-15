@@ -20,11 +20,13 @@ public class FunCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
     private readonly DataCache _cache;
+    private readonly ILogger<FunCommands> _logger;
 
     public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry, ILogger<FunCommands> logger) : base(logger, sentry)
     {
         _dataHelpers = dataHelpers;
         _cache = cache;
+        _logger = logger;
     }
 
     [Command("Joke")]
@@ -53,6 +55,7 @@ public class FunCommands : TypingCommandModule
         }
         else
         {
+            _logger.LogWarning("Failed to generate a motivational quote");
             await context.RespondAsync(embed: EmbedGenerator.Error("Failed to generate a motivational quote, please try again later."));
             await _cache.Exceptions.InsertException(new Database.Models.ExceptionLog(new NullReferenceException("Motivational Quote stream cannot be null"), nameof(GetInspiration)));
         }

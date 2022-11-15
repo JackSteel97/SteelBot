@@ -28,7 +28,8 @@ public class UtilityCommands : TypingCommandModule
     private readonly AppConfigurationService _appConfigurationService;
     private readonly DataCache _cache;
     private readonly IHostApplicationLifetime _applicationLifetime;
-
+    private readonly ILogger<UtilityCommands> _logger;
+    
     public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime, IHub sentry, ILogger<UtilityCommands> logger)
         : base(logger, sentry)
     {
@@ -36,6 +37,7 @@ public class UtilityCommands : TypingCommandModule
         _appConfigurationService = appConfigurationService;
         _cache = cache;
         _applicationLifetime = applicationLifetime;
+        _logger = logger;
     }
 
     [Command("ServerInfo")]
@@ -46,6 +48,7 @@ public class UtilityCommands : TypingCommandModule
     {
         if (!_cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
         {
+            _logger.LogWarning("Guild {GuildId} is not tracked so the request to get server info failed", context.Guild.Id);
             return context.RespondAsync(embed: EmbedGenerator.Error("Something went wrong and I couldn't get this Server's info, please try again later."));
         }
 
@@ -156,16 +159,19 @@ public class UtilityCommands : TypingCommandModule
         // Validation.
         if (numberToSelect <= 0)
         {
+            _logger.LogWarning("Invalid Choose command request, the number to select {NumberToSelect} is less than zero", numberToSelect);
             return context.RespondAsync(embed: EmbedGenerator.Error("X must be greater than zero."));
         }
 
         if (options.Length == 0)
         {
+            _logger.LogWarning("Invalid Choose command request, no options were provider");
             return context.RespondAsync(embed: EmbedGenerator.Error("No options were provided."));
         }
 
         if (numberToSelect > options.Length)
         {
+            _logger.LogWarning("Invalid Choose command request, options provided {OptionsAmount} are less than the amount to select {NumberToSelect}", options.Length, numberToSelect);
             return context.RespondAsync(embed: EmbedGenerator.Error($"There are not enough options to choose {numberToSelect} unique options.\nPlease provide more options or choose less."));
         }
 
@@ -223,20 +229,23 @@ public class UtilityCommands : TypingCommandModule
     [Description("Get the bot to post the given message in a channel.")]
     [RequireUserPermissions(Permissions.Administrator)]
     [Cooldown(1, 60, CooldownBucketType.Guild)]
-    public static Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "")
+    public Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "")
     {
         if (!context.Guild.Channels.ContainsKey(channel.Id))
         {
+            _logger.LogWarning("Invalid Speak command request, the specified channel {ChannelId} does not exist", channel.Id);
             return context.RespondAsync(embed: EmbedGenerator.Error("The channel specified does not exist in this server."));
         }
 
         if (channel.Type != ChannelType.Text)
         {
+            _logger.LogWarning("Invalid Speak command request, the specified channel {ChannelId} is not a text channel", channel.Id);
             return context.RespondAsync(embed: EmbedGenerator.Error("The channel specified is not a text channel."));
         }
 
         if (string.IsNullOrWhiteSpace(title))
         {
+            _logger.LogWarning("Invalid Speak command request, no message was provided");
             return context.RespondAsync(embed: EmbedGenerator.Error("No valid message title was provided."));
         }
 
@@ -267,7 +276,7 @@ public class UtilityCommands : TypingCommandModule
         string logDirectoryPath = Path.Combine(_appConfigurationService.BasePath, "Logs");
         var logDirectory = new DirectoryInfo(logDirectoryPath);
 
-        var latestLogFile = logDirectory.GetFiles().OrderByDescending(x => x.LastWriteTimeUtc).FirstOrDefault();
+        var latestLogFile = logDirectory.GetFiles().MaxBy(x => x.LastWriteTimeUtc);
 
         if (latestLogFile != null)
         {
@@ -285,6 +294,5 @@ public class UtilityCommands : TypingCommandModule
         }
 
         await context.RespondAsync(EmbedGenerator.Warning("Something went wrong and I couldn't find the latest log file."));
-        return;
     }
 }
