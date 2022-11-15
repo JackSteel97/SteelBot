@@ -1,5 +1,6 @@
 ﻿using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
+using SteelBot.Channels.Puzzle;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Voice;
@@ -16,6 +17,7 @@ public static class ChannelsController
     public static RankRoleManagementChannel RankRoleManagementChannel { private get; set; }
     public static SelfRoleManagementChannel SelfRoleManagementChannel { private get; set; }
     public static VoiceStateChannel VoiceStateChannel { private get; set; }
+    public static PuzzleCommandsChannel PuzzleCommandsChannel { private get; set; }
 
     public static ValueTask SendMessage(PetCommandAction message, CancellationToken cancellationToken)
     {
