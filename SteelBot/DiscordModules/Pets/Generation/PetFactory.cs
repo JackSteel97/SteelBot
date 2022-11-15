@@ -34,13 +34,14 @@ public class PetFactory
                 includedSpecies = new List<Species>();
                 _speciesByRarity.Add(rarity, includedSpecies);
             }
+
             includedSpecies.Add(spec);
         }
     }
 
     public Pet Generate(int levelOfUser = 0)
     {
-        var baseRarity = GetBaseRarity();
+        var baseRarity = GetBaseRarity(levelOfUser);
         var species = GetSpecies(baseRarity);
         var finalRarity = GetFinalRarity(baseRarity, levelOfUser);
         var size = PetGenerationShared.GetRandomEnumValue<Size>();
@@ -64,7 +65,7 @@ public class PetFactory
         return pet;
     }
 
-    private static Rarity GetBaseRarity()
+    private static Rarity GetBaseRarity(int userLevel)
     {
         const int maxBound = 100000;
         const double MythicalChance = 0.0001;
@@ -73,35 +74,54 @@ public class PetFactory
         const double RareChance = 0.20;
         const double UncommonChance = 0.50;
 
-        const double MythicalBound = maxBound * MythicalChance;
-        const double LegendaryBound = maxBound * LegendaryChance;
-        const double EpicBound = maxBound * EpicChance;
-        const double RareBound = maxBound * RareChance;
+        double scaler = GetRarityScaler(userLevel);
+        double mythicalChanceScaled = ScaleChance(MythicalChance, scaler);
+        double legendaryChanceScaled = ScaleChance(LegendaryChance, scaler);
+        double epicChanceScaled = ScaleChance(EpicChance, scaler);
+        double rareChanceScaled = ScaleChance(RareChance, scaler);
+
+        double mythicalBound = maxBound * mythicalChanceScaled;
+        double legendaryBound = maxBound * legendaryChanceScaled;
+        double epicBound = maxBound * epicChanceScaled;
+        double rareBound = maxBound * rareChanceScaled;
         const double UncommonBound = maxBound * UncommonChance;
 
         int random = RandomNumberGenerator.GetInt32(maxBound);
 
-        if (random <= MythicalBound)
+        if (random <= mythicalBound)
         {
             return Rarity.Mythical;
         }
-        else if (random <= LegendaryBound)
+
+        if (random <= legendaryBound)
         {
             return Rarity.Legendary;
         }
-        else if (random <= EpicBound)
+
+        if (random <= epicBound)
         {
             return Rarity.Epic;
         }
-        else if (random <= RareBound)
+
+        if (random <= rareBound)
         {
             return Rarity.Rare;
         }
-        else
-        {
-            return random <= UncommonBound ? Rarity.Uncommon : Rarity.Common;
-        }
+
+        return random <= UncommonBound ? Rarity.Uncommon : Rarity.Common;
     }
+
+    private static double ScaleChance(double chance, double scaler) => chance + (chance * scaler);
+
+    private static double GetRarityScaler(int userLevel) =>
+        userLevel switch
+        {
+            > 100 => 0.5,
+            > 80 => 0.4,
+            > 60 => 0.3,
+            > 40 => 0.2,
+            _ => 0
+        };
 
     private static Rarity GetFinalRarity(Rarity rarity, int levelOfUser)
     {
@@ -119,8 +139,10 @@ public class PetFactory
             {
                 break;
             }
+
             finalRarity = i;
         }
+
         return (Rarity)finalRarity;
     }
 
@@ -145,14 +167,10 @@ public class PetFactory
         var attributes = new List<PetAttribute>(bodyParts.Count);
         foreach (var part in bodyParts)
         {
-            var attribute = new PetAttribute()
-            {
-                Pet = pet,
-                Name = part.ToString(),
-                Description = GenerateColourCombo()
-            };
+            var attribute = new PetAttribute() { Pet = pet, Name = part.ToString(), Description = GenerateColourCombo() };
             attributes.Add(attribute);
         }
+
         return attributes;
     }
 
