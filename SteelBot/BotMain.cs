@@ -41,6 +41,7 @@ using Sentry;
 using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
+using SteelBot.Channels.Puzzle;
 using SteelBot.Channels.RankRole;
 using SteelBot.Channels.SelfRole;
 using SteelBot.Channels.Stats;
@@ -101,6 +102,7 @@ public class BotMain : IHostedService
     private readonly RankRoleManagementChannel _rankRoleManagementChannel;
     private readonly PetCommandsChannel _petCommandsChannel;
     private readonly StatsCommandsChannel _statsCommandsChannel;
+    private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
 
     public BotMain(AppConfigurationService appConfigurationService,
         ILogger<BotMain> logger,
@@ -118,7 +120,8 @@ public class BotMain : IHostedService
         ErrorHandlingAsynchronousCommandExecutor commandExecutor,
         IHub sentry,
         PetCommandsChannel petCommandsChannel,
-        StatsCommandsChannel statsCommandsChannel)
+        StatsCommandsChannel statsCommandsChannel,
+        PuzzleCommandsChannel puzzleCommandsChannel)
     {
         _appConfigurationService = appConfigurationService;
         _logger = logger;
@@ -137,6 +140,7 @@ public class BotMain : IHostedService
         _sentry = sentry;
         _petCommandsChannel = petCommandsChannel;
         _statsCommandsChannel = statsCommandsChannel;
+        _puzzleCommandsChannel = puzzleCommandsChannel;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -166,6 +170,7 @@ public class BotMain : IHostedService
         ChannelsController.RankRoleManagementChannel = _serviceProvider.GetRequiredService<RankRoleManagementChannel>();
         ChannelsController.SelfRoleManagementChannel = _serviceProvider.GetRequiredService<SelfRoleManagementChannel>();
         ChannelsController.VoiceStateChannel = _serviceProvider.GetRequiredService<VoiceStateChannel>();
+        ChannelsController.PuzzleCommandsChannel = _serviceProvider.GetRequiredService<PuzzleCommandsChannel>();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -192,6 +197,7 @@ public class BotMain : IHostedService
         _rankRoleManagementChannel.Start(_cancellationService.Token);
         _petCommandsChannel.Start(_cancellationService.Token);
         _statsCommandsChannel.Start(_cancellationService.Token);
+        _puzzleCommandsChannel.Start(_cancellationService.Token);
     }
 
     private void InitHandlers()

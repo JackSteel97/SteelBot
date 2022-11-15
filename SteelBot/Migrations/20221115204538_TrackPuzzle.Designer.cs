@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SteelBot.Database;
@@ -11,9 +12,10 @@ using SteelBot.Database;
 namespace SteelBot.Migrations
 {
     [DbContext(typeof(SteelBotContext))]
-    partial class SteelBotContextModelSnapshot : ModelSnapshot
+    [Migration("20221115204538_TrackPuzzle")]
+    partial class TrackPuzzle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +46,7 @@ namespace SteelBot.Migrations
                     b.HasIndex("CommandName")
                         .IsUnique();
 
-                    b.ToTable("CommandStatistics", (string)null);
+                    b.ToTable("CommandStatistics");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.ExceptionLog", b =>
@@ -72,7 +74,7 @@ namespace SteelBot.Migrations
 
                     b.HasKey("RowId");
 
-                    b.ToTable("LoggedErrors", (string)null);
+                    b.ToTable("LoggedErrors");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Guild", b =>
@@ -116,7 +118,7 @@ namespace SteelBot.Migrations
                     b.HasIndex("DiscordId")
                         .IsUnique();
 
-                    b.ToTable("Guilds", (string)null);
+                    b.ToTable("Guilds");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Pets.Pet", b =>
@@ -165,7 +167,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("OwnerDiscordId");
 
-                    b.ToTable("Pets", (string)null);
+                    b.ToTable("Pets");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Pets.PetAttribute", b =>
@@ -191,7 +193,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("PetId");
 
-                    b.ToTable("PetAttributes", (string)null);
+                    b.ToTable("PetAttributes");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Pets.PetBonus", b =>
@@ -215,7 +217,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("PetId");
 
-                    b.ToTable("PetBonuses", (string)null);
+                    b.ToTable("PetBonuses");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Puzzle.Guess", b =>
@@ -237,7 +239,7 @@ namespace SteelBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Guesses", (string)null);
+                    b.ToTable("Guesses");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Puzzle.Progress", b =>
@@ -250,7 +252,7 @@ namespace SteelBot.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("PuzzleProgress", (string)null);
+                    b.ToTable("PuzzleProgress");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.RankRole", b =>
@@ -281,7 +283,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("GuildRowId");
 
-                    b.ToTable("RankRoles", (string)null);
+                    b.ToTable("RankRoles");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.SelfRole", b =>
@@ -313,7 +315,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("GuildRowId");
 
-                    b.ToTable("SelfRoles", (string)null);
+                    b.ToTable("SelfRoles");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Trigger", b =>
@@ -356,7 +358,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("GuildRowId");
 
-                    b.ToTable("Triggers", (string)null);
+                    b.ToTable("Triggers");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Users.User", b =>
@@ -469,7 +471,7 @@ namespace SteelBot.Migrations
 
                     b.HasIndex("GuildRowId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Users.UserAudit", b =>
@@ -551,7 +553,7 @@ namespace SteelBot.Migrations
 
                     b.HasKey("RowId");
 
-                    b.ToTable("UserAudits", (string)null);
+                    b.ToTable("UserAudits");
                 });
 
             modelBuilder.Entity("SteelBot.Database.Models.Pets.PetAttribute", b =>
