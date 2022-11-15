@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -17,7 +18,7 @@ public class MiscCommands : TypingCommandModule
 {
     private readonly AppConfigurationService _appConfigurationService;
 
-    public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry) : base(sentry)
+    public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry, ILogger<MiscCommands> logger) : base(logger, sentry)
     {
         _appConfigurationService = appConfigurationService;
     }

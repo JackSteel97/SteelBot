@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
@@ -20,7 +21,7 @@ public class FunCommands : TypingCommandModule
     private readonly DataHelpers _dataHelpers;
     private readonly DataCache _cache;
 
-    public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry) : base(sentry)
+    public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry, ILogger<FunCommands> logger) : base(logger, sentry)
     {
         _dataHelpers = dataHelpers;
         _cache = cache;

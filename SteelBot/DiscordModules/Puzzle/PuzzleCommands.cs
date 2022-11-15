@@ -22,7 +22,8 @@ public class PuzzleCommands : TypingCommandModule
     private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
     private readonly ILogger<PuzzleCommands> _logger;
 
-    public PuzzleCommands(IHub sentry, PuzzleCommandsChannel puzzleCommandsChannel, CancellationService cancellationService, ErrorHandlingService errorHandlingService, ILogger<PuzzleCommands> logger) : base(sentry)
+    public PuzzleCommands(IHub sentry, PuzzleCommandsChannel puzzleCommandsChannel, CancellationService cancellationService, ErrorHandlingService errorHandlingService, ILogger<PuzzleCommands> logger)
+        : base(logger, sentry)
     {
         _puzzleCommandsChannel = puzzleCommandsChannel;
         _cancellationService = cancellationService;

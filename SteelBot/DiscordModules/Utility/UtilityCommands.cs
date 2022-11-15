@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.Helpers;
@@ -28,7 +29,8 @@ public class UtilityCommands : TypingCommandModule
     private readonly DataCache _cache;
     private readonly IHostApplicationLifetime _applicationLifetime;
 
-    public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime, IHub sentry) : base(sentry)
+    public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime, IHub sentry, ILogger<UtilityCommands> logger)
+        : base(logger, sentry)
     {
         _rand = new Random();
         _appConfigurationService = appConfigurationService;
@@ -156,14 +158,17 @@ public class UtilityCommands : TypingCommandModule
         {
             return context.RespondAsync(embed: EmbedGenerator.Error("X must be greater than zero."));
         }
+
         if (options.Length == 0)
         {
             return context.RespondAsync(embed: EmbedGenerator.Error("No options were provided."));
         }
+
         if (numberToSelect > options.Length)
         {
             return context.RespondAsync(embed: EmbedGenerator.Error($"There are not enough options to choose {numberToSelect} unique options.\nPlease provide more options or choose less."));
         }
+
         var remainingOptions = options.ToList();
         var selectedOptions = new List<string>(numberToSelect);
         for (int i = 0; i < numberToSelect; i++)
@@ -224,14 +229,17 @@ public class UtilityCommands : TypingCommandModule
         {
             return context.RespondAsync(embed: EmbedGenerator.Error("The channel specified does not exist in this server."));
         }
+
         if (channel.Type != ChannelType.Text)
         {
             return context.RespondAsync(embed: EmbedGenerator.Error("The channel specified is not a text channel."));
         }
+
         if (string.IsNullOrWhiteSpace(title))
         {
             return context.RespondAsync(embed: EmbedGenerator.Error("No valid message title was provided."));
         }
+
         return string.IsNullOrWhiteSpace(content)
             ? context.RespondAsync(embed: EmbedGenerator.Error("No valid message content was provided."))
             : (Task)channel.SendMessageAsync(embed: EmbedGenerator.Info(content, title, footerContent));
@@ -275,6 +283,7 @@ public class UtilityCommands : TypingCommandModule
                 }
             }
         }
+
         await context.RespondAsync(EmbedGenerator.Warning("Something went wrong and I couldn't find the latest log file."));
         return;
     }
