@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
+using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Utility;
@@ -29,7 +31,7 @@ public class UtilityCommands : TypingCommandModule
     private readonly DataCache _cache;
     private readonly IHostApplicationLifetime _applicationLifetime;
     private readonly ILogger<UtilityCommands> _logger;
-    
+
     public UtilityCommands(AppConfigurationService appConfigurationService, DataCache cache, IHostApplicationLifetime applicationLifetime, IHub sentry, ILogger<UtilityCommands> logger)
         : base(logger, sentry)
     {
@@ -38,6 +40,39 @@ public class UtilityCommands : TypingCommandModule
         _cache = cache;
         _applicationLifetime = applicationLifetime;
         _logger = logger;
+    }
+
+    [Command("ChannelsInfo")]
+    [Aliases("sci")]
+    [Description("Displays various information about this server's channels.")]
+    [Cooldown(2, 300, CooldownBucketType.Guild)]
+    public Task ChannelsInfo(CommandContext context)
+    {
+        if (!_cache.Guilds.TryGetGuild(context.Guild.Id, out var guild))
+        {
+            _logger.LogWarning("Guild {GuildId} is not tracked so the request to get channels info failed", context.Guild.Id);
+            return context.RespondAsync(embed: EmbedGenerator.Error("Something went wrong and I couldn't get this Server's channel info, please try again later."));
+        }
+
+        var pages = PaginationHelper.GenerateEmbedPages(new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+            .WithTitle($"{context.Guild.Name} Channels"), context.Guild.Channels.Values.Where(x => !x.IsCategory).OrderBy(x => x.Position), 5, (output, channel, index) =>
+        {
+            output.AppendLine(channel.Mention)
+                .AppendLine($"{Formatter.Bold("Id")}: {Formatter.InlineCode(channel.Id.ToString())}")
+                .AppendLine($"{Formatter.Bold("Type")}: {Formatter.InlineCode(channel.Type.ToString())}")
+                .AppendLine($"{Formatter.Bold("Created")}: {Formatter.InlineCode(channel.CreationTimestamp.ToString("g"))}");
+
+            if (channel.Bitrate.HasValue)
+            {
+                output.AppendLine($"{Formatter.Bold("Bitrate")}: {Formatter.InlineCode($"{channel.Bitrate / 1000}kbps")}");
+            }
+
+            output.AppendLine();
+            return output;
+        });
+
+        var interactivity = context.Client.GetInteractivity();
+        return interactivity.SendPaginatedMessageAsync(context.Channel, context.User, pages);
     }
 
     [Command("ServerInfo")]

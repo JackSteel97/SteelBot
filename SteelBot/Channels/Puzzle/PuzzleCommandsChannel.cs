@@ -13,7 +13,7 @@ public class PuzzleCommandsChannel : BaseChannel<PuzzleCommandAction>
     private readonly IHub _sentry;
 
     /// <inheritdoc />
-    public PuzzleCommandsChannel(PuzzleService puzzleService, IHub sentry, ILogger logger, ErrorHandlingService errorHandlingService, string channelLabel = "Puzzle") : base(logger, errorHandlingService, channelLabel)
+    public PuzzleCommandsChannel(PuzzleService puzzleService, IHub sentry, ILogger<PuzzleCommandsChannel> logger, ErrorHandlingService errorHandlingService, string channelLabel = "Puzzle") : base(logger, errorHandlingService, channelLabel)
     {
         _puzzleService = puzzleService;
         _sentry = sentry;   
