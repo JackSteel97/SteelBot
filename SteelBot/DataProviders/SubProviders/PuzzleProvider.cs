@@ -64,7 +64,7 @@ public class PuzzleProvider
         {
             var guessRecord = new Guess() { UserId = userId, PuzzleLevel = puzzleLevel, GuessContent = guess };
             db.Guesses.Add(guessRecord);
-            db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
 
         transaction.Finish();
