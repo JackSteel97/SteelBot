@@ -73,7 +73,7 @@ public class PetTreatingService
         var pagesSpan = transaction.StartChild("Generate Embed Pages");
         var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
             (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
-            (pet) => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()));
+            (pet) => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()).Disable(!pet.Active));
         pagesSpan.Finish();
         transaction.Finish();
 
