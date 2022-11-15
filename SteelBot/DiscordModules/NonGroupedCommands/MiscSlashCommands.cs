@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
@@ -17,7 +18,8 @@ public class MiscSlashCommands : InstrumentedApplicationCommandModule
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ErrorHandlingService _errorHandlingService;
 
-    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, IHub sentry): base(nameof(MiscSlashCommands), sentry)
+    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, IHub sentry, ILogger<MiscSlashCommands> logger) : base(
+        nameof(MiscSlashCommands), logger, sentry)
     {
         _appConfigurationService = appConfigurationService;
         _errorHandlingService = errorHandlingService;
@@ -33,14 +35,16 @@ public class MiscSlashCommands : InstrumentedApplicationCommandModule
 
     [SlashCommand("link", "Display a link as a button")]
     public Task Link(InteractionContext context,
-        [Option("longlink", "The link to display as a button link")] string longLink, 
-        [Option("linktext", "The text for the link button")] string linkText)
+        [Option("longlink", "The link to display as a button link")]
+        string longLink,
+        [Option("linktext", "The text for the link button")]
+        string linkText)
     {
         if (!longLink.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
             longLink = $"https://{longLink}";
         }
-        
+
         if (!Uri.IsWellFormedUriString(longLink, UriKind.Absolute))
         {
             context.SendWarning($"{Formatter.Bold(longLink)} is not a valid URL", _errorHandlingService);

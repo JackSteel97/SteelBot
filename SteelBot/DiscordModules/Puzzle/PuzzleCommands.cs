@@ -57,7 +57,7 @@ public class PuzzleCommands : TypingCommandModule
     [Cooldown(10, 60, CooldownBucketType.User)]
     public async Task Answer(CommandContext context, [RemainingText] string answer)
     {
-        _logger.LogInformation("User {UserId} attempted to submit '{Answer}' as an answer to the puzzle", context.Member.Id, answer);
+        _logger.LogInformation("User {UserId} submitted '{Answer}' as an answer to the puzzle", context.Member.Id, answer);
         var message = new PuzzleCommandAction(PuzzleCommandActionType.Answer, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, answer);
         await _puzzleCommandsChannel.Write(message, _cancellationService.Token);
     }
