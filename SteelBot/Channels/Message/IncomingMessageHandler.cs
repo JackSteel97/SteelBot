@@ -2,7 +2,6 @@
 using Sentry;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
-using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.Helpers.Levelling;
@@ -79,6 +78,17 @@ public class IncomingMessageHandler
                 petLevelSpan.Finish();
             }
             xpUpdateSpan.Finish();
+            
+            if (user.ConsecutiveDaysActive != copyOfUser.ConsecutiveDaysActive)
+            {
+                // Streak changed.
+                ulong xpEarned = copyOfUser.UpdateStreakXp();
+                if (xpEarned > 0)
+                {
+                    _levelMessageSender.SendStreakMessage(messageArgs.Guild, messageArgs.User, copyOfUser.ConsecutiveDaysActive, xpEarned);
+                }
+            }
+            
             await _usersProvider.UpdateUser(messageArgs.Guild.Id, copyOfUser);
 
             if (levelIncreased)

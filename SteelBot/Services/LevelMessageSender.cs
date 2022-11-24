@@ -33,6 +33,20 @@ public class LevelMessageSender
         }
     }
 
+    public void SendStreakMessage(DiscordGuild discordGuild, DiscordUser discordUser, int streakDays, ulong earnedXp)
+    {
+        if (_guildsProvider.TryGetGuild(discordGuild.Id, out var guild) && _usersProvider.TryGetUser(discordGuild.Id, discordUser.Id, out var user))
+        {
+            var channel = guild.GetLevelAnnouncementChannel(discordGuild);
+
+            if (channel != null)
+            {
+                channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} has been active for `{streakDays}` {(streakDays > 1 ? "days" : "day")} and earned a bonus of `{earnedXp}` XP!", "Active Streak!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
+                    .FireAndForget(_errorHandlingService);
+            }
+        }
+    }
+
     public void SendRankChangeDueToDeletionMessage(DiscordGuild discordGuild, ulong userId, RankRole previousRole, ulong? newRoleId = null)
     {
         if (_guildsProvider.TryGetGuild(discordGuild.Id, out var guild))
