@@ -6,9 +6,6 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Levelling;
 
@@ -29,11 +26,39 @@ public static class UserExtensions
         return levelIncreased;
     }
 
+    public static ulong UpdateStreakXp(this User user)
+    {
+        ulong xpEarned = Convert.ToUInt64(user.ConsecutiveDaysActive switch
+        {
+            1 => 50,
+            2 => 100,
+            3 => 200,
+            4 => 400,
+            5 => 600,
+            6 => 800,
+            7 => 1000,
+            10 => 2000,
+            15 => 3000,
+            20 => 4000,
+            25 => 5000,
+            30 => 10_000,
+            45 => 20_000,
+            60 => 50_000,
+            90 => 100_000,
+            > 100 when user.ConsecutiveDaysActive % 10 == 0 => user.ConsecutiveDaysActive * 1000,
+            _ => 0
+        });
+
+        user.ActivityStreakXpEarned += xpEarned;
+        return xpEarned;
+    }
+
     public static bool NewMessage(this User user, int messageLength, List<Pet> availablePets)
     {
         var messageReceivedAt = DateTime.UtcNow;
         ++user.MessageCount;
         user.TotalMessageLength += Convert.ToUInt64(messageLength);
+        UpdateActivityStreak(user, messageReceivedAt);
 
         bool lastMessageWasMoreThanAMinuteAgo = (messageReceivedAt - user.LastXpEarningMessage.GetValueOrDefault()).TotalSeconds >= 60;
         if (lastMessageWasMoreThanAMinuteAgo)
@@ -54,9 +79,38 @@ public static class UserExtensions
         if (updateLastActivity)
         {
             user.LastActivity = now;
+            UpdateActivityStreak(user, now);
         }
         UpdateVoiceCounters(user, now, availablePets, scalingFactor, shouldEarnVideoXp);
         UpdateStartTimes(user, newState, now, scalingFactor);
+    }
+
+    private static void UpdateActivityStreak(User user, DateTime now)
+    {
+        var today = DateOnly.FromDateTime(now);
+        if (user.LastActiveDay == default)
+        {
+            user.LastActiveDay = today;
+            user.ConsecutiveDaysActive = 1;
+        }
+        else
+        {
+            int daysSinceLastActive = (today.DayNumber - user.LastActiveDay.DayNumber);
+            switch (daysSinceLastActive)
+            {
+                case > 1:
+                    // Broken streak
+                    user.LastActiveDay = today;
+                    user.ConsecutiveDaysActive = 1;
+                    break;
+                case 1:
+                    // Continuing streak
+                    user.LastActiveDay = today;
+                    user.ConsecutiveDaysActive++;
+                    break;
+            }
+        }
+       
     }
 
     private static void UpdateStartTimes(User user, DiscordVoiceState newState, DateTime now, double scalingFactor)

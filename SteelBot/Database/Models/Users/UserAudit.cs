@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Database.Models.Users;
 
@@ -44,6 +40,9 @@ public class UserAudit : UserBase
         CurrentRankRoleRowId = user.CurrentRankRoleRowId;
         GuildDiscordId = guildDiscordId;
         CurrentRankRoleName = currentRankRoleName;
+        ActivityStreakXpEarned = user.ActivityStreakXpEarned;
+        LastActiveDay = user.LastActiveDay;
+        ConsecutiveDaysActive = user.ConsecutiveDaysActive;
         Timestamp = user.LastUpdated ?? user.UserFirstSeen;
     }
 }

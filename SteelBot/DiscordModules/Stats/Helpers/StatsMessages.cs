@@ -29,6 +29,7 @@ public static class StatsMessages
             .Append(Formatter.Bold("Deafened ")).AppendLine(Formatter.InlineCode($"-{user.DeafenedXpEarned:N0}"))
             .Append(Formatter.Bold("Messages ")).AppendLine(Formatter.InlineCode(user.MessageXpEarned.ToString("N0")))
             .Append(Formatter.Bold("Offline ")).AppendLine(Formatter.InlineCode(user.DisconnectedXpEarned.ToString("N0")))
+            .Append(Formatter.Bold("Active Streak ")).AppendLine(Formatter.InlineCode(user.ActivityStreakXpEarned.ToString("N0")))
             .AppendLine()
             .Append(Formatter.Bold("Total ")).AppendLine(Formatter.InlineCode(user.TotalXp.ToString("N0")));
 

@@ -25,12 +25,15 @@ public abstract class UserBase
     public ulong DisconnectedXpEarned { get; set; }
     public int CurrentLevel { get; set; }
     public long? CurrentRankRoleRowId { get; set; }
+    public ulong ActivityStreakXpEarned { get; set; }
+    public int ConsecutiveDaysActive { get; set; }
+    public DateOnly LastActiveDay { get; set; }
 
     public ulong TotalXp
     {
         get
         {
-            ulong positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned + DisconnectedXpEarned;
+            ulong positiveXp = MessageXpEarned + VoiceXpEarned + StreamingXpEarned + VideoXpEarned + DisconnectedXpEarned + ActivityStreakXpEarned;
             ulong negativeXp = MutedXpEarned + DeafenedXpEarned;
             return positiveXp >= negativeXp ? positiveXp - negativeXp : 0;
         }
