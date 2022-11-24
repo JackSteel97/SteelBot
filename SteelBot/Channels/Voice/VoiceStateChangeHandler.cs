@@ -36,7 +36,7 @@ public class VoiceStateChangeHandler
     public async Task HandleVoiceStateChange(VoiceStateChange changeArgs, ISpan transaction)
     {
         var getUsersInChannelSpan = transaction.StartChild("Get Users In Channel");
-        var usersInChannel = GetUsersInChannel(changeArgs);
+        (var usersInChannel, var usersInOldChannel) = GetUsersInChannel(changeArgs);
         getUsersInChannelSpan.Finish();
 
         var scalingSpan = transaction.StartChild("Get Xp Scaling Factors");
@@ -49,7 +49,14 @@ public class VoiceStateChangeHandler
         updateUserSpan.Finish();
 
         var updateOtherUsersSpan = transaction.StartChild("Update Other Users In Channel");
-        // Update other users in the channel.
+        await UpdateOtherUsersStats(changeArgs, usersInChannel, updateOtherUsersSpan);
+        // If this user is changing channels to a new channel we need to update the stats of the users in the previous channel too if there are any.
+        await UpdateOtherUsersStats(changeArgs, usersInOldChannel, updateOtherUsersSpan);
+        updateOtherUsersSpan.Finish();
+    }
+
+    private async Task UpdateOtherUsersStats(VoiceStateChange changeArgs, IReadOnlyList<DiscordMember> usersInChannel, ISpan updateOtherUsersSpan)
+    {
         foreach (var userInChannel in usersInChannel)
         {
             if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
@@ -63,7 +70,6 @@ public class VoiceStateChangeHandler
                 otherUpdateSpan.Finish();
             }
         }
-        updateOtherUsersSpan.Finish();
     }
 
     private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)
@@ -74,25 +80,50 @@ public class VoiceStateChangeHandler
         }
     }
 
-    private static IReadOnlyList<DiscordMember> GetUsersInChannel(VoiceStateChange changeArgs)
+    private static (IReadOnlyList<DiscordMember> usersInNewChannel, IReadOnlyList<DiscordMember> usersInOldChannel) GetUsersInChannel(VoiceStateChange changeArgs)
     {
         IReadOnlyList<DiscordMember> usersInChannel;
+        if (changeArgs.After != null && changeArgs.Before != null && changeArgs.After.Channel != null && changeArgs.Before.Channel != null)
+        {
+            // Changing channel
+            var usersInNewChannel = GetUsersInNewChannel(changeArgs);
+            var usersInOldChannel = GetUsersInOldChannel(changeArgs);
+            return (usersInNewChannel, usersInOldChannel);
+        }
+        
         if (changeArgs.After != null && changeArgs.After.Channel != null)
         {
             // Joining voice channel.
-            usersInChannel = changeArgs.After.Channel.Users;
+            usersInChannel = GetUsersInNewChannel(changeArgs);
         }
         else if (changeArgs.Before != null && changeArgs.Before.Channel != null)
         {
             // Leaving voice channel.
-            usersInChannel = changeArgs.Before.Channel.Users;
+            usersInChannel = GetUsersInOldChannel(changeArgs);
         }
         else
         {
             usersInChannel = new List<DiscordMember>();
         }
 
-        return usersInChannel;
+        return (usersInChannel, new List<DiscordMember>());
+    }
+    
+    private static IReadOnlyList<DiscordMember> GetUsersInNewChannel(VoiceStateChange changeArgs)
+    {
+        return changeArgs.After.Channel.Users;
+    }
+
+    private static IReadOnlyList<DiscordMember> GetUsersInOldChannel(VoiceStateChange changeArgs)
+    {
+        var usersInChannelJustBeforeLeaving = new List<DiscordMember>();
+        usersInChannelJustBeforeLeaving.AddRange(changeArgs.Before.Channel.Users);
+        if (changeArgs.Guild.Members.TryGetValue(changeArgs.User.Id, out var thisMember))
+        {
+            usersInChannelJustBeforeLeaving.Add(thisMember);
+        }
+
+        return usersInChannelJustBeforeLeaving;
     }
 
     private (double baseScalingFactor, bool shouldEarnVideoXp) GetVoiceXpScalingFactors(ulong guildId, ulong currentUserId, IReadOnlyList<DiscordMember> usersInChannel)
