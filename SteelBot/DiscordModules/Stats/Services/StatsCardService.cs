@@ -12,11 +12,13 @@ public class StatsCardService
 {
     private readonly UserLockingService _userLockingService;
     private readonly UsersProvider _usersProvider;
+    private readonly LevelCardGenerator _levelCardGenerator;
 
-    public StatsCardService(UserLockingService userLockingService, UsersProvider usersProvider)
+    public StatsCardService(UserLockingService userLockingService, UsersProvider usersProvider, LevelCardGenerator levelCardGenerator)
     {
         _userLockingService = userLockingService;
         _usersProvider = usersProvider;
+        _levelCardGenerator = levelCardGenerator;
     }
     
     public async Task View(StatsCommandAction request)
@@ -31,7 +33,7 @@ public class StatsCardService
                 return;
             }
 
-            using (var imageStream = await LevelCardGenerator.GenerateCard(user, request.Target))
+            using (var imageStream = await _levelCardGenerator.GenerateCard(user, request.Target))
             {
                 var message = StatsMessages.StatsCard(user, request.Target.Username, imageStream);
                 request.Responder.Respond(message);

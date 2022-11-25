@@ -2,7 +2,6 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Utility;
@@ -321,7 +319,7 @@ public class UtilityCommands : TypingCommandModule
                 {
                     await stream.CopyToAsync(fs);
                     fs.Position = 0;
-                    var message = new DiscordMessageBuilder().WithFile(latestLogFile.Name, fs);
+                    var message = new DiscordMessageBuilder().AddFile(latestLogFile.Name, fs);
                     await context.RespondAsync(message);
                     return;
                 }

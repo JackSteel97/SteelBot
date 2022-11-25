@@ -1,9 +1,9 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using Sentry;
-using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
@@ -13,19 +13,21 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.NonGroupedCommands;
 
+[SlashCommandGroup("Misc", "Test group")]
+[SlashRequireGuild]
 public class MiscSlashCommands : InstrumentedApplicationCommandModule
 {
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ErrorHandlingService _errorHandlingService;
 
-    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, IHub sentry, ILogger<MiscSlashCommands> logger) : base(
-        nameof(MiscSlashCommands), logger, sentry)
+    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, IHub sentry, ILogger<MiscSlashCommands> logger) : base(logger)
     {
         _appConfigurationService = appConfigurationService;
         _errorHandlingService = errorHandlingService;
     }
 
     [SlashCommand("invite", "Get a link to invite this bot to your own server")]
+    [SlashCooldown(5, 60, SlashCooldownBucketType.Channel)]
     public async Task Invite(InteractionContext context)
     {
         var response = new DiscordInteractionResponseBuilder()
@@ -34,6 +36,7 @@ public class MiscSlashCommands : InstrumentedApplicationCommandModule
     }
 
     [SlashCommand("link", "Display a link as a button")]
+    [SlashCooldown(5, 60, SlashCooldownBucketType.Channel)]
     public Task Link(InteractionContext context,
         [Option("longlink", "The link to display as a button link")]
         string longLink,
@@ -60,6 +63,7 @@ public class MiscSlashCommands : InstrumentedApplicationCommandModule
         var response = new DiscordInteractionResponseBuilder()
             .AddComponents(Interactions.Links.ExternalLink(longLink, linkText));
         context.SendMessage(response, _errorHandlingService);
+        
         return Task.CompletedTask;
     }
 }

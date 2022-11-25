@@ -23,6 +23,7 @@
                                ~----"~       \
                                               \
 */
+
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -33,6 +34,8 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
+using DSharpPlus.SlashCommands.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -75,12 +78,6 @@ namespace SteelBot;
 
 public class BotMain : IHostedService
 {
-    #if DEBUG
-    private static readonly ulong? _testServerId = 782237087352356876;
-    #else
-    private static readonly ulong? _testServerId = null;
-    #endif
-    
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ILogger<BotMain> _logger;
     private readonly DiscordClient _client;
@@ -213,6 +210,40 @@ public class BotMain : IHostedService
 
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
+        _slashCommands.SlashCommandErrored += HandleSlashCommandErrored;
+    }
+
+    private Task HandleSlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs args)
+    {
+        // TODO: This is awful, refactor.
+        Task.Run(async () =>
+        {
+            if (args.Exception is SlashExecutionChecksFailedException ex)
+            {
+                foreach (var failedCheck in ex.FailedChecks)
+                {
+                    if (failedCheck is SlashCooldownAttribute cooldown)
+                    {
+                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                            .Warning($"This `{args.Context.CommandName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
+                        return;
+                    }
+                    if (failedCheck is SlashRequireUserPermissionsAttribute userPerms)
+                    {
+                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                            .Warning($"This `{args.Context.CommandName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                await _errorHandlingService.Log(args.Exception, args.Context.CommandName);
+                await args.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."))).AsEphemeral());
+            }
+        }).FireAndForget(_errorHandlingService);
+        return Task.CompletedTask;
     }
 
     private Task HandleModalSubmitted(DiscordClient sender, ModalSubmitEventArgs e)
@@ -270,7 +301,8 @@ public class BotMain : IHostedService
             Services = _serviceProvider,
         });
 
-        _slashCommands.RegisterCommands<MiscSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<MiscSlashCommands>(782237087352356876);
+        _slashCommands.RegisterCommands<StatsSlashCommands>(782237087352356876);
     }
 
     private void InitInteractivity()

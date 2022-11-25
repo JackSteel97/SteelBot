@@ -46,7 +46,7 @@ public class LevelCardGenerator
         _fonts.Install(Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf"));
     }
 
-    public static async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
+    public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
     {
         ulong xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
         ulong xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
