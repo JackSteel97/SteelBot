@@ -33,7 +33,7 @@ public class ErrorHandlingService
     {
         try
         {
-            var transaction = _sentry.GetCurrentTransaction();
+            _sentry.TryGetCurrentTransaction(out var transaction);
 
             _logger.LogError(e, "Source Method: {Source}", source);
             if (e.InnerException != null)

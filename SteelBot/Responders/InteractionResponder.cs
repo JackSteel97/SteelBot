@@ -1,11 +1,12 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Interactivity.Models;
 using SteelBot.Services;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -13,22 +14,27 @@ namespace SteelBot.Responders;
 
 public class InteractionResponder : IResponder
 {
-    private readonly InteractionContext _interactionContext;
+    private readonly BaseContext _context;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly DiscordClient _client;
+    private readonly DiscordUser _user;
+    private readonly DiscordChannel _channel;
+    private readonly DiscordInteraction _interaction;
 
-    public InteractionResponder(InteractionContext interactionContext, ErrorHandlingService errorHandlingService)
+    public InteractionResponder(BaseContext context, ErrorHandlingService errorHandlingService)
     {
-        _interactionContext = interactionContext;
+        _context = context;
         _errorHandlingService = errorHandlingService;
+        _client = _context.Client;
+        _user = context.User;
+        _channel = context.Channel;
+        _interaction = context.Interaction;
     }
 
     /// <inheritdoc />
-    public async Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
+    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
     {
-        await RespondCore(messageBuilder);
-        
-        // TODO: Solve this - the interface wants a message but we don't deal with messages like this in interactions.
-        return null;
+        return RespondCore(messageBuilder);
     }
     
     /// <inheritdoc />
@@ -44,17 +50,21 @@ public class InteractionResponder : IResponder
     public void RespondPaginated(List<Page> pages) => RespondPaginatedCore(pages).FireAndForget(_errorHandlingService);
 
     /// <inheritdoc />
-    public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages) => throw new NotImplementedException();
+    public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages)
+    {
+        return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(_channel, _user, pages);
+    }
 
-    private Task RespondCore(DiscordMessageBuilder messageBuilder)
+    private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder)
     {
         var interactionResponse = new DiscordInteractionResponseBuilder(messageBuilder);
-        return _interactionContext.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
+        await _context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
+        return await _context.GetOriginalResponseAsync();
     }
 
     private Task RespondPaginatedCore(List<Page> pages)
     {
-        // TODO: Implement for interactions.
-        throw new NotImplementedException();
+        var interactivity = _client.GetInteractivity();
+        return interactivity.SendPaginatedResponseAsync(_interaction, false, _user, pages);
     }
 }

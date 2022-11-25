@@ -130,10 +130,15 @@ public class StatsLeaderboardService
     {
         if (request.Action != StatsCommandActionType.ViewLevelsLeaderboard) throw new ArgumentException($"Unexpected action type sent to {nameof(LevelsLeaderboard)}");
 
-        int top = request.Top;
+        long top = request.Top;
         if (top <= 0)
         {
             request.Responder.Respond(StatsMessages.NoEntriesLeaderboard());
+            return;
+        }
+        if (top > 1000)
+        {
+            request.Responder.Respond(StatsMessages.TopNumberTooLarge());
             return;
         }
 
@@ -150,7 +155,7 @@ public class StatsLeaderboardService
             var orderedByXp = guildUsers
                 .Where(u => u.TotalXp > 0)
                 .OrderByDescending(u => u.TotalXp)
-                .Take(top)
+                .Take((int)top)
                 .ToArray();
 
             if (orderedByXp.Length == 0)
@@ -170,10 +175,15 @@ public class StatsLeaderboardService
     {
         if (request.Action != StatsCommandActionType.ViewAll) throw new ArgumentException($"Unexpected action type sent to {nameof(AllStats)}");
 
-        int top = request.Top;
+        long top = request.Top;
         if (top <= 0)
         {
             request.Responder.Respond(StatsMessages.NoEntriesLeaderboard());
+            return;
+        }
+        if (top > 1000)
+        {
+            request.Responder.Respond(StatsMessages.TopNumberTooLarge());
             return;
         }
 
@@ -195,7 +205,7 @@ public class StatsLeaderboardService
             // Sort by XP.
             guildUsers.Sort((u1, u2)=> u2.TotalXp.CompareTo(u1.TotalXp));
 
-            var orderedByXp = guildUsers.GetRange(0, top);
+            var orderedByXp = guildUsers.GetRange(0, (int)top);
 
             var baseEmbed = StatsMessages.LeaderboardBase(request.Guild.Name);
 

@@ -1,5 +1,4 @@
 ﻿using DSharpPlus.Entities;
-using SteelBot.Services.Configuration;
 using System.Collections.Generic;
 using System.IO;
 
@@ -11,7 +10,7 @@ public static class QuestionConstructionHelpers
     {
         string basePath = Directory.GetCurrentDirectory();
         var fs = new FileStream(Path.Combine(basePath, "Resources", "Puzzle", fileName), FileMode.Open, FileAccess.Read);
-        message.WithFile(fileName, fs);
+        message.AddFile(fileName, fs);
         return fs;
     }
 
@@ -25,7 +24,7 @@ public static class QuestionConstructionHelpers
             streams.Add(fileName, stream);
         }
 
-        message.WithFiles(streams);
+        message.AddFiles(streams);
         return message;
     }
 }

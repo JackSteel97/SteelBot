@@ -7,7 +7,6 @@ using SteelBot.DataProviders;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Fun;
@@ -50,7 +49,7 @@ public class FunCommands : TypingCommandModule
 
         if (imageStream != null)
         {
-            var msg = new DiscordMessageBuilder().WithFile("MotivationalQuote.jpg", imageStream);
+            var msg = new DiscordMessageBuilder().AddFile("MotivationalQuote.jpg", imageStream);
             await context.RespondAsync(msg);
         }
         else

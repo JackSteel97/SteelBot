@@ -20,7 +20,7 @@ public class MessageResponder : IResponder
     private readonly DiscordMessage _sourceMessage;
     private readonly ErrorHandlingService _errorHandlingService;
 
-    public MessageResponder(CommandContext  context, ErrorHandlingService errorHandlingService)
+    public MessageResponder(CommandContext context, ErrorHandlingService errorHandlingService)
     {
         _client = context.Client;
         _user = context.User;

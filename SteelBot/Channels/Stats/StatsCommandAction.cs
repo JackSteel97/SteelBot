@@ -19,9 +19,9 @@ public record StatsCommandAction : BaseAction<StatsCommandActionType>
 
     public string Metric { get; }
     
-    public int Top { get; }
+    public long Top { get; }
 
-    public StatsCommandAction(StatsCommandActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, DiscordMember target = null, string metric = null, int top = 0)
+    public StatsCommandAction(StatsCommandActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, DiscordMember target = null, string metric = null, long top = 0)
     : base(action, responder, member, guild)
     {
         Target = target ?? member;

@@ -73,16 +73,21 @@ public static class StatsMessages
     public static DiscordMessageBuilder StatsCard(User user, string username, MemoryStream imageStream)
     {
         var embedBuilder = GetStatsEmbed(user, username);
-
+        
         string fileName = $"{user.DiscordId}_stats.png";
         return new DiscordMessageBuilder()
-            .WithFile(fileName, imageStream)
+            .AddFile(fileName, imageStream)
             .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
     }
 
     public static DiscordMessageBuilder NoEntriesLeaderboard()
     {
         return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("You cannot get a leaderboard with no entries."));
+    }
+    
+    public static DiscordMessageBuilder TopNumberTooLarge()
+    {
+        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("We can't fetch that many results!"));
     }
 
     public static DiscordMessageBuilder NoUsersWithStatistics()
