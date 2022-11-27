@@ -58,6 +58,10 @@ public class InteractionResponder : IResponder
     private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder)
     {
         var interactionResponse = new DiscordInteractionResponseBuilder(messageBuilder);
+        foreach (var file in messageBuilder.Files)
+        {
+            interactionResponse.AddFile(file.FileName, file.Stream);
+        }
         await _context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
         return await _context.GetOriginalResponseAsync();
     }
