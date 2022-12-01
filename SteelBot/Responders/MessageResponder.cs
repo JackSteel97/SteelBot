@@ -30,13 +30,13 @@ public class MessageResponder : IResponder
     }
     
     /// <inheritdoc />
-    public async Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
+    public async Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
     {
         return await RespondCore(messageBuilder);
     }
 
     /// <inheritdoc />
-    public void Respond(DiscordMessageBuilder messageBuilder)
+    public void Respond(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
     {
         RespondCore(messageBuilder).FireAndForget(_errorHandlingService);
     }

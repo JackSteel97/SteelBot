@@ -23,7 +23,7 @@ public class PuzzleTwelve : IQuestion
     public void PostPuzzle(PuzzleCommandAction request)
     {
         var message = new DiscordMessageBuilder()
-            .WithEmbed(EmbedGenerator.Primary(_puzzleText));
+            .WithEmbed(EmbedGenerator.Primary(_puzzleText, _number.ToString()));
         message = QuestionConstructionHelpers.AddFiles(message, "Cow.jpg", "Inside.zip");
         request.Responder.Respond(message);
     }

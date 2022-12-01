@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.NonGroupedCommands;
 
-[SlashCommandGroup("Misc", "Test group")]
 [SlashRequireGuild]
 public class MiscSlashCommands : InstrumentedApplicationCommandModule
 {

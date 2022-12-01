@@ -4,7 +4,6 @@ using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models.Puzzle;
 using SteelBot.Helpers.Sentry;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders;
@@ -46,6 +45,7 @@ public class PuzzleProvider
             if (progress != default)
             {
                 progress.CurrentLevel = newLevel;
+                db.PuzzleProgress.Update(progress);
             }
             else
             {

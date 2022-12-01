@@ -22,7 +22,7 @@ public class PuzzleTwo : IQuestion
     public void PostPuzzle(PuzzleCommandAction request)
     {
         var message = new DiscordMessageBuilder()
-            .WithEmbed(EmbedGenerator.Primary(_puzzleText));
+            .WithEmbed(EmbedGenerator.Primary(_puzzleText, _number.ToString()));
         request.Responder.Respond(message);
     }
 

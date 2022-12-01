@@ -32,15 +32,15 @@ public class InteractionResponder : IResponder
     }
 
     /// <inheritdoc />
-    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder)
+    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
     {
-        return RespondCore(messageBuilder);
+        return RespondCore(messageBuilder, ephemeral);
     }
     
     /// <inheritdoc />
-    public void Respond(DiscordMessageBuilder messageBuilder)
+    public void Respond(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
     {
-        RespondCore(messageBuilder).FireAndForget(_errorHandlingService);
+        RespondCore(messageBuilder, ephemeral).FireAndForget(_errorHandlingService);
     }
 
     /// <inheritdoc />
@@ -55,9 +55,9 @@ public class InteractionResponder : IResponder
         return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(_channel, _user, pages);
     }
 
-    private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder)
+    private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder, bool ephemeral)
     {
-        var interactionResponse = new DiscordInteractionResponseBuilder(messageBuilder);
+        var interactionResponse = new DiscordInteractionResponseBuilder(messageBuilder).AsEphemeral(ephemeral);
         foreach (var file in messageBuilder.Files)
         {
             interactionResponse.AddFile(file.FileName, file.Stream);
