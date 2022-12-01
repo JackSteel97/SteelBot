@@ -22,7 +22,7 @@ public class PuzzleTwentyFour : IQuestion
     /// <inheritdoc />
     public void PostPuzzle(PuzzleCommandAction request)
     {
-        var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
+        var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour).WithTitle(_number.ToString())
             .AddField("First", "Bell Number Four")
             .AddField("Second", "Lucas Number Six")
             .AddField("Third", "Motzkin Number Five")

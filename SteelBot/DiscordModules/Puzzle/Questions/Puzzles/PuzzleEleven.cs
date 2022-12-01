@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.Entities;
 using SteelBot.Channels.Puzzle;
-using SteelBot.DiscordModules.Puzzle.Helpers;
 using SteelBot.Helpers;
 using System;
 
@@ -23,7 +22,7 @@ public class PuzzleEleven : IQuestion
     public void PostPuzzle(PuzzleCommandAction request)
     {
         var message = new DiscordMessageBuilder()
-            .WithEmbed(EmbedGenerator.Primary(_puzzleText));
+            .WithEmbed(EmbedGenerator.Primary(_puzzleText, _number.ToString()));
 
         request.Responder.Respond(message);
     }

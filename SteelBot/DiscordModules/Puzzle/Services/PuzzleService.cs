@@ -44,8 +44,12 @@ public class PuzzleService
         
         if (question.AnswerIsCorrect(request.GivenAnswer))
         {
-            request.Responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"{request.Member.Mention} got the correct answer.")));
+            request.Responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"{request.Member.Mention} got the correct answer.")), ephemeral: true);
             await _puzzleProvider.SetUserPuzzleLevel(request.Member.Id, question.GetPuzzleNumber() + 1);
+        }
+        else
+        {
+            request.Responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("Incorrect")));
         }
     }
 

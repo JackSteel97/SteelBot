@@ -21,7 +21,7 @@ public class PuzzleTwentySeven : IQuestion
     /// <inheritdoc />
     public void PostPuzzle(PuzzleCommandAction request)
     {
-        var message = new DiscordMessageBuilder();
+        var message = new DiscordMessageBuilder().WithContent(_number.ToString());
         QuestionConstructionHelpers.AddFile(message, _puzzleFile);
         request.Responder.Respond(message);
     }
