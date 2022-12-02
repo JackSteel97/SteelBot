@@ -17,7 +17,7 @@
 		<PackageProjectUrl>https://github.com/JackSteel97/SteelBot</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/JackSteel97/SteelBot/blob/main/LICENSE</PackageLicenseUrl>
 		<IsPackable>true</IsPackable>
-		<LangVersion>11</LangVersion>
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
