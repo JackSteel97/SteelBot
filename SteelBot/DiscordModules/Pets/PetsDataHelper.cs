@@ -1,22 +1,14 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
-using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Helpers;
-using SteelBot.DiscordModules.Pets.Models;
 using SteelBot.DiscordModules.Pets.Services;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -82,9 +74,10 @@ public class PetsDataHelper
                 _logger.LogInformation("User {UserId} is attempting to move Pet {PetId} from position {CurrentPriority} to {NewPriority}", petBeingMoved.OwnerDiscordId, petBeingMoved.RowId, petBeingMoved.Priority, newPriority);
 
                 await _managementService.MovePetToPosition(petBeingMoved, newPriority);
+                args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"{petBeingMoved.Name} moved to position {newPosition}"))).FireAndForget(_errorHandlingService);
+                return;
             }
         }
-
         args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(_errorHandlingService);
     }
 

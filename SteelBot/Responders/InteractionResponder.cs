@@ -19,8 +19,7 @@ public class InteractionResponder : IResponder
     private readonly DiscordClient _client;
     private readonly DiscordUser _user;
     private readonly DiscordChannel _channel;
-    private readonly DiscordInteraction _interaction;
-
+    private DiscordInteraction _interaction;
     public InteractionResponder(BaseContext context, ErrorHandlingService errorHandlingService)
     {
         _context = context;
@@ -50,10 +49,15 @@ public class InteractionResponder : IResponder
     public void RespondPaginated(List<Page> pages) => RespondPaginatedCore(pages).FireAndForget(_errorHandlingService);
 
     /// <inheritdoc />
-    public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages)
+    public async Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages)
     {
-        return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(_channel, _user, pages);
+        var result = await InteractivityHelper.SendPaginatedMessageWithComponentsAsync(this, _user, pages);
+        SetInteraction(result.interaction);
+        return result;
     }
+
+    /// <inheritdoc />
+    public void SetInteraction(DiscordInteraction interaction) => _interaction = interaction;
 
     private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder, bool ephemeral)
     {
@@ -62,8 +66,10 @@ public class InteractionResponder : IResponder
         {
             interactionResponse.AddFile(file.FileName, file.Stream);
         }
-        await _context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
-        return await _context.GetOriginalResponseAsync();
+        
+        await _interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
+        var message = await _interaction.GetOriginalResponseAsync();
+        return message;
     }
 
     private Task RespondPaginatedCore(List<Page> pages)

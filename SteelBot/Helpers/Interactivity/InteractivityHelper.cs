@@ -1,17 +1,12 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-using Microsoft.VisualBasic;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Interactivity.Models;
 using SteelBot.Responders;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.Helpers;
@@ -113,11 +108,12 @@ public static class InteractivityHelper
 
         var message = await responder.RespondAsync(confirmMessageBuilder);
         var result = await message.WaitForButtonAsync(member);
+        responder.SetInteraction(result.Result?.Interaction);
         confirmMessageBuilder.ClearComponents();
 
         if (!result.TimedOut)
         {
-            await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(confirmMessageBuilder));
+            await message.ModifyAsync(confirmMessageBuilder);
             return result.Result.Id == InteractionIds.Confirmation.Confirm;
         }
 
@@ -125,17 +121,9 @@ public static class InteractivityHelper
         return false;
     }
 
-    public static async Task<(string selectedId, DiscordInteraction interaction)> SendPaginatedMessageWithComponentsAsync(DiscordChannel channel, DiscordUser user, List<PageWithSelectionButtons> pages)
+    private static DiscordMessageBuilder BuildPaginatedMessageWithComponents(DiscordComponent[] paginationComponents, List<PageWithSelectionButtons> pages)
     {
-        var paginationComponents = new DiscordComponent[]
-        {
-            Interactions.Pagination.PrevPage.Disable(pages.Count <= 1),
-            Interactions.Pagination.Exit,
-            Interactions.Pagination.NextPage.Disable(pages.Count <= 1),
-        };
-
-        int currentPageIndex = 0;
-        var currentPage = pages[currentPageIndex];
+        var currentPage = pages[0];
         var messageBuilder = new DiscordMessageBuilder()
             .WithContent(currentPage.Content)
             .WithEmbed(currentPage.Embed)
@@ -145,8 +133,32 @@ public static class InteractivityHelper
             AddComponents(messageBuilder, currentPage.Options);
         }
 
-        var message = await channel.SendMessageAsync(messageBuilder);
+        return messageBuilder;
+    }
+    
+    public static async Task<(string selectedId, DiscordInteraction interaction)> SendPaginatedMessageWithComponentsAsync(IResponder responder, DiscordUser user, List<PageWithSelectionButtons> pages)
+    {
+        var paginationComponents = new DiscordComponent[]
+        {
+            Interactions.Pagination.PrevPage.Disable(pages.Count <= 1),
+            Interactions.Pagination.Exit,
+            Interactions.Pagination.NextPage.Disable(pages.Count <= 1),
+        };
+        
+        var messageBuilder = BuildPaginatedMessageWithComponents(paginationComponents, pages);
 
+       var message = await responder.RespondAsync(messageBuilder);
+        
+        return await HandlePaginatedMessageWithComponentsResponses(user, pages, message, messageBuilder, paginationComponents);
+    }
+
+    private static async Task<(string selectedId, DiscordInteraction interaction)> HandlePaginatedMessageWithComponentsResponses(DiscordUser user,
+        List<PageWithSelectionButtons> pages,
+        DiscordMessage message,
+        DiscordMessageBuilder messageBuilder,
+        DiscordComponent[] paginationComponents)
+    {
+        int currentPageIndex = 0;
         while (true)
         {
             var result = await message.WaitForButtonAsync(user);
@@ -166,8 +178,9 @@ public static class InteractivityHelper
                         await message.ModifyAsync(messageBuilder);
                         return (result.Result.Id, result.Result.Interaction);
                 }
+
                 currentPageIndex = MathsHelper.Modulo(currentPageIndex, pages.Count);
-                currentPage = pages[currentPageIndex];
+                var currentPage = pages[currentPageIndex];
 
                 await UpdateMessageToPage(messageBuilder, result.Result.Interaction, currentPage, paginationComponents);
             }

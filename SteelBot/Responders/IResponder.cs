@@ -45,4 +45,10 @@ public interface IResponder
     void RespondPaginated(List<Page> pages);
 
     Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages);
+
+    /// <summary>
+    /// Set the interaction that should be used from now on if any is required.
+    /// </summary>
+    /// <param name="interaction">Interaction to use</param>
+    void SetInteraction(DiscordInteraction interaction);
 }

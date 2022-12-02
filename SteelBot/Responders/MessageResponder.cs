@@ -56,7 +56,13 @@ public class MessageResponder : IResponder
     /// <inheritdoc />
     public Task<(string selectionId, DiscordInteraction interaction)> RespondPaginatedWithComponents(List<PageWithSelectionButtons> pages)
     {
-        return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(_channel, _user, pages);
+        return InteractivityHelper.SendPaginatedMessageWithComponentsAsync(this, _user, pages);
+    }
+
+    /// <inheritdoc />
+    public void SetInteraction(DiscordInteraction interaction)
+    {
+        // Do Nothing.
     }
 
     private Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder)

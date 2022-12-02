@@ -1,5 +1,4 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Sentry;
 using SteelBot.Channels;
@@ -13,7 +12,6 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Services;
@@ -144,6 +142,7 @@ public class PetManagementService
             var waitingForResponseSpan = _sentry.StartSpanOnCurrentTransaction("Wait for user selection");
             var message = await request.Responder.RespondAsync(initialResponseBuilder);
             var result = await message.WaitForButtonAsync(request.Member);
+            request.Responder.SetInteraction(result.Result?.Interaction);
             waitingForResponseSpan.Finish();
             initialResponseBuilder.ClearComponents();
 

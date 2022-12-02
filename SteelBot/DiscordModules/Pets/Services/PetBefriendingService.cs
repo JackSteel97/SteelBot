@@ -1,8 +1,6 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
-using SteelBot.Channels;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders;
@@ -12,7 +10,6 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Sentry;
-using SteelBot.Responders;
 using SteelBot.Services;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -69,11 +66,8 @@ public class PetBefriendingService
         {
             _logger.LogInformation("User {UserId} in Guild {GuildId} successfully befriended a {Rarity} pet with Id {PetId}", request.Member.Id, request.Guild.Id, foundPet.Rarity, foundPet.RowId);
             foundPet = await HandlePetCorruptionChance(request, foundPet);
-            
-            request.Responder.Respond(PetMessages.GetPetOwnedSuccessMessage(request.Member, foundPet));
-            
+
             await PetModals.NamePet(interaction, foundPet);
-            await ChannelsController.SendMessage(request with {Action = PetCommandActionType.ManageOne, PetId = foundPet.RowId}, _cancellationService.Token);
         }
         else
         {
