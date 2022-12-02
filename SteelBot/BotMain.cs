@@ -78,6 +78,12 @@ namespace SteelBot;
 
 public class BotMain : IHostedService
 {
+#if DEBUG
+    private readonly ulong? _testServerId = 782237087352356876;
+#else
+    private readonly ulong? _testServerId = null;
+#endif
+    
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ILogger<BotMain> _logger;
     private readonly DiscordClient _client;
@@ -301,10 +307,11 @@ public class BotMain : IHostedService
             Services = _serviceProvider,
         });
 
-        _slashCommands.RegisterCommands<MiscSlashCommands>(782237087352356876);
-        _slashCommands.RegisterCommands<StatsSlashCommands>(782237087352356876);
-        _slashCommands.RegisterCommands<PuzzleSlashCommands>(782237087352356876);
-        _slashCommands.RegisterCommands<PetsSlashCommands>(782237087352356876);
+        _slashCommands.RegisterCommands<MiscSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<StatsSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<PuzzleSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<PetsSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<ConfigSlashCommands>(_testServerId);
     }
 
     private void InitInteractivity()

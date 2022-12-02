@@ -17,7 +17,7 @@ namespace SteelBot.DiscordModules.Config;
 public class ConfigCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
-    private ILogger<ConfigCommands> _logger;
+    private readonly ILogger<ConfigCommands> _logger;
 
     public ConfigCommands(DataHelpers dataHelpers, IHub sentry, ILogger<ConfigCommands> logger) : base(logger, sentry)
     {
