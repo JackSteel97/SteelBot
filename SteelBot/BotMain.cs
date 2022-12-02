@@ -304,6 +304,7 @@ public class BotMain : IHostedService
         _slashCommands.RegisterCommands<MiscSlashCommands>(782237087352356876);
         _slashCommands.RegisterCommands<StatsSlashCommands>(782237087352356876);
         _slashCommands.RegisterCommands<PuzzleSlashCommands>(782237087352356876);
+        _slashCommands.RegisterCommands<PetsSlashCommands>(782237087352356876);
     }
 
     private void InitInteractivity()

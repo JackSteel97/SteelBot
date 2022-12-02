@@ -115,6 +115,7 @@ public class PetSearchingService
         transaction.Finish();
         var message = await request.Responder.RespondAsync(response);
         var result = await message.WaitForButtonAsync(request.Member);
+        request.Responder.SetInteraction(result.Result?.Interaction);
         _sentry.StartNewConfiguredTransaction(nameof(PetSearchingService), "Handle Pet Found", request.Member, request.Guild);
         if (result.TimedOut)
         {
