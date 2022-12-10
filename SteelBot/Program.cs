@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using Serilog;
-using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
 using SteelBot.Channels.Puzzle;
@@ -34,6 +33,7 @@ using SteelBot.DiscordModules.Triggers;
 using SteelBot.DSharpPlusOverrides;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
+using SteelBot.RateLimiting;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -213,6 +213,9 @@ public static class Program
         serviceProvider.AddSingleton<PuzzleCommandsChannel>();
         serviceProvider.AddSingleton<PuzzleService>();
         serviceProvider.AddSingleton<QuestionFactory>();
+
+        serviceProvider.AddMemoryCache();
+        serviceProvider.AddSingleton<RateLimitFactory>();
     }
 
     public static async Task Main(string[] args)

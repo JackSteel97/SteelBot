@@ -64,6 +64,7 @@ using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.DiscordModules.WordGuesser;
 using SteelBot.DSharpPlusOverrides;
+using SteelBot.Exceptions;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
@@ -241,6 +242,10 @@ public class BotMain : IHostedService
                         return;
                     }
                 }
+            }
+            else if (args.Exception is CommandRateLimitedException rateLimitedException)
+            {
+                await args.Context.Member.SendMessageAsync(embed: EmbedGenerator.Warning(rateLimitedException.Message));
             }
             else
             {
@@ -430,6 +435,10 @@ public class BotMain : IHostedService
                         return;
                     }
                 }
+            }
+            else if (args.Exception is CommandRateLimitedException rateLimitedException)
+            {
+                await args.Context.Member.SendMessageAsync(embed: EmbedGenerator.Warning(rateLimitedException.Message));
             }
             else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase)
                 || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))

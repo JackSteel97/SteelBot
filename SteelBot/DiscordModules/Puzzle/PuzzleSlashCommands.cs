@@ -57,7 +57,7 @@ public class PuzzleSlashCommands : InstrumentedApplicationCommandModule
     }
 
     [SlashCommand("Requirements", "View the requirements for the entire puzzle")]
-    [SlashCooldown(1, 60, SlashCooldownBucketType.User)]
+    [SlashCooldown(5, 60, SlashCooldownBucketType.User)]
     public Task Requirements(InteractionContext context)
     {
         _logger.LogInformation("[Slash Command] User {UserId} requested to view the puzzle requirements", context.User.Id);

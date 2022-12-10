@@ -9,11 +9,11 @@ using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
+using SteelBot.RateLimiting;
 using SteelBot.Responders;
 using SteelBot.Services;
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets;
@@ -30,8 +30,13 @@ public class PetsCommands : TypingCommandModule
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly PetCommandsChannel _petCommandsChannel;
     private readonly CancellationService _cancellationService;
-    private const double _hourSeconds = 60 * 60;
-    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService)
+    
+    private readonly RateLimit _viewPetsRateLimit;
+    private readonly RateLimit _manageRateLimit;
+    private readonly RateLimit _treatRateLimit;
+    private readonly RateLimit _searchRateLimit;
+    private readonly RateLimit _bonusesRateLimit;
+    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, RateLimitFactory rateLimitFactory)
         : base(logger, sentry)
     {
         _logger = logger;
@@ -40,13 +45,19 @@ public class PetsCommands : TypingCommandModule
         _errorHandlingService = errorHandlingService;
         _petCommandsChannel = petCommandsChannel;
         _cancellationService = cancellationService;
+        
+        _viewPetsRateLimit = rateLimitFactory.Get(nameof(ViewPets), 10, TimeSpan.FromMinutes(1));
+        _manageRateLimit = rateLimitFactory.Get(nameof(ManagePets), 10, TimeSpan.FromMinutes(1));
+        _treatRateLimit = rateLimitFactory.Get(nameof(TreatPet), 2, TimeSpan.FromHours(1));
+        _searchRateLimit = rateLimitFactory.Get(nameof(Search), 10, TimeSpan.FromHours(1));
+        _bonusesRateLimit = rateLimitFactory.Get(nameof(Search), 3, TimeSpan.FromMinutes(1));
     }
 
     [GroupCommand]
     [Description("Show all your owned pets")]
-    [Cooldown(10, 60, CooldownBucketType.User)]
-    public async Task GetPets(CommandContext context, DiscordMember otherUser = null)
+    public async Task ViewPets(CommandContext context, DiscordMember otherUser = null)
     {
+        _viewPetsRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("User [{UserId}] requested to view their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.View, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, otherUser);
         await _petCommandsChannel.Write(message, _cancellationService.Token);
@@ -54,9 +65,9 @@ public class PetsCommands : TypingCommandModule
 
     [Command("manage")]
     [Description("Manage your owned pets")]
-    [Cooldown(10, 60, CooldownBucketType.User)]
     public async Task ManagePets(CommandContext context)
     {
+        _manageRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("User [{UserId}] requested to manage their pets in guild [{GuildId}]", context.User.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.ManageAll, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
         await _petCommandsChannel.Write(message, _cancellationService.Token);
@@ -65,9 +76,9 @@ public class PetsCommands : TypingCommandModule
     [Command("treat")]
     [Aliases("reward", "gift")]
     [Description("Give one of your pets a treat, boosting their XP instantly. Allows 2 treats per hour")]
-    [Cooldown(2, _hourSeconds, CooldownBucketType.User)]
     public async Task TreatPet(CommandContext context)
     {
+        _treatRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.Treat, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
         await _petCommandsChannel.Write(message, _cancellationService.Token);
@@ -75,9 +86,9 @@ public class PetsCommands : TypingCommandModule
 
     [Command("Search")]
     [Description("Search for a new pet. Allows 10 searches per hour.")]
-    [Cooldown(10, _hourSeconds, CooldownBucketType.User)]
     public async Task Search(CommandContext context)
     {
+        _searchRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("User [{UserId}] started searching for a new pet in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.Search, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild);
         await _petCommandsChannel.Write(message, _cancellationService.Token);
@@ -86,9 +97,9 @@ public class PetsCommands : TypingCommandModule
     [Command("Bonus")]
     [Aliases("Bonuses", "b")]
     [Description("View the bonuses from all your pets available in this server")]
-    [Cooldown(3, 60, CooldownBucketType.User)]
     public async Task Bonuses(CommandContext context, DiscordMember otherUser = null)
     {
+        _bonusesRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("User [{UserId}] requested to view their applied bonuses in Guild [{GuildId}]", context.Member.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.ViewBonuses, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, otherUser);
         await _petCommandsChannel.Write(message, _cancellationService.Token);
