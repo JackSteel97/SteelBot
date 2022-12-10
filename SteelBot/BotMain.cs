@@ -317,6 +317,7 @@ public class BotMain : IHostedService
         _slashCommands.RegisterCommands<PuzzleSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<PetsSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<ConfigSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<FunSlashCommands>(_testServerId);
     }
 
     private void InitInteractivity()
