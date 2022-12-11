@@ -1,9 +1,6 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
-using SteelBot.Channels.SelfRole;
+﻿using DSharpPlus.Entities;
 using SteelBot.DiscordModules.Roles.Services;
-using SteelBot.Services;
-using System.Threading.Tasks;
+using SteelBot.Responders;
 
 namespace SteelBot.DiscordModules.Roles;
 
@@ -17,5 +14,5 @@ public class RolesDataHelper
     }
 
     // TODO: Move to channel.
-    public void DisplayRoles(CommandContext context) => _selfRoleViewingService.DisplaySelfRoles(context);
+    public void DisplayRoles(DiscordGuild guild, IResponder responder) => _selfRoleViewingService.DisplaySelfRoles(guild, responder);
 }
