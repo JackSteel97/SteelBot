@@ -318,6 +318,7 @@ public class BotMain : IHostedService
         _slashCommands.RegisterCommands<PetsSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<ConfigSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<FunSlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<RankRoleSlashCommands>(_testServerId);
     }
 
     private void InitInteractivity()
