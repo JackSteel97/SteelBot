@@ -9,7 +9,6 @@ using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Roles;
@@ -39,7 +38,7 @@ public class RolesCommands : TypingCommandModule
     [Cooldown(1, 60, CooldownBucketType.Channel)]
     public Task ViewSelfRoles(CommandContext context)
     {
-        _dataHelpers.Roles.DisplayRoles(context);
+        _dataHelpers.Roles.DisplayRoles(context.Guild, new MessageResponder(context, _errorHandlingService));
         return Task.CompletedTask;
     }
 

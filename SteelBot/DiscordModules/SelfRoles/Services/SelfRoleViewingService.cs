@@ -1,11 +1,10 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Roles.Helpers;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Extensions;
+using SteelBot.Responders;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
@@ -29,15 +28,15 @@ public class SelfRoleViewingService
         _errorHandlingService = errorHandlingService;
     }
 
-    public void DisplaySelfRoles(CommandContext context)
+    public void DisplaySelfRoles(DiscordGuild guild, IResponder responder)
     {
-        if (!_selfRolesProvider.TryGetGuildRoles(context.Guild.Id, out var allRoles))
+        if (!_selfRolesProvider.TryGetGuildRoles(guild.Id, out var allRoles))
         {
-            context.RespondAsync(SelfRoleMessages.NoSelfRolesAvailable()).FireAndForget(_errorHandlingService);
+            responder.Respond(SelfRoleMessages.NoSelfRolesAvailable());
             return;
         }
 
-        string prefix = _configDataHelper.GetPrefix(context.Guild.Id);
+        string prefix = _configDataHelper.GetPrefix(guild.Id);
 
         var builder = new DiscordEmbedBuilder()
                 .WithColor(EmbedGenerator.InfoColour)
@@ -46,17 +45,17 @@ public class SelfRoleViewingService
         var rolesBuilder = new StringBuilder();
         rolesBuilder.Append(Formatter.Bold("All")).AppendLine(" - Join all available Self Roles");
 
-        AppendSelfRoles(context, allRoles, rolesBuilder);
+        AppendSelfRoles(guild, allRoles, rolesBuilder);
 
         builder.WithDescription($"Use `{prefix}SelfRoles Join \"RoleName\"` to join one of these roles.\n\n{rolesBuilder}");
-        context.RespondAsync(embed: builder.Build()).FireAndForget(_errorHandlingService);
+        responder.Respond(new DiscordMessageBuilder().AddEmbed(builder.Build()));
     }
 
-    private static void AppendSelfRoles(CommandContext context, List<Database.Models.SelfRole> allRoles, StringBuilder rolesBuilder)
+    private static void AppendSelfRoles(DiscordGuild guild, List<Database.Models.SelfRole> allRoles, StringBuilder rolesBuilder)
     {
         foreach (var role in allRoles)
         {
-            var discordRole = context.Guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
+            var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
             string roleMention = role.RoleName;
             if (discordRole != default)
             {
