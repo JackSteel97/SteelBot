@@ -8,7 +8,6 @@ using SteelBot.Channels.RankRole;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles;
@@ -64,7 +63,7 @@ public class RankRoleCommands : TypingCommandModule
     [Aliases("Delete", "rrr")]
     [Description("Removes the given role from the list of rank roles, users will no longer be granted the role when they reach the required level.")]
     [Cooldown(5, 60, CooldownBucketType.Guild)]
-    public async Task RemoveSelfRole(CommandContext context, [RemainingText] string roleName)
+    public async Task RemoveRankRole(CommandContext context, [RemainingText] string roleName)
     {
         var action = new RankRoleManagementAction(RankRoleManagementActionType.Delete, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, roleName);
         await _rankRoleManagementChannel.Write(action, _cancellationService.Token);
@@ -72,7 +71,7 @@ public class RankRoleCommands : TypingCommandModule
 
     [Command("Remove")]
     [Priority(10)]
-    public async Task RemoveSelfRole(CommandContext context, DiscordRole role)
+    public async Task RemoveRankRole(CommandContext context, DiscordRole role)
     {
         var action = new RankRoleManagementAction(RankRoleManagementActionType.Delete, new MessageResponder(context, _errorHandlingService), context.Member, context.Guild, role.Id, role.Name);
         await _rankRoleManagementChannel.Write(action, _cancellationService.Token);
