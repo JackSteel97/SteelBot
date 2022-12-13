@@ -30,6 +30,7 @@ using SteelBot.DiscordModules.Roles.Services;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Stats.Services;
 using SteelBot.DiscordModules.Triggers;
+using SteelBot.DiscordModules.Utility;
 using SteelBot.DSharpPlusOverrides;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
@@ -216,6 +217,8 @@ public static class Program
 
         serviceProvider.AddMemoryCache();
         serviceProvider.AddSingleton<RateLimitFactory>();
+        
+        serviceProvider.AddSingleton<UtilityService>();
     }
 
     public static async Task Main(string[] args)
