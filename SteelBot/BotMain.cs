@@ -62,7 +62,6 @@ using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
-using SteelBot.DiscordModules.WordGuesser;
 using SteelBot.DSharpPlusOverrides;
 using SteelBot.Exceptions;
 using SteelBot.Helpers;
@@ -303,7 +302,6 @@ public class BotMain : IHostedService
         _commands.RegisterCommands<FunCommands>();
         _commands.RegisterCommands<MiscCommands>();
         _commands.RegisterCommands<PetsCommands>();
-        _commands.RegisterCommands<WordGuesserCommands>();
 
         _commands.SetHelpFormatter<CustomHelpFormatter>();
 
