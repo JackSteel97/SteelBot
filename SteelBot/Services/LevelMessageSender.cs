@@ -39,11 +39,15 @@ public class LevelMessageSender
         {
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
 
-            if (channel != null)
+            if (channel == null) return;
+            
+            string content = "";
+            if (!user.OptedOutOfMentions)
             {
-                channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} has been active for `{streakDays}` {(streakDays > 1 ? "days" : "day")} and earned a bonus of `{earnedXp}` XP!", "Active Streak!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
-                    .FireAndForget(_errorHandlingService);
+                content = discordUser.Mention;
             }
+            channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{discordUser.Mention} has been active for `{streakDays}` {(streakDays > 1 ? "days" : "day")} and earned a bonus of `{earnedXp}` XP!", "Active Streak!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
+                .FireAndForget(_errorHandlingService);
         }
     }
 
@@ -59,7 +63,15 @@ public class LevelMessageSender
                     ? $"your new role is **{newRoleId.Value.ToRoleMention()}**"
                     : "there are no rank roles eligible to replace it.";
 
-                channel.SendMessageAsync(userId.ToUserMention(), embed: EmbedGenerator.Info($"Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"))
+                string content = userId.ToUserMention();
+                string embedPrefix = "";
+                if (_usersProvider.TryGetUser(guild.DiscordId, userId, out var user) && user.OptedOutOfMentions)
+                {
+                    content = "";
+                    embedPrefix = $"{userId.ToUserMention()}\n";
+                }
+
+                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{embedPrefix}Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"))
                     .FireAndForget(_errorHandlingService);
             }
         }
@@ -72,7 +84,15 @@ public class LevelMessageSender
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
             if (channel != null)
             {
-                channel.SendMessageAsync(userId.ToUserMention(), embed: EmbedGenerator.Info($"You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
+                string content = userId.ToUserMention();
+                string embedPrefix = "";
+                if (_usersProvider.TryGetUser(guild.DiscordId, userId, out var user) && user.OptedOutOfMentions)
+                {
+                    content = "";
+                    embedPrefix = $"{userId.ToUserMention()}\n";
+                }
+                
+                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"${embedPrefix}You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
                     .FireAndForget(_errorHandlingService);
             }
         }

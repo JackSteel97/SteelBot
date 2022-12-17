@@ -1,8 +1,5 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Pets;
@@ -11,7 +8,6 @@ using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Models;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Levelling;
 using System;
@@ -148,19 +144,19 @@ public static class PetShared
         return levelledUp;
     }
 
-    public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, ulong userId, bool pingUser)
+    public static async Task SendPetLevelledUpMessage(StringBuilder changes, Guild guild, DiscordGuild discordGuild, User user, bool pingUser)
     {
         var channel = guild.GetLevelAnnouncementChannel(discordGuild);
         if (channel != null)
         {
             string content = "";
-            if (pingUser)
+            if (pingUser && !user.OptedOutOfMentions)
             {
-                content = userId.ToUserMention();
+                content = user.DiscordId.ToUserMention();
             }
             else
             {
-                changes.Insert(0, userId.ToUserMention() + Environment.NewLine);
+                changes.Insert(0, user.DiscordId.ToUserMention() + Environment.NewLine);
             }
 
             var embed = new DiscordEmbedBuilder(EmbedGenerator.Info(changes.ToString(), "Pet Level Up"));

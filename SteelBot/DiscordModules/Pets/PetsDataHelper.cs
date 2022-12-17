@@ -118,9 +118,9 @@ public class PetsDataHelper
     
     private void SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
     {
-        if (_cache.Guilds.TryGetGuild(discordGuild.Id, out var guild))
+        if (_cache.Guilds.TryGetGuild(discordGuild.Id, out var guild) && _cache.Users.TryGetUser(discordGuild.Id, userId, out var user))
         {
-            PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, userId, pingOwner).FireAndForget(_errorHandlingService);
+            PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, user, pingOwner).FireAndForget(_errorHandlingService);
         }
     }
 }
