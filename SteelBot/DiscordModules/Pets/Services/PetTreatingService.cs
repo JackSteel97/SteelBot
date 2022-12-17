@@ -1,9 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
@@ -13,12 +8,10 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Levelling;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using User = SteelBot.Database.Models.Users.User;
@@ -126,7 +119,7 @@ public class PetTreatingService
         request.Responder.Respond(PetMessages.GetPetTreatedMessage(pet, (int)xpGain));
         if (levelledUp && _cache.Guilds.TryGetGuild(request.Guild.Id, out var guild))
         {
-            PetShared.SendPetLevelledUpMessage(changes, guild, request.Guild, request.Member.Id, shouldPingOwner).FireAndForget(_errorHandlingService);
+            PetShared.SendPetLevelledUpMessage(changes, guild, request.Guild, user, shouldPingOwner).FireAndForget(_errorHandlingService);
         }
     }
 }

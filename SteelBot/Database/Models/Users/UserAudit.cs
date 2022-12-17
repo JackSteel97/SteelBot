@@ -44,5 +44,6 @@ public class UserAudit : UserBase
         LastActiveDay = user.LastActiveDay;
         ConsecutiveDaysActive = user.ConsecutiveDaysActive;
         Timestamp = user.LastUpdated ?? user.UserFirstSeen;
+        OptedOutOfMentions = user.OptedOutOfMentions;
     }
 }

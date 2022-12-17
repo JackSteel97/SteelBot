@@ -36,6 +36,12 @@ public class ConfigDataHelper
         return _cache.Guilds.ToggleDadJoke(guildId);
     }
 
+    public Task<bool> ToggleLevelMentions(ulong guildId, ulong userId)
+    {
+        _logger.LogInformation("Toggling Level Mentions for User {UserId} in Guild {GuildId}",userId, guildId);
+        return _cache.Users.ToggleLevelMention(guildId, userId);
+    }
+
     public string GetPrefix(ulong guildId) => _cache.Guilds.GetGuildPrefix(guildId);
 
     public string GetEnvironment() => _appConfigurationService.Environment;

@@ -52,6 +52,17 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
         transaction.Finish();
     }
 
+    [SlashCommand("ToggleLevelMentions", "Toggles you getting pinged for level up alerts for this server")]
+    [SlashCooldown(6, 300, SlashCooldownBucketType.Channel)]
+    public async Task ToggleLevelMentions(InteractionContext context)
+    {
+        var transaction = _sentry.StartNewConfiguredTransaction(nameof(ConfigSlashCommands), nameof(ToggleLevelMentions), context.User, context.Guild);
+        bool newSetting = await _configDataHelper.ToggleLevelMentions(context.Guild.Id, context.User.Id);
+        await context.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"Level Mentions Toggled **{(!newSetting ? "On" : "Off")}**")));
+        transaction.Finish();
+
+    }
+
     [SlashCommand("SetLevelChannel", "Set the channel to notify users of level-ups")]
     [SlashRequireUserPermissions(Permissions.Administrator)]
     [SlashCooldown(1, 300, SlashCooldownBucketType.Guild)]

@@ -28,6 +28,7 @@ public abstract class UserBase
     public ulong ActivityStreakXpEarned { get; set; }
     public int ConsecutiveDaysActive { get; set; }
     public DateOnly LastActiveDay { get; set; }
+    public bool OptedOutOfMentions { get; set; }
 
     public ulong TotalXp
     {

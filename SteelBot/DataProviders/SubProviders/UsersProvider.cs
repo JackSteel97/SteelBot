@@ -1,5 +1,4 @@
-﻿using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Sentry;
@@ -7,7 +6,6 @@ using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
 using SteelBot.Helpers.Sentry;
-using SteelBot.Services.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +56,21 @@ public class UsersProvider
         transaction.Finish();
         return result;
 
+    }
+
+    public async Task<bool> ToggleLevelMention(ulong guildId, ulong userId)
+    {
+        bool currentSet = false;
+        if (TryGetUser(guildId, userId, out var user))
+        {
+            var copyOfUser = user.Clone();
+            copyOfUser.OptedOutOfMentions = !copyOfUser.OptedOutOfMentions;
+            currentSet = copyOfUser.OptedOutOfMentions;
+
+            await UpdateUser(guildId, copyOfUser);
+        }
+
+        return currentSet;
     }
 
     public bool BotKnowsUser(ulong guildId, ulong userId)
