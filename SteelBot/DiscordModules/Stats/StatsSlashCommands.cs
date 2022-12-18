@@ -4,6 +4,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Stats;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Stats.Providers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
@@ -22,8 +23,8 @@ public class StatsSlashCommands : InstrumentedApplicationCommandModule
     private readonly CancellationService _cancellationService;
 
     /// <inheritdoc />
-    public StatsSlashCommands(ErrorHandlingService errorHandlingService, ILogger<StatsSlashCommands> logger, StatsCommandsChannel channel, CancellationService cancellationService)
-        : base(logger)
+    public StatsSlashCommands(ErrorHandlingService errorHandlingService, ILogger<StatsSlashCommands> logger, StatsCommandsChannel channel, CancellationService cancellationService, AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _logger = logger;

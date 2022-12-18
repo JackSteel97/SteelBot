@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.Stats;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -22,8 +23,8 @@ public class StatsCommands : TypingCommandModule
     private readonly StatsCommandsChannel _statsCommandsChannel;
     private readonly CancellationService _cancellationService;
     
-    public StatsCommands(ErrorHandlingService errorHandlingService, IHub sentry, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService)
-        : base(logger, sentry)
+    public StatsCommands(ErrorHandlingService errorHandlingService, IHub sentry, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService, AuditLogService auditLogService)
+        : base(logger, auditLogService, sentry)
     {
         _errorHandlingService = errorHandlingService;
         _logger = logger;

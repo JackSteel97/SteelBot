@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.SelfRole;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -24,8 +25,8 @@ public class RolesCommands : TypingCommandModule
     private readonly CancellationService _cancellationService;
     private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
 
-    public RolesCommands(DataHelpers dataHelper, IHub sentry, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesCommands> logger)
-        : base(logger, sentry)
+    public RolesCommands(DataHelpers dataHelper, IHub sentry, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService, sentry)
     {
         _dataHelpers = dataHelper;
         _errorHandlingService = errorHandlingService;

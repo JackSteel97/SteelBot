@@ -4,6 +4,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -20,7 +21,7 @@ public class UtilityCommands : TypingCommandModule
     private readonly ErrorHandlingService _errorHandlingService;
 
     /// <inheritdoc />
-    public UtilityCommands(UtilityService utilityService, ErrorHandlingService errorHandlingService, ILogger<UtilityCommands> logger, IHub sentry) : base(logger, sentry)
+    public UtilityCommands(UtilityService utilityService, ErrorHandlingService errorHandlingService, ILogger<UtilityCommands> logger, IHub sentry, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
     {
         _utilityService = utilityService;
         _errorHandlingService = errorHandlingService;   

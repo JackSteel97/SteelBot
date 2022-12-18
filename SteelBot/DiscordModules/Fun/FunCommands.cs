@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
@@ -21,7 +22,7 @@ public class FunCommands : TypingCommandModule
     private readonly DataCache _cache;
     private readonly ILogger<FunCommands> _logger;
 
-    public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry, ILogger<FunCommands> logger) : base(logger, sentry)
+    public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry, ILogger<FunCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
     {
         _dataHelpers = dataHelpers;
         _cache = cache;

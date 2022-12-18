@@ -2,18 +2,16 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Database.Models;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Triggers;
@@ -26,8 +24,8 @@ public class TriggerCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
 
-    public TriggerCommands(DataHelpers dataHelpers, IHub sentry, ILogger<TriggerCommands> logger)
-        : base(logger, sentry)
+    public TriggerCommands(DataHelpers dataHelpers, IHub sentry, ILogger<TriggerCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService, sentry)
     {
         _dataHelpers = dataHelpers;
     }

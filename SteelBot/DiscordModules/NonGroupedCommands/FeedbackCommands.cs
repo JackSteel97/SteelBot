@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
@@ -16,7 +17,7 @@ public class FeedbackCommands : TypingCommandModule
 {
     private readonly DataCache _cache;
 
-    public FeedbackCommands(DataCache cache, IHub sentry, ILogger<FeedbackCommands> logger) : base(logger, sentry)
+    public FeedbackCommands(DataCache cache, IHub sentry, ILogger<FeedbackCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
     {
         _cache = cache;
     }

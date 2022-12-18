@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -19,7 +20,7 @@ public class UtilitySlashCommands : InstrumentedApplicationCommandModule
     private readonly UtilityService _utilityService;
 
     /// <inheritdoc />
-    public UtilitySlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, ILogger<UtilitySlashCommands> logger, UtilityService utilityService) : base(logger)
+    public UtilitySlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, ILogger<UtilitySlashCommands> logger, UtilityService utilityService, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _cancellationService = cancellationService;

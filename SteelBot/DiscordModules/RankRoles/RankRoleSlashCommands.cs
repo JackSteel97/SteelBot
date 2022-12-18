@@ -4,6 +4,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.RankRole;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -22,8 +23,8 @@ public class RankRoleSlashCommands : InstrumentedApplicationCommandModule
     private readonly ILogger<RankRoleSlashCommands> _logger;
 
     /// <inheritdoc />
-    public RankRoleSlashCommands(CancellationService cancellationService, RankRoleManagementChannel rankRoleManagementChannel, ErrorHandlingService errorHandlingService, ILogger<RankRoleSlashCommands> logger)
-        : base(logger)
+    public RankRoleSlashCommands(CancellationService cancellationService, RankRoleManagementChannel rankRoleManagementChannel, ErrorHandlingService errorHandlingService, ILogger<RankRoleSlashCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _cancellationService = cancellationService;
         _rankRoleManagementChannel = rankRoleManagementChannel;

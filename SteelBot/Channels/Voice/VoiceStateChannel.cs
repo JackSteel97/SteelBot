@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System;
@@ -15,6 +16,7 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
     private readonly DiscordClient _discordClient;
     private readonly UserLockingService _userLockingService;
     private readonly IHub _sentry;
+    private readonly AuditLogService _auditLogService;
 
     public VoiceStateChannel(ILogger<VoiceStateChannel> logger,
         ErrorHandlingService errorHandlingService,
@@ -22,13 +24,15 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
         UserTrackingService userTrackingService,
         DiscordClient discordClient,
         UserLockingService userLockingService,
-        IHub sentry) : base(logger, errorHandlingService, "Voice State")
+        IHub sentry,
+        AuditLogService auditLogService) : base(logger, errorHandlingService, "Voice State")
     {
         _voiceStateChangeHandler = voiceStateChangeHandler;
         _userTrackingService = userTrackingService;
         _discordClient = discordClient;
         _userLockingService = userLockingService;
         _sentry = sentry;
+        _auditLogService = auditLogService;
     }
 
     protected override async ValueTask HandleMessage(VoiceStateChange message)
@@ -42,6 +46,7 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
 
         try
         {
+            await _auditLogService.VoiceStateChange(message);
             using (await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
             {
                 var trackUserSpan = transaction.StartChild("Track User");
