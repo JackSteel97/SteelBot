@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models.AuditLog;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SteelBot.DataProviders.SubProviders;
@@ -32,5 +34,22 @@ public class AuditLogProvider
         {
             _logger.LogError("Writing a new {Action} item to the audit log for {UserId} instered no entries", auditLogItem.What, auditLogItem.Who);
         }
-    } 
+    }
+
+    public async Task<IEnumerable<Audit>> GetLatest(ulong guildId)
+    {
+        _logger.LogInformation("Reading the latest entries in the audit log for Guild {GuildId}", guildId);
+
+        Audit[] results;
+        await using (var db = await _dbContextFactory.CreateDbContextAsync())
+        {
+            results = await db.AuditLog
+                .Where(a => a.WhereGuildId == guildId)
+                .OrderByDescending(a=>a.When)
+                .Take(50)
+                .ToArrayAsync();
+        }
+
+        return results;
+    }
 }
