@@ -52,6 +52,7 @@ using SteelBot.Channels.Voice;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.NonGroupedCommands;
@@ -97,6 +98,7 @@ public class BotMain : IHostedService
     private readonly UserLockingService _userLockingService;
     private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
     private readonly IHub _sentry;
+    private readonly AuditLogService _auditLogService;
 
     // Channels
     private readonly VoiceStateChannel _voiceStateChannel;
@@ -124,7 +126,8 @@ public class BotMain : IHostedService
         IHub sentry,
         PetCommandsChannel petCommandsChannel,
         StatsCommandsChannel statsCommandsChannel,
-        PuzzleCommandsChannel puzzleCommandsChannel)
+        PuzzleCommandsChannel puzzleCommandsChannel,
+        AuditLogService auditLogService)
     {
         _appConfigurationService = appConfigurationService;
         _logger = logger;
@@ -144,6 +147,7 @@ public class BotMain : IHostedService
         _petCommandsChannel = petCommandsChannel;
         _statsCommandsChannel = statsCommandsChannel;
         _puzzleCommandsChannel = puzzleCommandsChannel;
+        _auditLogService = auditLogService;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -212,7 +216,7 @@ public class BotMain : IHostedService
         _client.GuildMemberRemoved += HandleGuildMemberRemoved;
         _client.ModalSubmitted += HandleModalSubmitted;
         _client.GuildAvailable += HandleGuildAvailable;
-        //Client.GuildMemberAdded += HandleGuildMemberAdded; // TODO: Implement properly
+        _client.GuildMemberAdded += HandleGuildMemberAdded;
 
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
@@ -493,8 +497,7 @@ public class BotMain : IHostedService
     {
         try
         {
-            var msg = new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("This is a tester welcome message", $"Welcome to {args.Guild.Name}!", "Thanks for joining."));
-            await args.Member.SendMessageAsync(msg);
+            await _auditLogService.JoinedGuild(args);
         }
         catch (Exception ex)
         {
@@ -508,6 +511,7 @@ public class BotMain : IHostedService
         {
             try
             {
+                await _auditLogService.LeftGuild(args);
                 var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildMemberRemoved), "Remove Member");
 
                 using (await _userLockingService.WriterLockAsync(args.Guild.Id, args.Member.Id))

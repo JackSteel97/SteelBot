@@ -17,6 +17,7 @@ using SteelBot.Database;
 using SteelBot.DataProviders;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Pets;
@@ -219,6 +220,9 @@ public static class Program
         serviceProvider.AddSingleton<RateLimitFactory>();
         
         serviceProvider.AddSingleton<UtilityService>();
+        
+        serviceProvider.AddSingleton<AuditLogProvider>();
+        serviceProvider.AddSingleton<AuditLogService>();
     }
 
     public static async Task Main(string[] args)

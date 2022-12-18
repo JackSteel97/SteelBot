@@ -5,6 +5,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.SelfRole;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
@@ -23,8 +24,8 @@ public class RolesSlashCommands : InstrumentedApplicationCommandModule
     private readonly ILogger<RolesSlashCommands> _logger;
 
     /// <inheritdoc />
-    public RolesSlashCommands(RolesDataHelper rolesDataHelper, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesSlashCommands> logger)
-        : base(logger)
+    public RolesSlashCommands(RolesDataHelper rolesDataHelper, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesSlashCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _rolesDataHelper = rolesDataHelper;
         _errorHandlingService = errorHandlingService;

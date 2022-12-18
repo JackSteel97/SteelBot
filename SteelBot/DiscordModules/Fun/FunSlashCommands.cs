@@ -3,6 +3,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.DataProviders.SubProviders;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
@@ -21,7 +22,7 @@ public class FunSlashCommands : InstrumentedApplicationCommandModule
     private readonly ILogger<FunSlashCommands> _logger;
 
     /// <inheritdoc />
-    public FunSlashCommands(FunProvider funProvider, ILogger<FunSlashCommands> logger, ErrorHandlingService errorHandlingService, ExceptionProvider exceptionProvider) : base(logger)
+    public FunSlashCommands(FunProvider funProvider, ILogger<FunSlashCommands> logger, ErrorHandlingService errorHandlingService, ExceptionProvider exceptionProvider, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _funProvider = funProvider;
         _logger = logger;

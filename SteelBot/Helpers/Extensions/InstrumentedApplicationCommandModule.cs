@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
+using SteelBot.DiscordModules.AuditLog.Services;
 using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Extensions;
@@ -7,17 +8,20 @@ namespace SteelBot.Helpers.Extensions;
 public class InstrumentedApplicationCommandModule : ApplicationCommandModule
 {
     private readonly ILogger _logger;
+    private readonly AuditLogService _auditLogService;
 
-    protected InstrumentedApplicationCommandModule(ILogger logger)
+    protected InstrumentedApplicationCommandModule(ILogger logger, AuditLogService auditLogService)
     {
         _logger = logger;
+        _auditLogService = auditLogService;
     }
 
     /// <inheritdoc />
-    public override Task<bool> BeforeSlashExecutionAsync(InteractionContext ctx)
+    public override async Task<bool> BeforeSlashExecutionAsync(InteractionContext ctx)
     {
         _logger.LogInformation("Starting slash command {Command} invoked by {UserId} in {GuildId}", ctx.CommandName, ctx.User.Id, ctx.Guild.Id);
-        return base.BeforeSlashExecutionAsync(ctx);
+        await _auditLogService.UsedSlashCommand(ctx);
+        return await base.BeforeSlashExecutionAsync(ctx);
     }
 
     /// <inheritdoc />

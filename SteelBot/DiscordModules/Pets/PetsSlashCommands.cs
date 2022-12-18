@@ -3,6 +3,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Pets;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
 using SteelBot.RateLimiting;
 using SteelBot.Responders;
@@ -28,7 +29,7 @@ public class PetsSlashCommands : InstrumentedApplicationCommandModule
     private readonly RateLimit _bonusesRateLimit;
 
     /// <inheritdoc />
-    public PetsSlashCommands(ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, ILogger<PetsSlashCommands> logger, RateLimitFactory rateLimitFactory) : base(logger)
+    public PetsSlashCommands(ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, ILogger<PetsSlashCommands> logger, RateLimitFactory rateLimitFactory, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _petCommandsChannel = petCommandsChannel;

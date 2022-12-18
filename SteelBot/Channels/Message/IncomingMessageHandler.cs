@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.DataProviders.SubProviders;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.DiscordModules.Triggers;
@@ -18,13 +19,15 @@ public class IncomingMessageHandler
     private readonly PetsDataHelper _petsDataHelper;
     private readonly TriggerDataHelper _triggerDataHelper;
     private readonly RankRolesProvider _rankRolesProvider;
+    private readonly AuditLogService _auditLogService;
 
     public IncomingMessageHandler(UsersProvider usersProvider,
         ILogger<IncomingMessageHandler> logger,
         LevelMessageSender levelMessageSender,
         PetsDataHelper petsDataHelper,
         TriggerDataHelper triggerDataHelper,
-        RankRolesProvider rankRolesProvider)
+        RankRolesProvider rankRolesProvider,
+        AuditLogService auditLogService)
     {
         _usersProvider = usersProvider;
         _logger = logger;
@@ -32,10 +35,12 @@ public class IncomingMessageHandler
         _petsDataHelper = petsDataHelper;
         _triggerDataHelper = triggerDataHelper;
         _rankRolesProvider = rankRolesProvider;
+        _auditLogService = auditLogService;
     }
 
     public async Task HandleMessage(IncomingMessage messageArgs, ISpan transaction)
     {
+        await _auditLogService.MessageSent(messageArgs);
         var messageCountersSpan = transaction.StartChild("Update Message Counters");
         bool levelledUp = await UpdateMessageCounters(messageArgs, messageCountersSpan);
         messageCountersSpan.Finish();

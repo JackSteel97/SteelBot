@@ -5,6 +5,7 @@ using Humanizer;
 using Microsoft.Extensions.Logging;
 using Sentry;
 using SteelBot.Channels.Pets;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.Helpers;
@@ -36,8 +37,8 @@ public class PetsCommands : TypingCommandModule
     private readonly RateLimit _treatRateLimit;
     private readonly RateLimit _searchRateLimit;
     private readonly RateLimit _bonusesRateLimit;
-    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, RateLimitFactory rateLimitFactory)
-        : base(logger, sentry)
+    public PetsCommands(ILogger<PetsCommands> logger, PetFactory petFactory, DataHelpers dataHelpers, IHub sentry, ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, RateLimitFactory rateLimitFactory, AuditLogService auditLogService)
+        : base(logger, auditLogService, sentry)
     {
         _logger = logger;
         _petFactory = petFactory;

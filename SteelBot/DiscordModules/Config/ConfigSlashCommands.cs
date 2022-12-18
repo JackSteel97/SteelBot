@@ -4,6 +4,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Helpers.Sentry;
@@ -20,7 +21,7 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     private readonly IHub _sentry;
 
     /// <inheritdoc />
-    public ConfigSlashCommands(ConfigDataHelper configDataHelper, ILogger<ConfigSlashCommands> logger, IHub sentry) : base(logger)
+    public ConfigSlashCommands(ConfigDataHelper configDataHelper, ILogger<ConfigSlashCommands> logger, IHub sentry, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _configDataHelper = configDataHelper;
         _logger = logger;

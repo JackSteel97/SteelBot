@@ -3,6 +3,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
 using SteelBot.Channels.Puzzle;
+using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
@@ -21,7 +22,7 @@ public class PuzzleSlashCommands : InstrumentedApplicationCommandModule
     private readonly ILogger<PuzzleSlashCommands> _logger;
 
     /// <inheritdoc />
-    public PuzzleSlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, PuzzleCommandsChannel puzzleCommandsChannel, ILogger<PuzzleSlashCommands> logger) : base(logger)
+    public PuzzleSlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, PuzzleCommandsChannel puzzleCommandsChannel, ILogger<PuzzleSlashCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _cancellationService = cancellationService;
