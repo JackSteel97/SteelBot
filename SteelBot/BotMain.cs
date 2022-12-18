@@ -52,6 +52,7 @@ using SteelBot.Channels.Voice;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules;
+using SteelBot.DiscordModules.AuditLog;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
@@ -235,13 +236,13 @@ public class BotMain : IHostedService
                     if (failedCheck is SlashCooldownAttribute cooldown)
                     {
                         await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"This `{args.Context.CommandName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
+                            .Warning($"This `{args.Context.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
                         return;
                     }
                     if (failedCheck is SlashRequireUserPermissionsAttribute userPerms)
                     {
                         await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"This `{args.Context.CommandName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
+                            .Warning($"This `{args.Context.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
                         return;
                     }
                 }
@@ -252,7 +253,7 @@ public class BotMain : IHostedService
             }
             else
             {
-                await _errorHandlingService.Log(args.Exception, args.Context.CommandName);
+                await _errorHandlingService.Log(args.Exception, args.Context.QualifiedName);
                 await args.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."))).AsEphemeral());
             }
@@ -323,6 +324,7 @@ public class BotMain : IHostedService
         _slashCommands.RegisterCommands<RankRoleSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<RolesSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<UtilitySlashCommands>(_testServerId);
+        _slashCommands.RegisterCommands<AuditLogSlashCommands>(_testServerId);
     }
 
     private void InitInteractivity()
