@@ -100,6 +100,7 @@ public class BotMain : IHostedService
     private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
     private readonly IHub _sentry;
     private readonly AuditLogService _auditLogService;
+    private readonly UserTrackingService _userTrackingService;
 
     // Channels
     private readonly VoiceStateChannel _voiceStateChannel;
@@ -128,7 +129,8 @@ public class BotMain : IHostedService
         PetCommandsChannel petCommandsChannel,
         StatsCommandsChannel statsCommandsChannel,
         PuzzleCommandsChannel puzzleCommandsChannel,
-        AuditLogService auditLogService)
+        AuditLogService auditLogService,
+        UserTrackingService userTrackingService)
     {
         _appConfigurationService = appConfigurationService;
         _logger = logger;
@@ -149,6 +151,7 @@ public class BotMain : IHostedService
         _statsCommandsChannel = statsCommandsChannel;
         _puzzleCommandsChannel = puzzleCommandsChannel;
         _auditLogService = auditLogService;
+        _userTrackingService = userTrackingService;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -218,10 +221,23 @@ public class BotMain : IHostedService
         _client.ModalSubmitted += HandleModalSubmitted;
         _client.GuildAvailable += HandleGuildAvailable;
         _client.GuildMemberAdded += HandleGuildMemberAdded;
-
+        _client.MessageReactionAdded += HandleMessageReactionAdded;
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
+        
         _slashCommands.SlashCommandErrored += HandleSlashCommandErrored;
+        _slashCommands.SlashCommandInvoked += HandleSlashCommandInvoked;
+        
+    }
+
+    private Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
+    {
+        return _userTrackingService.TrackUser(e.Guild.Id, e.User, e.Guild, sender);
+    }
+
+    private Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e)
+    {
+        return _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
     }
 
     private Task HandleSlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs args)
