@@ -32,7 +32,7 @@ public class StatsSlashCommands : InstrumentedApplicationCommandModule
         _cancellationService = cancellationService;
     }
     
-    [SlashCommand("Theirs", "Displays the given user's statistics for this server")]
+    [SlashCommand("For", "Displays the given user's statistics for this server")]
     [SlashCooldown(3, 30, SlashCooldownBucketType.User)]
     public async Task TheirStats(InteractionContext context, [Option("Target", "The user to view the stats for")] DiscordUser discordUser)
     {
