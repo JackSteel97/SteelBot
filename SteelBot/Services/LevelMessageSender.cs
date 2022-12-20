@@ -92,7 +92,7 @@ public class LevelMessageSender
                     embedPrefix = $"{userId.ToUserMention()}\n";
                 }
                 
-                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"${embedPrefix}You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
+                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{embedPrefix}You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
                     .FireAndForget(_errorHandlingService);
             }
         }

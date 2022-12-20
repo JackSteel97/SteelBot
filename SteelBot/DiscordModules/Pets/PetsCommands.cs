@@ -51,7 +51,7 @@ public class PetsCommands : TypingCommandModule
         _manageRateLimit = rateLimitFactory.Get(nameof(ManagePets), 10, TimeSpan.FromMinutes(1));
         _treatRateLimit = rateLimitFactory.Get(nameof(TreatPet), 2, TimeSpan.FromHours(1));
         _searchRateLimit = rateLimitFactory.Get(nameof(Search), 10, TimeSpan.FromHours(1));
-        _bonusesRateLimit = rateLimitFactory.Get(nameof(Search), 3, TimeSpan.FromMinutes(1));
+        _bonusesRateLimit = rateLimitFactory.Get(nameof(Bonuses), 3, TimeSpan.FromMinutes(1));
     }
 
     [GroupCommand]
