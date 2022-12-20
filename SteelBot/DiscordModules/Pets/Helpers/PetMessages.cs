@@ -43,27 +43,9 @@ public static class PetMessages
         return new DiscordMessageBuilder().WithEmbed(embed).WithContent("Your new pet became Corrupted during the befriending process!!");
     }
 
-    public static DiscordMessageBuilder GetBefriendSuccessMessage(Pet pet)
-    {
-        var embedBuilder = EmbedGenerator.Success("What would you like to name it?", $"You befriended the {pet.Species.GetName()}!");
-        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
-    }
-
-    public static DiscordMessageBuilder GetRenameRequestMessage(Pet pet)
-    {
-        var embedBuilder = EmbedGenerator.Primary("What would you like your their new name to be?", $"Renaming {pet.GetName()}");
-        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
-    }
-
     public static DiscordMessageBuilder GetNamingSuccessMessage(Pet pet)
     {
         var embedBuilder = EmbedGenerator.Success($"You named this pet {pet.Species.GetName()} {Formatter.Italic(pet.GetName())}");
-        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
-    }
-
-    public static DiscordMessageBuilder GetPetCapacityDecreasedMessage(int oldCapacity, int newCapacity)
-    {
-        var embedBuilder = EmbedGenerator.Warning($"This re-ordering of your pets has caused your active pet slots to decrease from `{oldCapacity}` to `{newCapacity}`.{Environment.NewLine}{Environment.NewLine}To fix this, bring some pets with positive pet slots to the top, or send ones with negative slots to the bottom.");
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
     }
 

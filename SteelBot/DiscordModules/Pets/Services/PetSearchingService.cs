@@ -121,7 +121,6 @@ public class PetSearchingService
         {
             _logger.LogInformation("Pet found message timed out waiting for a user response from User {UserId} in Guild {GuildId}", request.Member.Id, request.Guild.Id);
             message.DeleteAsync().FireAndForget(_errorHandlingService);
-            request.Responder.Respond(PetMessages.GetPetRanAwayMessage(foundPet));
             return (false, null, null);
         }
         
