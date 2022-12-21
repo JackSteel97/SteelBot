@@ -11,10 +11,7 @@ public static class PrefixResolver
         string guildsPrefix = configDataHelper.GetPrefix(msg.Channel.GuildId.Value);
 
         int prefixFound = msg.GetStringPrefixLength(guildsPrefix);
-        if (prefixFound == -1)
-        {
-            prefixFound = msg.GetMentionPrefixLength(currentUser);
-        }
+        if (prefixFound == -1) prefixFound = msg.GetMentionPrefixLength(currentUser);
 
         return prefixFound;
     }

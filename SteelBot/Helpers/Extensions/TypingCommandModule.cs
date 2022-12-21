@@ -7,8 +7,8 @@ namespace SteelBot.Helpers.Extensions;
 
 public class TypingCommandModule : BaseCommandModule
 {
-    private readonly ILogger _logger;
     private readonly AuditLogService _auditLogService;
+    private readonly ILogger _logger;
 
     protected TypingCommandModule(ILogger logger, AuditLogService auditLogService)
     {

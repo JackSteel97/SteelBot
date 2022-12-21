@@ -20,10 +20,14 @@ namespace SteelBot.DiscordModules.RankRoles;
 public class RankRoleCommands : TypingCommandModule
 {
     private readonly CancellationService _cancellationService;
-    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
 
-    public RankRoleCommands(CancellationService cancellationService, RankRoleManagementChannel rankRoleManagementChannel, ErrorHandlingService errorHandlingService, ILogger<RankRoleCommands> logger, AuditLogService auditLogService)
+    public RankRoleCommands(CancellationService cancellationService,
+        RankRoleManagementChannel rankRoleManagementChannel,
+        ErrorHandlingService errorHandlingService,
+        ILogger<RankRoleCommands> logger,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _cancellationService = cancellationService;

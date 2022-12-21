@@ -8,9 +8,9 @@ namespace SteelBot.Channels.Stats;
 
 public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
 {
-    private readonly StatsLeaderboardService _statsLeaderboardService;
-    private readonly StatsCardService _statsCardService;
     private readonly StatsAdminService _statsAdminService;
+    private readonly StatsCardService _statsCardService;
+    private readonly StatsLeaderboardService _statsLeaderboardService;
 
     /// <inheritdoc />
     public StatsCommandsChannel(StatsLeaderboardService statsLeaderboardService,
@@ -53,7 +53,7 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
                     break;
             }
         }).FireAndForget(ErrorHandlingService);
-        
+
         return ValueTask.CompletedTask;
     }
 }

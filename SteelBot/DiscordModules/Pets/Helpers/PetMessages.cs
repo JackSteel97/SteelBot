@@ -13,9 +13,9 @@ public static class PetMessages
     {
         string nameInsert = !string.IsNullOrWhiteSpace(pet.Name) ? Formatter.Italic(pet.Name) : Formatter.Italic(pet.Species.GetName());
         var embedBuilder = new DiscordEmbedBuilder()
-           .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
-           .WithTitle("Congrats")
-           .WithDescription($"{owner.Mention} Congratulations on your new pet {nameInsert}");
+            .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
+            .WithTitle("Congrats")
+            .WithDescription($"{owner.Mention} Congratulations on your new pet {nameInsert}");
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
     }
 
@@ -39,7 +39,7 @@ public static class PetMessages
 
     public static DiscordMessageBuilder GetPetCorruptedMessage(Pet pet)
     {
-        var embed = PetDisplayHelpers.GetPetDisplayEmbed(pet, includeName: false);
+        var embed = PetDisplayHelpers.GetPetDisplayEmbed(pet, false);
         return new DiscordMessageBuilder().WithEmbed(embed).WithContent("Your new pet became Corrupted during the befriending process!!");
     }
 

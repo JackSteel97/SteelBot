@@ -12,9 +12,9 @@ namespace SteelBot.Services;
 
 public class ErrorHandlingService
 {
-    private readonly DiscordClient _client;
     private readonly AppConfigurationService _appConfigurationService;
     private readonly DataCache _cache;
+    private readonly DiscordClient _client;
     private readonly ILogger<ErrorHandlingService> _logger;
 
     public ErrorHandlingService(DiscordClient client, AppConfigurationService appConfigurationService, DataCache cache, ILogger<ErrorHandlingService> logger)
@@ -38,10 +38,7 @@ public class ErrorHandlingService
 
             await _cache.Exceptions.InsertException(new ExceptionLog(e, source));
 
-            if (e is not FireAndForgetTaskException)
-            {
-                await SendMessageToJack(e, source);
-            }
+            if (e is not FireAndForgetTaskException) await SendMessageToJack(e, source);
         }
         catch (Exception ex)
         {
@@ -57,6 +54,8 @@ public class ErrorHandlingService
         var commonServer = await _client.GetGuildAsync(civlationId);
         var jack = await commonServer.GetMemberAsync(jackId);
 
-        await jack.SendMessageAsync(embed: EmbedGenerator.Info($"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}\n\nStack Trace:\n{Formatter.BlockCode(e.StackTrace)}", "An Error Occured", $"Source: {source}"));
+        await jack.SendMessageAsync(EmbedGenerator.Info(
+            $"Error Message:\n{Formatter.BlockCode(e.Message)}\nAt:\n{Formatter.InlineCode(DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"))}\n\nStack Trace:\n{Formatter.BlockCode(e.StackTrace)}",
+            "An Error Occured", $"Source: {source}"));
     }
 }

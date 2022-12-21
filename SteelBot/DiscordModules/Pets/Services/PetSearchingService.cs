@@ -19,13 +19,12 @@ namespace SteelBot.DiscordModules.Pets.Services;
 
 public class PetSearchingService
 {
-    private readonly DataCache _cache;
-    private readonly PetFactory _petFactory;
-    private readonly ILogger<PetSearchingService> _logger;
-    private readonly ErrorHandlingService _errorHandlingService;
-    private readonly PetBefriendingService _befriendingService;
-
     private const string _replacementWarningMessage = "Warning: If you befriend this pet you must choose an existing one to release.";
+    private readonly PetBefriendingService _befriendingService;
+    private readonly DataCache _cache;
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly ILogger<PetSearchingService> _logger;
+    private readonly PetFactory _petFactory;
 
     public PetSearchingService(DataCache cache, PetFactory petFactory, ILogger<PetSearchingService> logger, ErrorHandlingService errorHandlingService, PetBefriendingService befriendingService)
     {
@@ -44,26 +43,18 @@ public class PetSearchingService
 
     private async Task SearchCore(PetCommandAction request)
     {
-        if (!CanSearch(request.Member, request.Responder, out var isReplacementSearch)
+        if (!CanSearch(request.Member, request.Responder, out bool isReplacementSearch)
             || !FoundAPet(request.Member, request.Responder))
-        {
             return;
-        }
 
         (bool befriend, var foundPet, var interaction) = await HandlePetFound(request, isReplacementSearch);
-        if (befriend)
-        {
-            await _befriendingService.Befriend(request, foundPet, interaction);
-        }
+        if (befriend) await _befriendingService.Befriend(request, foundPet, interaction);
     }
 
     private bool CanSearch(DiscordMember member, IResponder responder, out bool isReplacementSearch)
     {
         isReplacementSearch = false;
-        if (PetSpaceHelper.HasSpaceForAnotherPet(member, _cache.Users, _cache.Pets))
-        {
-            return true;
-        }
+        if (PetSpaceHelper.HasSpaceForAnotherPet(member, _cache.Users, _cache.Pets)) return true;
 
         isReplacementSearch = PetSpaceHelper.CanReplaceToBefriend(member, _cache.Users, _cache.Pets);
         if (!isReplacementSearch)
@@ -81,10 +72,7 @@ public class PetSearchingService
 
     private bool FoundAPet(DiscordMember member, IResponder responder)
     {
-        if (SearchSuccess(member))
-        {
-            return true;
-        }
+        if (SearchSuccess(member)) return true;
 
         _logger.LogInformation("User {UserId} failed to find anything when searching for a new pet", member.Id);
         var response = new DiscordMessageBuilder()
@@ -95,10 +83,7 @@ public class PetSearchingService
 
     private async Task<(bool befriendAttempt, Pet foundPet, DiscordInteraction interaction)> HandlePetFound(PetCommandAction request, bool mustReplaceToBefriend)
     {
-        if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user))
-        {
-            return (false, null, null);
-        }
+        if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)) return (false, null, null);
 
         var foundPet = _petFactory.Generate(user.CurrentLevel);
 
@@ -112,7 +97,7 @@ public class PetSearchingService
             message.DeleteAsync().FireAndForget(_errorHandlingService);
             return (false, null, null);
         }
-        
+
         response.ClearComponents();
         message.ModifyAsync(response).FireAndForget(_errorHandlingService);
         return (result.Result.Id == InteractionIds.Pets.Befriend, foundPet, result.Result.Interaction);
@@ -120,7 +105,7 @@ public class PetSearchingService
 
     private DiscordMessageBuilder BuildResponse(Pet foundPet, bool mustReplaceToBefriend)
     {
-        var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, includeName: false);
+        var initialPetDisplay = PetDisplayHelpers.GetPetDisplayEmbed(foundPet, false);
 
         var initialResponseBuilder = new DiscordMessageBuilder()
             .WithContent($"You found a new potential friend!{(mustReplaceToBefriend ? string.Concat(Environment.NewLine, _replacementWarningMessage) : string.Empty)}")

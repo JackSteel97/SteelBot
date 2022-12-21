@@ -8,7 +8,7 @@ public class CommandRateLimitedException : Exception
     /// <inheritdoc />
     public override string Message { get; }
 
-    public CommandRateLimitedException() : base()
+    public CommandRateLimitedException()
     {
     }
 

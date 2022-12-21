@@ -4,7 +4,6 @@ using SteelBot.Channels.RankRole;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.RankRoles.Helpers;
-using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Linq;
@@ -12,14 +11,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles.Services;
+
 public class RankRoleCreationService
 {
-    private readonly RankRolesProvider _rankRolesProvider;
     private readonly GuildsProvider _guildsProvider;
-    private readonly ILogger<RankRoleCreationService> _logger;
-    private readonly UsersProvider _usersProvider;
-    private readonly UserLockingService _userLockingService;
     private readonly LevelMessageSender _levelMessageSender;
+    private readonly ILogger<RankRoleCreationService> _logger;
+    private readonly RankRolesProvider _rankRolesProvider;
+    private readonly UserLockingService _userLockingService;
+    private readonly UsersProvider _usersProvider;
 
     public RankRoleCreationService(RankRolesProvider rankRolesProvider,
         GuildsProvider guildsProvider,
@@ -57,7 +57,6 @@ public class RankRoleCreationService
         {
             var allUsers = _usersProvider.GetUsersInGuild(guild.Id);
             foreach (var user in allUsers)
-            {
                 // Check the user is at or above the required level. And that their current rank role is a lower rank.
                 if (user.CurrentLevel >= newRankRole.LevelRequired && (user.CurrentRankRole == default || newRankRole.LevelRequired > user.CurrentRankRole.LevelRequired))
                 {
@@ -69,12 +68,13 @@ public class RankRoleCreationService
                         var discordRoleToRemove = guild.GetRole(user.CurrentRankRole.RoleDiscordId);
                         await member.RevokeRoleAsync(discordRoleToRemove, "A new higher level rank role was created");
                     }
+
                     await member.GrantRoleAsync(newDiscordRole, "New Rank Role created, this user already has the required rank");
                     await _usersProvider.UpdateRankRole(guild.Id, user.DiscordId, newRankRole);
                     _levelMessageSender.SendRankGrantedMessage(guild, member.Id, newRankRole, newDiscordRole.Mention);
                 }
-            }
         }
+
         return usersGainedRole;
     }
 
@@ -141,6 +141,7 @@ public class RankRoleCreationService
             role = new RankRole(discordRole.Id, discordRole.Name, guild.RowId, request.RequiredRank);
             await _rankRolesProvider.AddRole(request.Guild.Id, role);
         }
+
         return role;
     }
 
@@ -148,23 +149,18 @@ public class RankRoleCreationService
     {
         existingRoleName = null;
         if (_rankRolesProvider.TryGetGuildRankRoles(guildId, out var roles))
-        {
             foreach (var role in roles)
-            {
                 if (role.LevelRequired == level)
                 {
                     existingRoleName = role.RoleName;
                     return true;
                 }
-            }
-        }
+
         return false;
     }
 
-    private static DiscordRole GetDiscordRole(DiscordGuild guild, ulong roleId, string roleName)
-    {
-        return roleId != default
+    private static DiscordRole GetDiscordRole(DiscordGuild guild, ulong roleId, string roleName) =>
+        roleId != default
             ? guild.GetRole(roleId)
             : guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-    }
 }

@@ -11,8 +11,8 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class CommandStatisticProvider
 {
-    private readonly ILogger<CommandStatisticProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ILogger<CommandStatisticProvider> _logger;
 
     private Dictionary<string, CommandStatistic> _statisticsByCommandName;
 
@@ -47,14 +47,9 @@ public class CommandStatisticProvider
         }
 
         if (writtenCount > 0)
-        {
             _statisticsByCommandName.Add(cStat.CommandName, cStat);
-        }
         else
-        {
             _logger.LogError($"Writing Command Statistic [{cStat.CommandName}] to the database inserted no entities. The internal cache was not changed.");
-        }
-
     }
 
     private async Task UpdateStatistic(CommandStatistic commandStatistic)
@@ -67,13 +62,9 @@ public class CommandStatisticProvider
         }
 
         if (writtenCount > 0)
-        {
             _statisticsByCommandName[commandStatistic.CommandName] = commandStatistic;
-        }
         else
-        {
             _logger.LogError($"Updating CommandStatistic [{commandStatistic.CommandName}] did not alter any entities. The internal cache was not changed.");
-        }
     }
 
     public async Task IncrementCommandStatistic(string commandName)

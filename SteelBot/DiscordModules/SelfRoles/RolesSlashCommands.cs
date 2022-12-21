@@ -17,14 +17,19 @@ namespace SteelBot.DiscordModules.Roles;
 [SlashRequireGuild]
 public class RolesSlashCommands : InstrumentedApplicationCommandModule
 {
-    private readonly RolesDataHelper _rolesDataHelper;
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
-    private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<RolesSlashCommands> _logger;
+    private readonly RolesDataHelper _rolesDataHelper;
+    private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
 
     /// <inheritdoc />
-    public RolesSlashCommands(RolesDataHelper rolesDataHelper, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesSlashCommands> logger, AuditLogService auditLogService)
+    public RolesSlashCommands(RolesDataHelper rolesDataHelper,
+        ErrorHandlingService errorHandlingService,
+        CancellationService cancellationService,
+        SelfRoleManagementChannel selfRoleManagementChannel,
+        ILogger<RolesSlashCommands> logger,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _rolesDataHelper = rolesDataHelper;
@@ -33,6 +38,7 @@ public class RolesSlashCommands : InstrumentedApplicationCommandModule
         _selfRoleManagementChannel = selfRoleManagementChannel;
         _logger = logger;
     }
+
     [SlashCommand("View", "Displays the available self roles on this server")]
     [Cooldown(1, 60, CooldownBucketType.Channel)]
     public Task ViewSelfRoles(InteractionContext context)
@@ -40,7 +46,7 @@ public class RolesSlashCommands : InstrumentedApplicationCommandModule
         _rolesDataHelper.DisplayRoles(context.Guild, new InteractionResponder(context, _errorHandlingService));
         return Task.CompletedTask;
     }
-    
+
     [SlashCommand("JoinAll", "Join all available self roles")]
     [SlashCooldown(10, 60, SlashCooldownBucketType.User)]
     public async Task JoinAllRoles(InteractionContext context)
@@ -68,12 +74,16 @@ public class RolesSlashCommands : InstrumentedApplicationCommandModule
     [SlashCommand("Set", "Sets the given role as a self role that users can join themselves")]
     [SlashCooldown(10, 60, SlashCooldownBucketType.Guild)]
     [RequireUserPermissions(Permissions.ManageRoles)]
-    public async Task SetSelfRole(InteractionContext context, [Option("Role", "The role that should be set as a self role")] DiscordRole role, [Option("Description", "A description for the purpose of this role")] string description)
+    public async Task SetSelfRole(InteractionContext context,
+        [Option("Role", "The role that should be set as a self role")]
+        DiscordRole role,
+        [Option("Description", "A description for the purpose of this role")]
+        string description)
     {
         var action = new SelfRoleManagementAction(SelfRoleActionType.Create, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name, description);
         await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
     }
-    
+
     [SlashCommand("Remove", "Removes the given role from the list of self roles, users will not be able to join the role")]
     [SlashCooldown(10, 60, SlashCooldownBucketType.Guild)]
     [RequireUserPermissions(Permissions.ManageRoles)]
@@ -82,7 +92,7 @@ public class RolesSlashCommands : InstrumentedApplicationCommandModule
         var action = new SelfRoleManagementAction(SelfRoleActionType.Delete, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, role.Name);
         await _selfRoleManagementChannel.Write(action, _cancellationService.Token);
     }
-    
+
     [SlashCommand("RemoveByName", "Removes the given role from the list of self roles by name - use this if the role has been deleted")]
     [SlashCooldown(10, 60, SlashCooldownBucketType.Guild)]
     [RequireUserPermissions(Permissions.ManageRoles)]

@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Humanizer.Localisation;
 using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,8 @@ public class Pet
 {
     public long RowId { get; set; }
     public ulong OwnerDiscordId { get; set; }
-    [MaxLength(70)]
-    public string Name { get; set; }
+
+    [MaxLength(70)] public string Name { get; set; }
 
     public int Priority { get; set; }
     public double EarnedXp { get; set; }
@@ -28,45 +29,35 @@ public class Pet
     public List<PetAttribute> Attributes { get; set; }
     public List<PetBonus> Bonuses { get; set; }
 
+    public bool IsPrimary => Priority == 0;
+
     public override string ToString()
     {
         var age = DateTime.UtcNow - BornAt;
 
-        return $"A {Rarity} {age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
+        return $"A {Rarity} {age.Humanize(maxUnit: TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
     }
 
     public string GetName() => Name?.Trim() ?? $"Unnamed {Species.GetName()}";
 
     public void AddBonuses(List<PetBonus> bonuses)
     {
-        foreach (var bonus in bonuses)
-        {
-            AddBonus(bonus);
-        }
+        foreach (var bonus in bonuses) AddBonus(bonus);
     }
 
     public void AddBonus(PetBonus bonus)
     {
-        if (Bonuses == default)
-        {
-            Bonuses = new List<PetBonus>(1);
-        }
+        if (Bonuses == default) Bonuses = new List<PetBonus>(1);
 
         var existingBonusOfThisType = Bonuses.Find(b => b.BonusType == bonus.BonusType);
         if (existingBonusOfThisType != null)
-        {
             existingBonusOfThisType.Value += bonus.Value;
-        }
         else
-        {
             Bonuses.Add(bonus);
-        }
     }
 
-    public bool IsPrimary => Priority == 0;
-
     /// <summary>
-    /// Deep clone.
+    ///     Deep clone.
     /// </summary>
     /// <returns>A deep clone of this object.</returns>
     public Pet Clone()

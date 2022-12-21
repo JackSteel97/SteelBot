@@ -17,12 +17,16 @@ namespace SteelBot.DiscordModules.Stats;
 [RequireGuild]
 public class StatsCommands : TypingCommandModule
 {
+    private readonly CancellationService _cancellationService;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<StatsCommands> _logger;
     private readonly StatsCommandsChannel _statsCommandsChannel;
-    private readonly CancellationService _cancellationService;
-    
-    public StatsCommands(ErrorHandlingService errorHandlingService, ILogger<StatsCommands> logger, StatsCommandsChannel statsCommandsChannel, CancellationService cancellationService, AuditLogService auditLogService)
+
+    public StatsCommands(ErrorHandlingService errorHandlingService,
+        ILogger<StatsCommands> logger,
+        StatsCommandsChannel statsCommandsChannel,
+        CancellationService cancellationService,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;

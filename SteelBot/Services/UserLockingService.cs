@@ -2,17 +2,18 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SteelBot.Services;
 
 /// <summary>
-/// Manages locks on entire users that are used to ensure pipelines of modifications to users are executed in serial and avoid race-conditions.
+///     Manages locks on entire users that are used to ensure pipelines of modifications to users are executed in serial
+///     and avoid race-conditions.
 /// </summary>
 public class UserLockingService
 {
     private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, AsyncReaderWriterLock>> _userLocks;
+
     public UserLockingService()
     {
         _userLocks = new ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, AsyncReaderWriterLock>>();
@@ -45,10 +46,7 @@ public class UserLockingService
     public IDisposable WriteLockAllUsers(ulong guildId)
     {
         IDisposable locks = new GroupedDisposables();
-        if (_userLocks.TryGetValue(guildId, out var guildLocks))
-        {
-            locks = GetLocks(guildLocks.Values, userLock => userLock.WriterLock());
-        }
+        if (_userLocks.TryGetValue(guildId, out var guildLocks)) locks = GetLocks(guildLocks.Values, userLock => userLock.WriterLock());
 
         return locks;
     }
@@ -56,10 +54,7 @@ public class UserLockingService
     public IDisposable ReadLockAllUsers(ulong guildId)
     {
         IDisposable locks = new GroupedDisposables();
-        if (_userLocks.TryGetValue(guildId, out var guildLocks))
-        {
-            locks = GetLocks(guildLocks.Values, userLock => userLock.ReaderLock());
-        }
+        if (_userLocks.TryGetValue(guildId, out var guildLocks)) locks = GetLocks(guildLocks.Values, userLock => userLock.ReaderLock());
 
         return locks;
     }
@@ -67,10 +62,7 @@ public class UserLockingService
     public async Task<IDisposable> WriteLockAllUsersAsync(ulong guildId)
     {
         IDisposable locks = new GroupedDisposables();
-        if (_userLocks.TryGetValue(guildId, out var guildLocks))
-        {
-            locks = await GetLocksAsync(guildLocks.Values, async userLock => await userLock.WriterLockAsync());
-        }
+        if (_userLocks.TryGetValue(guildId, out var guildLocks)) locks = await GetLocksAsync(guildLocks.Values, async userLock => await userLock.WriterLockAsync());
 
         return locks;
     }
@@ -78,10 +70,7 @@ public class UserLockingService
     public async Task<IDisposable> ReadLockAllUsersAsync(ulong guildId)
     {
         IDisposable locks = new GroupedDisposables();
-        if (_userLocks.TryGetValue(guildId, out var guildLocks))
-        {
-            locks = await GetLocksAsync(guildLocks.Values, async userLock => await userLock.ReaderLockAsync());
-        }
+        if (_userLocks.TryGetValue(guildId, out var guildLocks)) locks = await GetLocksAsync(guildLocks.Values, async userLock => await userLock.ReaderLockAsync());
 
         return locks;
     }
@@ -95,35 +84,26 @@ public class UserLockingService
     private static IDisposable GetLocks(ICollection<AsyncReaderWriterLock> locks, Func<AsyncReaderWriterLock, IDisposable> locker)
     {
         var groupedLocks = new GroupedDisposables();
-        foreach (var userLock in locks)
-        {
-            groupedLocks.Add(locker(userLock));
-        }
+        foreach (var userLock in locks) groupedLocks.Add(locker(userLock));
         return groupedLocks;
     }
 
     private static async Task<IDisposable> GetLocksAsync(ICollection<AsyncReaderWriterLock> locks, Func<AsyncReaderWriterLock, Task<IDisposable>> locker)
     {
         var groupedLocks = new GroupedDisposables();
-        foreach (var userLock in locks)
-        {
-            groupedLocks.Add(await locker(userLock));
-        }
+        foreach (var userLock in locks) groupedLocks.Add(await locker(userLock));
         return groupedLocks;
     }
 }
 
 public sealed class GroupedDisposables : IDisposable
 {
-    private readonly List<IDisposable> _disposables = new List<IDisposable>();
-
-    public void Add(IDisposable disposable) => _disposables.Add(disposable);
+    private readonly List<IDisposable> _disposables = new();
 
     public void Dispose()
     {
-        foreach (var disposable in _disposables)
-        {
-            disposable.Dispose();
-        }
+        foreach (var disposable in _disposables) disposable.Dispose();
     }
+
+    public void Add(IDisposable disposable) => _disposables.Add(disposable);
 }

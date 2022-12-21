@@ -11,9 +11,9 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class PetsProvider
 {
-    private readonly ILogger<PetsProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
-    private readonly AsyncReaderWriterLock _lock = new AsyncReaderWriterLock();
+    private readonly AsyncReaderWriterLock _lock = new();
+    private readonly ILogger<PetsProvider> _logger;
     private readonly Dictionary<ulong, Dictionary<long, Pet>> _petsByUserId;
 
     public PetsProvider(ILogger<PetsProvider> logger, IDbContextFactory<SteelBotContext> dbContextFactory)
@@ -35,10 +35,7 @@ public class PetsProvider
             {
                 var petData = db.Pets.Include(p => p.Attributes).Include(p => p.Bonuses).AsNoTracking().ToList();
 
-                foreach (var pet in petData)
-                {
-                    AddToCache(pet);
-                }
+                foreach (var pet in petData) AddToCache(pet);
             }
         }
     }
@@ -125,23 +122,16 @@ public class PetsProvider
                 }
 
                 if (writtenCount > 0)
-                {
                     RemoveFromCache(pet);
-                }
                 else
-                {
                     _logger.LogError("Deleting Pet [{PetName}] from User [{UserId}] from the database altered no entities. The internal cache was not changed.", pet.GetName(), pet.OwnerDiscordId);
-                }
             }
         }
     }
 
     public async Task UpdatePets(ICollection<Pet> pets)
     {
-        if (pets?.Count == 0)
-        {
-            return;
-        }
+        if (pets?.Count == 0) return;
 
         using (await _lock.WriterLockAsync())
         {
@@ -164,20 +154,15 @@ public class PetsProvider
 
                     db.Pets.Update(original);
                 }
+
                 writtenCount = await db.SaveChangesAsync();
             }
 
             if (writtenCount > 0)
-            {
                 foreach (var newPet in pets)
-                {
                     UpdateInCache(newPet);
-                }
-            }
             else
-            {
                 _logger.LogError("Updating A collection of Pets did not alter any entities. The internal cache was not changed.");
-            }
         }
     }
 
@@ -200,13 +185,9 @@ public class PetsProvider
             }
 
             if (writtenCount > 0)
-            {
                 UpdateInCache(newPet);
-            }
             else
-            {
                 _logger.LogError("Updating Pet [{PetId}] with Owner [{UserId}] did not alter any entities. The internal cache was not changed.", newPet.RowId, newPet.OwnerDiscordId);
-            }
         }
     }
 
@@ -221,31 +202,18 @@ public class PetsProvider
     private void AddToCache(Pet pet)
     {
         if (!_petsByUserId.TryGetValue(pet.OwnerDiscordId, out var pets))
-        {
-            _petsByUserId[pet.OwnerDiscordId] = new Dictionary<long, Pet>
-            {
-                { pet.RowId, pet },
-            };
-        }
+            _petsByUserId[pet.OwnerDiscordId] = new Dictionary<long, Pet> { { pet.RowId, pet } };
         else
-        {
             pets.Add(pet.RowId, pet);
-        }
     }
 
     private void RemoveFromCache(Pet pet)
     {
-        if (_petsByUserId.TryGetValue(pet.OwnerDiscordId, out var pets))
-        {
-            pets.Remove(pet.RowId);
-        }
+        if (_petsByUserId.TryGetValue(pet.OwnerDiscordId, out var pets)) pets.Remove(pet.RowId);
     }
 
     private void UpdateInCache(Pet newPet)
     {
-        if (_petsByUserId.TryGetValue(newPet.OwnerDiscordId, out var pets))
-        {
-            pets[newPet.RowId] = newPet;
-        }
+        if (_petsByUserId.TryGetValue(newPet.OwnerDiscordId, out var pets)) pets[newPet.RowId] = newPet;
     }
 }

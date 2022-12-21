@@ -14,12 +14,13 @@ namespace SteelBot.Responders;
 
 public class InteractionResponder : IResponder
 {
+    private readonly DiscordChannel _channel;
+    private readonly DiscordClient _client;
     private readonly BaseContext _context;
     private readonly ErrorHandlingService _errorHandlingService;
-    private readonly DiscordClient _client;
     private readonly DiscordUser _user;
-    private readonly DiscordChannel _channel;
     private DiscordInteraction _interaction;
+
     public InteractionResponder(BaseContext context, ErrorHandlingService errorHandlingService)
     {
         _context = context;
@@ -31,16 +32,10 @@ public class InteractionResponder : IResponder
     }
 
     /// <inheritdoc />
-    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
-    {
-        return RespondCore(messageBuilder, ephemeral);
-    }
-    
+    public Task<DiscordMessage> RespondAsync(DiscordMessageBuilder messageBuilder, bool ephemeral = false) => RespondCore(messageBuilder, ephemeral);
+
     /// <inheritdoc />
-    public void Respond(DiscordMessageBuilder messageBuilder, bool ephemeral = false)
-    {
-        RespondCore(messageBuilder, ephemeral).FireAndForget(_errorHandlingService);
-    }
+    public void Respond(DiscordMessageBuilder messageBuilder, bool ephemeral = false) => RespondCore(messageBuilder, ephemeral).FireAndForget(_errorHandlingService);
 
     /// <inheritdoc />
     public async Task RespondPaginatedAsync(List<Page> pages) => await RespondPaginatedCore(pages);
@@ -62,7 +57,7 @@ public class InteractionResponder : IResponder
     private async Task<DiscordMessage> RespondCore(DiscordMessageBuilder messageBuilder, bool ephemeral)
     {
         var interactionResponse = new DiscordInteractionResponseBuilder(messageBuilder).AsEphemeral(ephemeral);
-        
+
         await _interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, interactionResponse);
         var message = await _interaction.GetOriginalResponseAsync();
         return message;

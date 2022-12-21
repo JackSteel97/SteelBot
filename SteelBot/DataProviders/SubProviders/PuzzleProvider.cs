@@ -8,8 +8,8 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class PuzzleProvider
 {
-    private readonly ILogger<PuzzleProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ILogger<PuzzleProvider> _logger;
 
     public PuzzleProvider(ILogger<PuzzleProvider> logger, IDbContextFactory<SteelBotContext> dbContextFactory)
     {
@@ -21,12 +21,10 @@ public class PuzzleProvider
     {
         await using (var db = await _dbContextFactory.CreateDbContextAsync())
         {
-           var progress = await db.PuzzleProgress.AsNoTracking().FirstOrDefaultAsync(x=>x.UserId == userId);
-           if (progress != default)
-           {
-               return progress.CurrentLevel;
-           }
+            var progress = await db.PuzzleProgress.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+            if (progress != default) return progress.CurrentLevel;
         }
+
         return 1;
     }
 
@@ -53,7 +51,7 @@ public class PuzzleProvider
     {
         await using (var db = await _dbContextFactory.CreateDbContextAsync())
         {
-            var guessRecord = new Guess() { UserId = userId, PuzzleLevel = puzzleLevel, GuessContent = guess };
+            var guessRecord = new Guess { UserId = userId, PuzzleLevel = puzzleLevel, GuessContent = guess };
             db.Guesses.Add(guessRecord);
             await db.SaveChangesAsync();
         }

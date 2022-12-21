@@ -10,14 +10,8 @@ namespace SteelBot.Helpers.Extensions;
 public static class ImageContextExtensions
 {
     // Implements a full image mutating pipeline operating on IImageProcessingContext
-    public static IImageProcessingContext ConvertToAvatar(this IImageProcessingContext processingContext, Size size, float cornerRadius)
-    {
-        return processingContext.Resize(new ResizeOptions
-        {
-            Size = size,
-            Mode = ResizeMode.Crop
-        }).ApplyRoundedCorners(cornerRadius);
-    }
+    public static IImageProcessingContext ConvertToAvatar(this IImageProcessingContext processingContext, Size size, float cornerRadius) =>
+        processingContext.Resize(new ResizeOptions { Size = size, Mode = ResizeMode.Crop }).ApplyRoundedCorners(cornerRadius);
 
     // This method can be seen as an inline implementation of an `IImageProcessor`:
     // (The combination of `IImageOperations.Apply()` + this could be replaced with an `IImageProcessor`)
@@ -26,18 +20,14 @@ public static class ImageContextExtensions
         var size = ctx.GetCurrentSize();
         var corners = BuildCorners(size.Width, size.Height, cornerRadius);
 
-        ctx.SetGraphicsOptions(new GraphicsOptions()
+        ctx.SetGraphicsOptions(new GraphicsOptions
         {
-            Antialias = true,
-            AlphaCompositionMode = PixelAlphaCompositionMode.DestOut // enforces that any part of this shape that has color is punched out of the background
+            Antialias = true, AlphaCompositionMode = PixelAlphaCompositionMode.DestOut // enforces that any part of this shape that has color is punched out of the background
         });
 
         // mutating in here as we already have a cloned original
         // use any color (not Transparent), so the corners will be clipped
-        foreach (var c in corners)
-        {
-            ctx = ctx.Fill(Color.Red, c);
-        }
+        foreach (var c in corners) ctx = ctx.Fill(Color.Red, c);
         return ctx;
     }
 
@@ -77,5 +67,6 @@ public static class ImageContextExtensions
         }
     }
 
-    public static void DrawSimpleText(this IImageProcessingContext ctx, DrawingOptions opts, string text, Font font, Color color, float x, float y) => ctx.DrawText(opts, text, font, color, new PointF(x, y));
+    public static void DrawSimpleText(this IImageProcessingContext ctx, DrawingOptions opts, string text, Font font, Color color, float x, float y) =>
+        ctx.DrawText(opts, text, font, color, new PointF(x, y));
 }

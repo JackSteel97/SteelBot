@@ -17,13 +17,17 @@ namespace SteelBot.DiscordModules.Stats;
 [SlashRequireGuild]
 public class StatsSlashCommands : InstrumentedApplicationCommandModule
 {
+    private readonly CancellationService _cancellationService;
+    private readonly StatsCommandsChannel _channel;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<StatsSlashCommands> _logger;
-    private readonly StatsCommandsChannel _channel;
-    private readonly CancellationService _cancellationService;
 
     /// <inheritdoc />
-    public StatsSlashCommands(ErrorHandlingService errorHandlingService, ILogger<StatsSlashCommands> logger, StatsCommandsChannel channel, CancellationService cancellationService, AuditLogService auditLogService)
+    public StatsSlashCommands(ErrorHandlingService errorHandlingService,
+        ILogger<StatsSlashCommands> logger,
+        StatsCommandsChannel channel,
+        CancellationService cancellationService,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
@@ -31,7 +35,7 @@ public class StatsSlashCommands : InstrumentedApplicationCommandModule
         _channel = channel;
         _cancellationService = cancellationService;
     }
-    
+
     [SlashCommand("For", "Displays the given user's statistics for this server")]
     [SlashCooldown(3, 30, SlashCooldownBucketType.User)]
     public async Task TheirStats(InteractionContext context, [Option("Target", "The user to view the stats for")] DiscordUser discordUser)
@@ -110,7 +114,7 @@ public class StatsSlashCommands : InstrumentedApplicationCommandModule
         var message = new StatsCommandAction(StatsCommandActionType.ViewPersonalStats, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, discordMember);
         await _channel.Write(message, _cancellationService.Token);
     }
-    
+
     [ContextMenu(ApplicationCommandType.UserContextMenu, "Get XP Breakdown")]
     [SlashRequirePermissions(Permissions.Administrator)]
     [SlashCooldown(2, 30, SlashCooldownBucketType.User)]
@@ -121,7 +125,7 @@ public class StatsSlashCommands : InstrumentedApplicationCommandModule
         var message = new StatsCommandAction(StatsCommandActionType.ViewBreakdown, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, discordMember);
         await _channel.Write(message, _cancellationService.Token);
     }
-    
+
     [ContextMenu(ApplicationCommandType.UserContextMenu, "Get XP Velocity")]
     [SlashCooldown(5, 60, SlashCooldownBucketType.Channel)]
     [SlashRequirePermissions(Permissions.Administrator)]

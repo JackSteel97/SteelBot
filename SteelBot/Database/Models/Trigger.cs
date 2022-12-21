@@ -8,13 +8,11 @@ public class Trigger
 {
     public long RowId { get; set; }
 
-    [MaxLength(255)]
-    public string TriggerText { get; set; }
+    [MaxLength(255)] public string TriggerText { get; set; }
 
     public bool ExactMatch { get; set; }
 
-    [MaxLength(255)]
-    public string Response { get; set; }
+    [MaxLength(255)] public string Response { get; set; }
 
     public DateTime Created { get; set; }
 
@@ -30,8 +28,8 @@ public class Trigger
     public long TimesActivated { get; set; }
 
     /// <summary>
-    /// Empty constructor.
-    /// Used by EF - do not remove.
+    ///     Empty constructor.
+    ///     Used by EF - do not remove.
     /// </summary>
     public Trigger() { }
 

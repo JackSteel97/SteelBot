@@ -11,9 +11,9 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class GuildsProvider
 {
-    private readonly ILogger<GuildsProvider> _logger;
-    private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
     private readonly AppConfigurationService _appConfigurationService;
+    private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ILogger<GuildsProvider> _logger;
 
     private Dictionary<ulong, Guild> _guildsByDiscordId;
 
@@ -42,13 +42,9 @@ public class GuildsProvider
 
     public string GetGuildPrefix(ulong discordId)
     {
-
         string prefix = _appConfigurationService.Application.DefaultCommandPrefix;
 
-        if (TryGetGuild(discordId, out var guild))
-        {
-            prefix = guild.CommandPrefix;
-        }
+        if (TryGetGuild(discordId, out var guild)) prefix = guild.CommandPrefix;
 
         return prefix;
     }
@@ -121,13 +117,9 @@ public class GuildsProvider
     public async Task UpsertGuild(Guild guild)
     {
         if (BotKnowsGuild(guild.DiscordId))
-        {
             await UpdateGuild(guild);
-        }
         else
-        {
             await InsertGuild(guild);
-        }
     }
 
     public async Task UpdateGuildName(ulong guildId, string newName)
@@ -161,13 +153,9 @@ public class GuildsProvider
             }
 
             if (writtenCount > 0)
-            {
                 _guildsByDiscordId.Remove(guild.DiscordId);
-            }
             else
-            {
                 _logger.LogError("Deleting Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", guildId);
-            }
         }
     }
 
@@ -180,14 +168,11 @@ public class GuildsProvider
             db.Guilds.Add(guild);
             writtenCount = await db.SaveChangesAsync();
         }
+
         if (writtenCount > 0)
-        {
             _guildsByDiscordId.Add(guild.DiscordId, guild);
-        }
         else
-        {
             _logger.LogError($"Writing Guild [{guild.DiscordId}] to the database inserted no entities. The internal cache was not changed.");
-        }
     }
 
     private async Task UpdateGuild(Guild guild)
@@ -203,13 +188,10 @@ public class GuildsProvider
             db.Guilds.Update(original);
             writtenCount = await db.SaveChangesAsync();
         }
+
         if (writtenCount > 0)
-        {
             _guildsByDiscordId[guild.DiscordId] = guild;
-        }
         else
-        {
             _logger.LogError("Updating Guild {GuildId} in the database altered no entities. The internal cache was not changed", guild.DiscordId);
-        }
     }
 }

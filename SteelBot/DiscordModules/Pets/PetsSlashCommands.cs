@@ -17,19 +17,24 @@ namespace SteelBot.DiscordModules.Pets;
 [SlashRequireGuild]
 public class PetsSlashCommands : InstrumentedApplicationCommandModule
 {
-    private readonly ErrorHandlingService _errorHandlingService;
-    private readonly PetCommandsChannel _petCommandsChannel;
-    private readonly CancellationService _cancellationService;
-    private readonly ILogger<PetsSlashCommands> _logger;
-    
-    private readonly RateLimit _viewPetsRateLimit;
-    private readonly RateLimit _manageRateLimit;
-    private readonly RateLimit _treatRateLimit;
-    private readonly RateLimit _searchRateLimit;
     private readonly RateLimit _bonusesRateLimit;
+    private readonly CancellationService _cancellationService;
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly ILogger<PetsSlashCommands> _logger;
+    private readonly RateLimit _manageRateLimit;
+    private readonly PetCommandsChannel _petCommandsChannel;
+    private readonly RateLimit _searchRateLimit;
+    private readonly RateLimit _treatRateLimit;
+
+    private readonly RateLimit _viewPetsRateLimit;
 
     /// <inheritdoc />
-    public PetsSlashCommands(ErrorHandlingService errorHandlingService, PetCommandsChannel petCommandsChannel, CancellationService cancellationService, ILogger<PetsSlashCommands> logger, RateLimitFactory rateLimitFactory, AuditLogService auditLogService) : base(logger, auditLogService)
+    public PetsSlashCommands(ErrorHandlingService errorHandlingService,
+        PetCommandsChannel petCommandsChannel,
+        CancellationService cancellationService,
+        ILogger<PetsSlashCommands> logger,
+        RateLimitFactory rateLimitFactory,
+        AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _petCommandsChannel = petCommandsChannel;
@@ -68,7 +73,7 @@ public class PetsSlashCommands : InstrumentedApplicationCommandModule
         _treatRateLimit.ThrowIfExceeded(context.User.Id);
         _logger.LogInformation("[Slash Command] User [{UserId}] requested to give one of their pets a treat in Guild [{GuildId}]", context.User.Id, context.Guild.Id);
         var message = new PetCommandAction(PetCommandActionType.Treat, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild);
-        await _petCommandsChannel.Write(message, _cancellationService.Token); 
+        await _petCommandsChannel.Write(message, _cancellationService.Token);
     }
 
     [SlashCommand("Search", "Search for a new pet. Allows 10 searches per hour")]

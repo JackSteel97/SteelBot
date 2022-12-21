@@ -4,7 +4,7 @@ namespace SteelBot.Exceptions;
 
 public class FireAndForgetTaskException : Exception
 {
-    public FireAndForgetTaskException() : base()
+    public FireAndForgetTaskException()
     {
     }
 

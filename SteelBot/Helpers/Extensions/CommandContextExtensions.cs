@@ -18,5 +18,6 @@ public static class CommandContextExtensions
         return context.RespondAsync(message, mention);
     }
 
-    public static Task<DiscordMessage> RespondAsync(this CommandContext context, DiscordMessageBuilder messageBuilder, bool mention) => context.Channel.SendMessageAsync(messageBuilder.WithReply(context.Message.Id, mention));
+    public static Task<DiscordMessage> RespondAsync(this CommandContext context, DiscordMessageBuilder messageBuilder, bool mention) =>
+        context.Channel.SendMessageAsync(messageBuilder.WithReply(context.Message.Id, mention));
 }

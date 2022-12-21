@@ -30,7 +30,7 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     public Task Environment(InteractionContext context) =>
         context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
             new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Primary($"I'm currently running in my **{_configDataHelper.GetEnvironment()}** environment!")));
-    
+
     [SlashCommand("Version", "Displays the current version of the bot")]
     [SlashRequireOwner]
     [SlashCooldown(2, 300, SlashCooldownBucketType.Channel)]
@@ -53,7 +53,6 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     {
         bool newSetting = await _configDataHelper.ToggleLevelMentions(context.Guild.Id, context.User.Id);
         await context.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"Level Mentions Toggled **{(!newSetting ? "On" : "Off")}**")));
-
     }
 
     [SlashCommand("SetLevelChannel", "Set the channel to notify users of level-ups")]

@@ -16,14 +16,14 @@ namespace SteelBot.DiscordModules.Utility;
 [Aliases("util", "u")]
 public class UtilityCommands : TypingCommandModule
 {
-    private readonly UtilityService _utilityService;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly UtilityService _utilityService;
 
     /// <inheritdoc />
     public UtilityCommands(UtilityService utilityService, ErrorHandlingService errorHandlingService, ILogger<UtilityCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _utilityService = utilityService;
-        _errorHandlingService = errorHandlingService;   
+        _errorHandlingService = errorHandlingService;
     }
 
     [Command("ChannelsInfo")]
@@ -42,8 +42,8 @@ public class UtilityCommands : TypingCommandModule
     [Cooldown(2, 300, CooldownBucketType.Guild)]
     public Task ServerInfo(CommandContext context)
     {
-       _utilityService.ServerInfo(context.Guild, new MessageResponder(context, _errorHandlingService));
-       return Task.CompletedTask;
+        _utilityService.ServerInfo(context.Guild, new MessageResponder(context, _errorHandlingService));
+        return Task.CompletedTask;
     }
 
     [Command("Status")]
@@ -99,24 +99,16 @@ public class UtilityCommands : TypingCommandModule
     [Description("Get the bot to post the given message in a channel.")]
     [RequireUserPermissions(Permissions.Administrator)]
     [Cooldown(1, 60, CooldownBucketType.Guild)]
-    public Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "")
-    {
-        return _utilityService.Speak(new MessageResponder(context, _errorHandlingService), context.Guild, channel, title, content, footerContent);
-    }
+    public Task Speak(CommandContext context, DiscordChannel channel, string title, string content, string footerContent = "") =>
+        _utilityService.Speak(new MessageResponder(context, _errorHandlingService), context.Guild, channel, title, content, footerContent);
 
     [Command("shutdown")]
     [Description("Gracefully shuts down the bot")]
     [RequireOwner]
-    public Task Shutdown(CommandContext context)
-    {
-        return _utilityService.Shutdown(new MessageResponder(context, _errorHandlingService), context.Member);
-    }
+    public Task Shutdown(CommandContext context) => _utilityService.Shutdown(new MessageResponder(context, _errorHandlingService), context.Member);
 
     [Command("logs")]
     [Description("Send the current log file.")]
     [RequireOwner]
-    public Task GetLogs(CommandContext context)
-    {
-        return _utilityService.GetLogs(new MessageResponder(context, _errorHandlingService));
-    }
+    public Task GetLogs(CommandContext context) => _utilityService.GetLogs(new MessageResponder(context, _errorHandlingService));
 }

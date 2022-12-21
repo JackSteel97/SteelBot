@@ -65,13 +65,12 @@ public class PetBefriendingService
         {
             request.Responder.Respond(PetMessages.GetBefriendFailedMessage(foundPet));
         }
-
     }
 
     private async ValueTask<Pet> HandlePetCorruptionChance(PetCommandAction request, Pet pet)
     {
         if (!PetCorrupted() || !_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var ownerUser)) return pet;
-        
+
         _logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
         pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
         await _cache.Pets.UpdatePet(pet);
@@ -79,15 +78,13 @@ public class PetBefriendingService
 
         return pet;
     }
-    
+
     private async Task<(bool befriendSuccess, DiscordInteraction interaction)> HandleReplacingBefriend(PetCommandAction request, Pet newPet)
     {
         DiscordInteraction interaction = null;
         if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
-           || !_cache.Pets.TryGetUsersPets(request.Member.Id, out var allPets))
-        {
+            || !_cache.Pets.TryGetUsersPets(request.Member.Id, out var allPets))
             return (false, null);
-        }
         var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
         var combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
@@ -98,21 +95,17 @@ public class PetBefriendingService
 
         var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
             (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
-            (pet) => Interactions.Pets.Replace(pet.Pet.RowId, pet.Pet.GetName()));
+            pet => Interactions.Pets.Replace(pet.Pet.RowId, pet.Pet.GetName()));
 
         (string resultId, interaction) = await request.Responder.RespondPaginatedWithComponents(pages);
 
         // Figure out which pet they want to replace.
         if (!string.IsNullOrWhiteSpace(resultId) &&
             PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
-        {
             await ReplacePetWith(request.Member, petId, newPet);
-        }
         else
-        {
             request.Responder.Respond(PetMessages.GetPetRanAwayMessage(newPet));
-        }
-        
+
         // Successfully replaced?
         return (newPet.RowId != default, interaction);
     }
@@ -127,24 +120,24 @@ public class PetBefriendingService
             await AddPet(member.Id, newPet);
         }
     }
-    
+
     private async Task HandleNonReplacingBefriend(DiscordMember member, Pet pet)
     {
         _cache.Pets.TryGetUsersPetsCount(member.Id, out int numberOfOwnedPets);
         pet.Priority = numberOfOwnedPets;
         await AddPet(member.Id, pet);
     }
-    
+
     private async Task AddPet(ulong userId, Pet pet)
     {
         pet.OwnerDiscordId = userId;
         pet.RowId = await _cache.Pets.InsertPet(pet);
     }
-    
+
     private bool BefriendSuccess(DiscordMember member, Pet target)
     {
         if (!_cache.Users.TryGetUser(member.Guild.Id, member.Id, out var dbUser)) return false;
-        
+
         double probability = GetBefriendSuccessProbability(dbUser, target);
         _logger.LogInformation("Befriend success probability for User {UserId} and Pet Rarity {Rarity} is {Probability}", member.Id, target.Rarity, probability);
         return MathsHelper.TrueWithProbability(probability);
@@ -176,7 +169,6 @@ public class PetBefriendingService
         double finalRate = currentRate * bonusMultiplier;
         return finalRate;
     }
-    
-    private static bool PetCorrupted() => MathsHelper.TrueWithProbability(0.001);
 
+    private static bool PetCorrupted() => MathsHelper.TrueWithProbability(0.001);
 }

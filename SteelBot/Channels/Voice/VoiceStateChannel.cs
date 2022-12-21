@@ -9,11 +9,11 @@ namespace SteelBot.Channels.Voice;
 
 public class VoiceStateChannel : BaseChannel<VoiceStateChange>
 {
-    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
-    private readonly UserTrackingService _userTrackingService;
+    private readonly AuditLogService _auditLogService;
     private readonly DiscordClient _discordClient;
     private readonly UserLockingService _userLockingService;
-    private readonly AuditLogService _auditLogService;
+    private readonly UserTrackingService _userTrackingService;
+    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
 
     public VoiceStateChannel(ILogger<VoiceStateChannel> logger,
         ErrorHandlingService errorHandlingService,
@@ -39,9 +39,7 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
             {
                 if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild,
                         _discordClient))
-                {
                     await _voiceStateChangeHandler.HandleVoiceStateChange(message);
-                }
             }
         }
         catch (Exception e)

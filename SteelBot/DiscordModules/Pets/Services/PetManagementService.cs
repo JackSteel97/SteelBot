@@ -17,8 +17,8 @@ namespace SteelBot.DiscordModules.Pets.Services;
 public class PetManagementService
 {
     private readonly DataCache _cache;
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
+    private readonly ErrorHandlingService _errorHandlingService;
 
     public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, CancellationService cancellationService)
     {
@@ -35,24 +35,20 @@ public class PetManagementService
             var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
             var combinedPets = PetShared.Recombine(availablePets, disabledPets);
 
-            var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, combinedPets.ConvertAll(x=>x.Pet), disabledPets.Count > 0);
+            var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, combinedPets.ConvertAll(x => x.Pet), disabledPets.Count > 0);
 
             int maxCapacity = PetShared.GetPetCapacity(user, allPets);
             int baseCapacity = PetShared.GetBasePetCapacity(user);
 
             var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                 (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
-                (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
+                pet => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
 
             (string resultId, _) = await request.Responder.RespondPaginatedWithComponents(pages);
             if (!string.IsNullOrWhiteSpace(resultId))
-            {
                 // Figure out which pet they want to manage.
                 if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
-                {
                     await ChannelsController.SendMessage(request with { Action = PetCommandActionType.ManageOne, PetId = petId }, _cancellationService.Token);
-                }
-            }
         }
         else
         {
@@ -65,34 +61,24 @@ public class PetManagementService
         if (_cache.Pets.TryGetUsersPets(petBeingMoved.OwnerDiscordId, out var allPets))
         {
             if (newPriority < 0 || newPriority > allPets.Count - 1)
-            {
                 // Invalid target position.
                 return;
-            }
 
             int oldPriority = petBeingMoved.Priority;
 
             foreach (var ownedPet in allPets)
-            {
                 if (ownedPet.RowId != petBeingMoved.RowId)
                 {
                     // "Remove" behaviour
-                    if (ownedPet.Priority > oldPriority)
-                    {
-                        ownedPet.Priority--;
-                    }
+                    if (ownedPet.Priority > oldPriority) ownedPet.Priority--;
 
                     // "Insert" behaviour
-                    if (ownedPet.Priority >= newPriority)
-                    {
-                        ownedPet.Priority++;
-                    }
+                    if (ownedPet.Priority >= newPriority) ownedPet.Priority++;
                 }
                 else
                 {
                     petBeingMoved.Priority = newPriority;
                 }
-            }
 
             await _cache.Pets.UpdatePets(allPets);
         }
@@ -108,16 +94,12 @@ public class PetManagementService
             var initialResponseBuilder = new DiscordMessageBuilder()
                 .WithEmbed(petDisplay);
 
-            initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder, new DiscordComponent[]
+            initialResponseBuilder = InteractivityHelper.AddComponents(initialResponseBuilder,
+                new DiscordComponent[]
                 {
-                    Interactions.Pets.MakePrimary.Disable(pet.IsPrimary),
-                    Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary),
-                    Interactions.Pets.MoveToPosition.Disable(ownedPetCount <= 1),
-                    Interactions.Pets.DecreasePriority.Disable(pet.Priority == (ownedPetCount-1)),
-                    Interactions.Pets.MoveToBottom.Disable(pet.Priority == (ownedPetCount-1)),
-                    Interactions.Pets.Rename,
-                    Interactions.Pets.Abandon,
-                    Interactions.Confirmation.Cancel,
+                    Interactions.Pets.MakePrimary.Disable(pet.IsPrimary), Interactions.Pets.IncreasePriority.Disable(pet.IsPrimary), Interactions.Pets.MoveToPosition.Disable(ownedPetCount <= 1),
+                    Interactions.Pets.DecreasePriority.Disable(pet.Priority == ownedPetCount - 1), Interactions.Pets.MoveToBottom.Disable(pet.Priority == ownedPetCount - 1),
+                    Interactions.Pets.Rename, Interactions.Pets.Abandon, Interactions.Confirmation.Cancel
                 });
 
             var message = await request.Responder.RespondAsync(initialResponseBuilder);
@@ -173,13 +155,11 @@ public class PetManagementService
             var petsToUpdate = new List<Pet>(oldPriority + 1);
 
             foreach (var ownedPet in allPets)
-            {
                 if (ownedPet.Priority < oldPriority)
                 {
                     ++ownedPet.Priority;
                     petsToUpdate.Add(ownedPet);
                 }
-            }
 
             pet.Priority = 0;
             petsToUpdate.Add(pet);
@@ -198,13 +178,12 @@ public class PetManagementService
             var petsToUpdate = new List<Pet>(allPets.Count - oldPriority);
 
             foreach (var ownedPet in allPets)
-            {
                 if (ownedPet.Priority > oldPriority)
                 {
                     --ownedPet.Priority;
                     petsToUpdate.Add(ownedPet);
                 }
-            }
+
             pet.Priority = allPets.Count - 1;
             petsToUpdate.Add(pet);
 
@@ -221,14 +200,13 @@ public class PetManagementService
         {
             var petsToUpdate = new List<Pet>(2);
             foreach (var ownedPet in allPets)
-            {
                 if (ownedPet.Priority == oldPriority - 1)
                 {
                     ++ownedPet.Priority;
                     petsToUpdate.Add(ownedPet);
                     break;
                 }
-            }
+
             --pet.Priority;
             petsToUpdate.Add(pet);
             await _cache.Pets.UpdatePets(petsToUpdate);
@@ -245,14 +223,13 @@ public class PetManagementService
         {
             var petsToUpdate = new List<Pet>(2);
             foreach (var ownedPet in allPets)
-            {
                 if (ownedPet.Priority == oldPriority + 1)
                 {
                     --ownedPet.Priority;
                     petsToUpdate.Add(ownedPet);
                     break;
                 }
-            }
+
             ++pet.Priority;
             petsToUpdate.Add(pet);
             await _cache.Pets.UpdatePets(petsToUpdate);
@@ -266,18 +243,17 @@ public class PetManagementService
         if (await InteractivityHelper.GetConfirmation(request.Responder, request.Member, "Pet Release"))
         {
             await _cache.Pets.RemovePet(request.Member.Id, pet.RowId);
-            
+
             if (_cache.Pets.TryGetUsersPets(request.Member.Id, out var allPets))
             {
                 var petsToUpdate = new List<Pet>(allPets.Count - pet.Priority);
                 foreach (var ownedPet in allPets)
-                {
                     if (ownedPet.Priority > pet.Priority)
                     {
                         --ownedPet.Priority;
                         petsToUpdate.Add(ownedPet);
                     }
-                }
+
                 await _cache.Pets.UpdatePets(petsToUpdate);
             }
 

@@ -29,7 +29,7 @@ public class FeedbackCommands : TypingCommandModule
         if (remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
         {
             await _cache.Guilds.IncrementGoodVote(context.Guild.Id);
-            await context.RespondAsync(embed: EmbedGenerator.Info("Thank you!"));
+            await context.RespondAsync(EmbedGenerator.Info("Thank you!"));
         }
     }
 
@@ -41,7 +41,7 @@ public class FeedbackCommands : TypingCommandModule
         if (remainder != null && remainder.Equals("bot", StringComparison.OrdinalIgnoreCase))
         {
             await _cache.Guilds.IncrementBadVote(context.Guild.Id);
-            await context.RespondAsync(embed: EmbedGenerator.Info("I'm sorry!"));
+            await context.RespondAsync(EmbedGenerator.Info("I'm sorry!"));
         }
     }
 }

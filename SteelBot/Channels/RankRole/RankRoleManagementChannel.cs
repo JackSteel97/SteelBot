@@ -4,6 +4,7 @@ using SteelBot.Services;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.RankRole;
+
 public class RankRoleManagementChannel : BaseChannel<RankRoleManagementAction>
 {
     private readonly RankRoleCreationService _rankRoleCreationService;
@@ -11,10 +12,10 @@ public class RankRoleManagementChannel : BaseChannel<RankRoleManagementAction>
     private readonly RankRoleViewingService _rankRoleViewingService;
 
     public RankRoleManagementChannel(ILogger<RankRoleManagementChannel> logger,
-            ErrorHandlingService errorHandlingService,
-            RankRoleCreationService rankRoleCreationService,
-            RankRoleDeletionService rankRoleDeletionService,
-            RankRoleViewingService rankRoleViewingService) : base(logger, errorHandlingService, "Rank Role")
+        ErrorHandlingService errorHandlingService,
+        RankRoleCreationService rankRoleCreationService,
+        RankRoleDeletionService rankRoleDeletionService,
+        RankRoleViewingService rankRoleViewingService) : base(logger, errorHandlingService, "Rank Role")
     {
         _rankRoleCreationService = rankRoleCreationService;
         _rankRoleDeletionService = rankRoleDeletionService;

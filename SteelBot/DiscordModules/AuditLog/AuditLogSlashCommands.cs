@@ -15,11 +15,12 @@ namespace SteelBot.DiscordModules.AuditLog;
 public class AuditLogSlashCommands : InstrumentedApplicationCommandModule
 {
     private readonly AuditLogProvider _auditLogProvider;
-    private readonly ILogger<AuditLogSlashCommands> _logger;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly ILogger<AuditLogSlashCommands> _logger;
 
     /// <inheritdoc />
-    public AuditLogSlashCommands(AuditLogService auditLogService, AuditLogProvider auditLogProvider, ILogger<AuditLogSlashCommands> logger, ErrorHandlingService errorHandlingService) : base(logger, auditLogService)
+    public AuditLogSlashCommands(AuditLogService auditLogService, AuditLogProvider auditLogProvider, ILogger<AuditLogSlashCommands> logger, ErrorHandlingService errorHandlingService) : base(logger,
+        auditLogService)
     {
         _auditLogProvider = auditLogProvider;
         _logger = logger;
@@ -33,7 +34,7 @@ public class AuditLogSlashCommands : InstrumentedApplicationCommandModule
         var responder = new InteractionResponder(context, _errorHandlingService);
         var audits = await _auditLogProvider.GetLatest(context.Guild.Id);
         var pages = AuditLogViewingService.BuildViewResponsePages(context.Guild, audits);
-        
+
         responder.RespondPaginated(pages);
     }
 }

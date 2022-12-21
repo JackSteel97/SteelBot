@@ -46,7 +46,7 @@ public class PetBonusViewingService
 
     private static List<Page> BuildPages(User user, DiscordMember member, List<PetWithActivation> allPets)
     {
-        int maxCapacity = PetShared.GetPetCapacity(user, allPets.ConvertAll(p=>p.Pet));
+        int maxCapacity = PetShared.GetPetCapacity(user, allPets.ConvertAll(p => p.Pet));
         int baseCapacity = PetShared.GetBasePetCapacity(user);
         var pages = PetDisplayHelpers.GetPetBonusesSummary(allPets, member.Username, member.AvatarUrl, baseCapacity, maxCapacity);
 

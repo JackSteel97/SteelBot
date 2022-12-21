@@ -20,20 +20,20 @@ public class Guild
 
     public List<Trigger> Triggers { get; set; }
 
-    [MaxLength(20)]
-    public string CommandPrefix { get; set; }
+    [MaxLength(20)] public string CommandPrefix { get; set; }
 
     public ulong? LevelAnnouncementChannelId { get; set; }
 
     public int GoodBotVotes { get; set; }
     public int BadBotVotes { get; set; }
-    [MaxLength(255)]
-    public string Name { get; set; }
 
-    public bool DadJokesEnabled { get; set; } 
+    [MaxLength(255)] public string Name { get; set; }
+
+    public bool DadJokesEnabled { get; set; }
+
     /// <summary>
-    /// Empty constructor.
-    /// Do not remove - used by EF.
+    ///     Empty constructor.
+    ///     Do not remove - used by EF.
     /// </summary>
     public Guild() { }
 
@@ -50,8 +50,6 @@ public class Guild
         return guildCopy;
     }
 
-    public DiscordChannel GetLevelAnnouncementChannel(DiscordGuild discordGuild)
-    {
-        return LevelAnnouncementChannelId.HasValue ? discordGuild.GetChannel(LevelAnnouncementChannelId.Value) : (discordGuild?.SystemChannel);
-    }
+    public DiscordChannel GetLevelAnnouncementChannel(DiscordGuild discordGuild) =>
+        LevelAnnouncementChannelId.HasValue ? discordGuild.GetChannel(LevelAnnouncementChannelId.Value) : discordGuild?.SystemChannel;
 }

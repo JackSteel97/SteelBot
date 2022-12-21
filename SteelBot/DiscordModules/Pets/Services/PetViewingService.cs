@@ -38,7 +38,7 @@ public class PetViewingService
 
         var availablePets = PetShared.GetAvailablePets(user, pets, out var disabledPets);
         var combinedPets = PetShared.Recombine(availablePets, disabledPets);
-        
+
         var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, pets, disabledPets.Count > 0, request.Target.DisplayName)
             .WithThumbnail(request.Target.AvatarUrl);
 
@@ -55,10 +55,10 @@ public class PetViewingService
 
     private static List<Page> BuildPages(DiscordEmbedBuilder baseEmbed, User user, List<PetWithActivation> allPets)
     {
-        int maxCapacity = PetShared.GetPetCapacity(user, allPets.ConvertAll(p=>p.Pet));
+        int maxCapacity = PetShared.GetPetCapacity(user, allPets.ConvertAll(p => p.Pet));
         int baseCapacity = PetShared.GetBasePetCapacity(user);
-        var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, allPets, 
-            itemsPerPage: 10,
+        var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, allPets,
+            10,
             (builder, pet, _) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity));
 
         return pages;

@@ -23,10 +23,7 @@ public static class LevellingMaths
     public static double PetXpForLevel(int level, Rarity rarity)
     {
         // Pets start at level 1.
-        if (level == 1)
-        {
-            return 0;
-        }
+        if (level == 1) return 0;
 
         double multiplier = 1 + ((rarity - Rarity.Rare) / 10D);
 
@@ -42,10 +39,7 @@ public static class LevellingMaths
         {
             ulong requiredXp = XpForLevel(newLevel + 1);
             hasEnoughXp = totalXp >= requiredXp;
-            if (hasEnoughXp)
-            {
-                ++newLevel;
-            }
+            if (hasEnoughXp) ++newLevel;
         } while (hasEnoughXp);
 
         return newLevel > currentLevel;
@@ -60,10 +54,7 @@ public static class LevellingMaths
         {
             double requiredXp = PetXpForLevel(newLevel + 1, rarity);
             hasEnoughXp = totalXp >= requiredXp;
-            if (hasEnoughXp)
-            {
-                ++newLevel;
-            }
+            if (hasEnoughXp) ++newLevel;
         } while (hasEnoughXp);
 
         return newLevel > currentLevel;
@@ -90,22 +81,13 @@ public static class LevellingMaths
     {
         double multiplier = 1;
         foreach (var pet in activePets)
-        {
-            foreach (var bonus in pet.Bonuses)
-            {
-                if (bonus.BonusType.HasFlag(requiredBonus))
-                {
-                    multiplier += bonus.Value;
-                }
-            }
-        }
+        foreach (var bonus in pet.Bonuses)
+            if (bonus.BonusType.HasFlag(requiredBonus))
+                multiplier += bonus.Value;
 
         double multipliedXp = Math.Round(baseXp * multiplier);
         ulong earnedXp = Convert.ToUInt64(Math.Max(0, multipliedXp)); // Prevent negative from massive negative bonuses.
-        if (earnedXp > 0)
-        {
-            IncrementPetXp(earnedXp, activePets);
-        }
+        if (earnedXp > 0) IncrementPetXp(earnedXp, activePets);
         return earnedXp;
     }
 

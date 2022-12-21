@@ -8,11 +8,14 @@ namespace SteelBot.DiscordModules.Roles.Helpers;
 
 public static class SelfRoleMessages
 {
-    public static DiscordMessageBuilder NoSelfRolesAvailable() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning($"There are no self roles available.{Environment.NewLine}Ask your administrator to create some!"));
+    public static DiscordMessageBuilder NoSelfRolesAvailable() =>
+        new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning($"There are no self roles available.{Environment.NewLine}Ask your administrator to create some!"));
 
     public static DiscordMessageBuilder NoSelfRolesLeftToJoin() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no roles that you don't already have."));
 
-    public static DiscordMessageBuilder RoleDoesNotExist(string roleName) => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error($"{Formatter.Bold(roleName)} is not a valid role on this server.{Environment.NewLine}Make sure your administrator has added the role."));
+    public static DiscordMessageBuilder RoleDoesNotExist(string roleName) =>
+        new DiscordMessageBuilder().WithEmbed(
+            EmbedGenerator.Error($"{Formatter.Bold(roleName)} is not a valid role on this server.{Environment.NewLine}Make sure your administrator has added the role."));
 
     public static DiscordMessageBuilder RoleNameTooLong() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("The role name must be 255 characters or less."));
 
@@ -24,7 +27,8 @@ public static class SelfRoleMessages
 
     public static DiscordMessageBuilder RoleNotCreatedYet() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("You must create the role in the server first."));
 
-    public static DiscordMessageBuilder RoleAlreadyExists(string roleName) => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error($"The self role {Formatter.Bold(roleName)} already exists.{Environment.NewLine}Delete it first if you want to change it."));
+    public static DiscordMessageBuilder RoleAlreadyExists(string roleName) =>
+        new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error($"The self role {Formatter.Bold(roleName)} already exists.{Environment.NewLine}Delete it first if you want to change it."));
 
     public static DiscordMessageBuilder RoleCreatedSuccess(string role) => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Success($"Self Role {role} created!"));
 

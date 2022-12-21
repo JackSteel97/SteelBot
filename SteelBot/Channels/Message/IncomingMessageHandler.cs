@@ -12,13 +12,13 @@ namespace SteelBot.Channels.Message;
 
 public class IncomingMessageHandler
 {
-    private readonly UsersProvider _usersProvider;
-    private readonly ILogger<IncomingMessageHandler> _logger;
-    private readonly LevelMessageSender _levelMessageSender;
-    private readonly PetsDataHelper _petsDataHelper;
-    private readonly TriggerDataHelper _triggerDataHelper;
-    private readonly RankRolesProvider _rankRolesProvider;
     private readonly AuditLogService _auditLogService;
+    private readonly LevelMessageSender _levelMessageSender;
+    private readonly ILogger<IncomingMessageHandler> _logger;
+    private readonly PetsDataHelper _petsDataHelper;
+    private readonly RankRolesProvider _rankRolesProvider;
+    private readonly TriggerDataHelper _triggerDataHelper;
+    private readonly UsersProvider _usersProvider;
 
     public IncomingMessageHandler(UsersProvider usersProvider,
         ILogger<IncomingMessageHandler> logger,
@@ -42,10 +42,7 @@ public class IncomingMessageHandler
         await _auditLogService.MessageSent(messageArgs);
         bool levelledUp = await UpdateMessageCounters(messageArgs);
 
-        if (levelledUp)
-        {
-            await RankRoleShared.UserLevelledUp(messageArgs.Guild.Id, messageArgs.User.Id, messageArgs.Guild, _rankRolesProvider, _usersProvider, _levelMessageSender);
-        }
+        if (levelledUp) await RankRoleShared.UserLevelledUp(messageArgs.Guild.Id, messageArgs.User.Id, messageArgs.Guild, _rankRolesProvider, _usersProvider, _levelMessageSender);
 
         await _triggerDataHelper.HandleNewMessage(messageArgs.Guild.Id, messageArgs.Message.Channel, messageArgs.Message.Content);
     }
@@ -68,24 +65,19 @@ public class IncomingMessageHandler
 
                 await _petsDataHelper.PetXpUpdated(availablePets, messageArgs.Guild, copyOfUser.CurrentLevel);
             }
-            
+
             if (user.ConsecutiveDaysActive != copyOfUser.ConsecutiveDaysActive)
             {
                 // Streak changed.
                 ulong xpEarned = copyOfUser.UpdateStreakXp();
-                if (xpEarned > 0)
-                {
-                    _levelMessageSender.SendStreakMessage(messageArgs.Guild, messageArgs.User, copyOfUser.ConsecutiveDaysActive, xpEarned);
-                }
+                if (xpEarned > 0) _levelMessageSender.SendStreakMessage(messageArgs.Guild, messageArgs.User, copyOfUser.ConsecutiveDaysActive, xpEarned);
             }
-            
+
             await _usersProvider.UpdateUser(messageArgs.Guild.Id, copyOfUser);
 
-            if (levelIncreased)
-            {
-                _levelMessageSender.SendLevelUpMessage(messageArgs.Guild, messageArgs.User);
-            }
+            if (levelIncreased) _levelMessageSender.SendLevelUpMessage(messageArgs.Guild, messageArgs.User);
         }
+
         return levelIncreased;
     }
 }

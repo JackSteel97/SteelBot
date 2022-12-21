@@ -8,11 +8,11 @@ namespace SteelBot.Channels.Pets;
 
 public class PetCommandsChannel : BaseChannel<PetCommandAction>
 {
-    private readonly PetSearchingService _searchingService;
+    private readonly PetBonusViewingService _bonusViewingService;
     private readonly PetManagementService _managementService;
+    private readonly PetSearchingService _searchingService;
     private readonly PetTreatingService _treatingService;
     private readonly PetViewingService _viewingService;
-    private readonly PetBonusViewingService _bonusViewingService;
 
     /// <inheritdoc />
     public PetCommandsChannel(PetSearchingService searchingService,
@@ -58,7 +58,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
                     break;
             }
         }).FireAndForget(ErrorHandlingService);
-        
+
         return ValueTask.CompletedTask;
     }
 }

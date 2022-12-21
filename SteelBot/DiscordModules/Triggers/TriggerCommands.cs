@@ -48,9 +48,9 @@ public class TriggerCommands : TypingCommandModule
                 var pages = PaginationHelper.GenerateEmbedPages(embedBuilder, triggersAvailable, 5, (builder, trigger, _) =>
                 {
                     return builder.AppendLine(Formatter.Bold(trigger.TriggerText))
-                       .Append("Response: ").AppendLine(trigger.Response)
-                       .Append("By: <@").Append(trigger.Creator.DiscordId).AppendLine(">")
-                       .Append("Used: ").AppendLine("time".ToQuantity(trigger.TimesActivated));
+                        .Append("Response: ").AppendLine(trigger.Response)
+                        .Append("By: <@").Append(trigger.Creator.DiscordId).AppendLine(">")
+                        .Append("Used: ").AppendLine("time".ToQuantity(trigger.TimesActivated));
                 });
 
                 var interactivity = context.Client.GetInteractivity();
@@ -59,7 +59,7 @@ public class TriggerCommands : TypingCommandModule
             }
             else
             {
-                await context.RespondAsync(embed: EmbedGenerator.Warning("There are no triggers here."));
+                await context.RespondAsync(EmbedGenerator.Warning("There are no triggers here."));
             }
         }
     }
@@ -71,16 +71,13 @@ public class TriggerCommands : TypingCommandModule
     [Cooldown(5, 60, CooldownBucketType.Guild)]
     public async Task SetGlobalTrigger(CommandContext context, string triggerText, string response, bool mustMatchEntireMessage = false)
     {
-        if (!await ValidateTriggerCreation(context, triggerText, response))
-        {
-            return;
-        }
+        if (!await ValidateTriggerCreation(context, triggerText, response)) return;
 
         var trigger = new Trigger(triggerText, response, mustMatchEntireMessage);
 
         await _dataHelpers.Triggers.CreateTrigger(context.Guild.Id, context.User.Id, trigger);
 
-        await context.RespondAsync(embed: EmbedGenerator.Success($"**{trigger.TriggerText}** Set as a Global Trigger", "Trigger Created!"));
+        await context.RespondAsync(EmbedGenerator.Success($"**{trigger.TriggerText}** Set as a Global Trigger", "Trigger Created!"));
     }
 
     [Command("Set")]
@@ -90,16 +87,13 @@ public class TriggerCommands : TypingCommandModule
     [Cooldown(5, 60, CooldownBucketType.Channel)]
     public async Task SetTrigger(CommandContext context, string triggerText, string response, bool mustMatchEntireMessage = false)
     {
-        if (!await ValidateTriggerCreation(context, triggerText, response))
-        {
-            return;
-        }
+        if (!await ValidateTriggerCreation(context, triggerText, response)) return;
 
         var trigger = new Trigger(triggerText, response, mustMatchEntireMessage, context.Channel.Id);
 
         await _dataHelpers.Triggers.CreateTrigger(context.Guild.Id, context.User.Id, trigger);
 
-        await context.RespondAsync(embed: EmbedGenerator.Success($"**{trigger.TriggerText}** Set as a Trigger", "Trigger Created!"));
+        await context.RespondAsync(EmbedGenerator.Success($"**{trigger.TriggerText}** Set as a Trigger", "Trigger Created!"));
     }
 
     [Command("Remove")]
@@ -111,13 +105,13 @@ public class TriggerCommands : TypingCommandModule
         bool couldDelete = await _dataHelpers.Triggers.DeleteTrigger(context.Guild.Id, triggerText, context.Member, context.Channel);
         if (couldDelete)
         {
-            await context.RespondAsync(embed: EmbedGenerator.Success($"Trigger **{triggerText}** deleted!"));
+            await context.RespondAsync(EmbedGenerator.Success($"Trigger **{triggerText}** deleted!"));
         }
         else
         {
             var embedBuilder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.WarningColour).WithTitle("Could Not Delete Trigger.")
                 .WithDescription("Check the trigger exists in this channel and you have permission to delete it.");
-            await context.RespondAsync(embed: embedBuilder.Build());
+            await context.RespondAsync(embedBuilder.Build());
         }
     }
 
@@ -125,29 +119,34 @@ public class TriggerCommands : TypingCommandModule
     {
         if (triggerText.Length > 255)
         {
-            await context.RespondAsync(embed: EmbedGenerator.Error("The trigger text must be 255 characters or less."));
+            await context.RespondAsync(EmbedGenerator.Error("The trigger text must be 255 characters or less."));
             return false;
         }
+
         if (response.Length > 255)
         {
-            await context.RespondAsync(embed: EmbedGenerator.Error("The response text must be 255 characters or less."));
+            await context.RespondAsync(EmbedGenerator.Error("The response text must be 255 characters or less."));
             return false;
         }
+
         if (string.IsNullOrWhiteSpace(triggerText))
         {
-            await context.RespondAsync(embed: EmbedGenerator.Error("No valid trigger text provided."));
+            await context.RespondAsync(EmbedGenerator.Error("No valid trigger text provided."));
             return false;
         }
+
         if (string.IsNullOrWhiteSpace(response))
         {
-            await context.RespondAsync(embed: EmbedGenerator.Error("No valid response text provided."));
+            await context.RespondAsync(EmbedGenerator.Error("No valid response text provided."));
             return false;
         }
+
         if (_dataHelpers.Triggers.TriggerExists(context.Guild.Id, triggerText))
         {
-            await context.RespondAsync(embed: EmbedGenerator.Error("This trigger already exists, please delete the existing trigger first."));
+            await context.RespondAsync(EmbedGenerator.Error("This trigger already exists, please delete the existing trigger first."));
             return false;
         }
+
         return true;
     }
 }

@@ -4,11 +4,11 @@ namespace SteelBot.Helpers;
 
 public static class EmbedGenerator
 {
-    public static readonly DiscordColor ErrorColour = new DiscordColor(0xD0021B);
-    public static readonly DiscordColor WarningColour = new DiscordColor(0xF5A623);
-    public static readonly DiscordColor SuccessColour = new DiscordColor(0x36D321);
-    public static readonly DiscordColor PrimaryColour = new DiscordColor(0x242424);
-    public static readonly DiscordColor InfoColour = new DiscordColor(0x4A90E2);
+    public static readonly DiscordColor ErrorColour = new(0xD0021B);
+    public static readonly DiscordColor WarningColour = new(0xF5A623);
+    public static readonly DiscordColor SuccessColour = new(0x36D321);
+    public static readonly DiscordColor PrimaryColour = new(0x242424);
+    public static readonly DiscordColor InfoColour = new(0x4A90E2);
 
     public static DiscordEmbed Error(string errorMessage, string title = "Error")
     {
@@ -26,10 +26,7 @@ public static class EmbedGenerator
             .WithTitle("Warning")
             .WithDescription(warningMessage);
 
-        if (!string.IsNullOrWhiteSpace(footer))
-        {
-            builder = builder.WithFooter(footer);
-        }
+        if (!string.IsNullOrWhiteSpace(footer)) builder = builder.WithFooter(footer);
         return builder.Build();
     }
 
@@ -47,10 +44,7 @@ public static class EmbedGenerator
         var builder = new DiscordEmbedBuilder()
             .WithColor(PrimaryColour)
             .WithDescription(message);
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            builder = builder.WithTitle(title);
-        }
+        if (!string.IsNullOrWhiteSpace(title)) builder = builder.WithTitle(title);
         return builder.Build();
     }
 
@@ -59,14 +53,8 @@ public static class EmbedGenerator
         var builder = new DiscordEmbedBuilder()
             .WithColor(InfoColour)
             .WithDescription(message);
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            builder = builder.WithTitle(title);
-        }
-        if (!string.IsNullOrWhiteSpace(footerContent))
-        {
-            builder = builder.WithFooter(footerContent);
-        }
+        if (!string.IsNullOrWhiteSpace(title)) builder = builder.WithTitle(title);
+        if (!string.IsNullOrWhiteSpace(footerContent)) builder = builder.WithFooter(footerContent);
         return builder.Build();
     }
 }

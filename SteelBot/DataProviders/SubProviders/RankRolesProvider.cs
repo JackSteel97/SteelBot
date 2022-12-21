@@ -11,8 +11,8 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class RankRolesProvider
 {
-    private readonly ILogger<RankRolesProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ILogger<RankRolesProvider> _logger;
     private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, RankRole>> _rankRolesByGuildAndRole;
 
     public RankRolesProvider(ILogger<RankRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
@@ -32,10 +32,8 @@ public class RankRolesProvider
         {
             allRoles = db.RankRoles.AsNoTracking().Include(rr => rr.Guild).ToArray();
         }
-        foreach (var role in allRoles)
-        {
-            AddRoleToInternalCache(role.Guild.DiscordId, role);
-        }
+
+        foreach (var role in allRoles) AddRoleToInternalCache(role.Guild.DiscordId, role);
     }
 
     private void AddRoleToInternalCache(ulong guildId, RankRole role)
@@ -46,23 +44,14 @@ public class RankRolesProvider
 
     private void RemoveRoleFromInternalCache(ulong guildId, ulong roleId)
     {
-        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles))
-        {
-            guildRoles.TryRemove(roleId, out _);
-        }
+        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var guildRoles)) guildRoles.TryRemove(roleId, out _);
     }
 
-    public bool BotKnowsRole(ulong guildId, ulong roleId)
-    {
-        return _rankRolesByGuildAndRole.TryGetValue(guildId, out var roles) ? roles.ContainsKey(roleId) : false;
-    }
+    public bool BotKnowsRole(ulong guildId, ulong roleId) => _rankRolesByGuildAndRole.TryGetValue(guildId, out var roles) ? roles.ContainsKey(roleId) : false;
 
     public bool TryGetRole(ulong guildId, ulong roleId, out RankRole role)
     {
-        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var roles))
-        {
-            return roles.TryGetValue(roleId, out role);
-        }
+        if (_rankRolesByGuildAndRole.TryGetValue(guildId, out var roles)) return roles.TryGetValue(roleId, out role);
         role = null;
         return false;
     }
@@ -74,24 +63,19 @@ public class RankRolesProvider
             roles = guildRoles.Values.ToList();
             return true;
         }
+
         roles = new List<RankRole>();
         return false;
     }
 
     public async Task AddRole(ulong guildId, RankRole role)
     {
-        if (!BotKnowsRole(guildId, role.RoleDiscordId))
-        {
-            await InsertRankRole(guildId, role);
-        }
+        if (!BotKnowsRole(guildId, role.RoleDiscordId)) await InsertRankRole(guildId, role);
     }
 
     public async Task RemoveRole(ulong guildId, ulong roleId)
     {
-        if (TryGetRole(guildId, roleId, out var role))
-        {
-            await DeleteRankRole(guildId, role);
-        }
+        if (TryGetRole(guildId, roleId, out var role)) await DeleteRankRole(guildId, role);
     }
 
     private async Task InsertRankRole(ulong guildId, RankRole role)
@@ -105,13 +89,9 @@ public class RankRolesProvider
         }
 
         if (writtenCount > 0)
-        {
             AddRoleToInternalCache(guildId, role);
-        }
         else
-        {
             _logger.LogError("Writing Rank Role {RoleName} for Guild {GuildId} to the database inserted no entities - The internal cache was not changed", role.RoleName, guildId);
-        }
     }
 
     private async Task DeleteRankRole(ulong guildId, RankRole role)
@@ -126,12 +106,8 @@ public class RankRolesProvider
         }
 
         if (writtenCount > 0)
-        {
             RemoveRoleFromInternalCache(guildId, role.RoleDiscordId);
-        }
         else
-        {
             _logger.LogWarning("Deleting Rank Role {RoleName} for Guild {GuildId} from the database deleted no entities. The internal cache was not changed", role.RoleName, guildId);
-        }
     }
 }

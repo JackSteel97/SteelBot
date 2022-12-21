@@ -19,12 +19,17 @@ namespace SteelBot.DiscordModules.Roles;
 [RequireGuild]
 public class RolesCommands : TypingCommandModule
 {
+    private readonly CancellationService _cancellationService;
     private readonly DataHelpers _dataHelpers;
     private readonly ErrorHandlingService _errorHandlingService;
-    private readonly CancellationService _cancellationService;
     private readonly SelfRoleManagementChannel _selfRoleManagementChannel;
 
-    public RolesCommands(DataHelpers dataHelper, ErrorHandlingService errorHandlingService, CancellationService cancellationService, SelfRoleManagementChannel selfRoleManagementChannel, ILogger<RolesCommands> logger, AuditLogService auditLogService)
+    public RolesCommands(DataHelpers dataHelper,
+        ErrorHandlingService errorHandlingService,
+        CancellationService cancellationService,
+        SelfRoleManagementChannel selfRoleManagementChannel,
+        ILogger<RolesCommands> logger,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _dataHelpers = dataHelper;

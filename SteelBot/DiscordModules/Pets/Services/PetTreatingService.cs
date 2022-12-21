@@ -54,7 +54,7 @@ public class PetTreatingService
 
         var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
             (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
-            (pet) => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()).Disable(!pet.Active));
+            pet => Interactions.Pets.Treat(pet.Pet.RowId, pet.Pet.GetName()).Disable(!pet.Active));
 
         (string resultId, _) = await request.Responder.RespondPaginatedWithComponents(pages);
         await HandleResponse(request, resultId, availablePets);
@@ -63,23 +63,19 @@ public class PetTreatingService
     private async Task HandleResponse(PetCommandAction request, string resultId, List<Pet> availablePets)
     {
         if (!string.IsNullOrWhiteSpace(resultId))
-        {
             // Figure out which pet they want to manage.
             if (PetShared.TryGetPetIdFromComponentId(resultId, out long petId))
             {
                 double treatBonus = PetShared.GetBonusValue(availablePets, BonusType.PetTreatXp);
                 await HandleTreatGiven(request, petId, treatBonus);
             }
-        }
     }
 
     private async Task HandleTreatGiven(PetCommandAction request, long petId, double petTreatXpBonus)
     {
         if (_cache.Pets.TryGetPet(request.Member.Id, petId, out var pet)
             && _cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user))
-        {
             await HandleTreatGivenCore(request, pet, user, petTreatXpBonus);
-        }
     }
 
     private async Task HandleTreatGivenCore(PetCommandAction request, Pet pet, User user, double petTreatXpBonus)
@@ -89,15 +85,14 @@ public class PetTreatingService
         {
             xpGain = (int)PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, _logger);
         }
+
         pet.EarnedXp += xpGain;
 
         var changes = new StringBuilder();
         bool levelledUp = PetShared.PetXpChanged(pet, changes, user.CurrentLevel, out bool shouldPingOwner);
         await _cache.Pets.UpdatePet(pet);
-        request.Responder.Respond(PetMessages.GetPetTreatedMessage(pet, (int)xpGain));
+        request.Responder.Respond(PetMessages.GetPetTreatedMessage(pet, xpGain));
         if (levelledUp && _cache.Guilds.TryGetGuild(request.Guild.Id, out var guild))
-        {
             PetShared.SendPetLevelledUpMessage(changes, guild, request.Guild, user, shouldPingOwner).FireAndForget(_errorHandlingService);
-        }
     }
 }

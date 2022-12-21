@@ -25,7 +25,7 @@ public static class PetSpaceHelper
         int capacity = 0;
         int allPetsCount = 0;
         if (!usersProvider.TryGetUser(user.Guild.Id, user.Id, out var dbUser)) return (capacity, allPetsCount);
-        
+
         petsProvider.TryGetUsersPets(user.Id, out var allPets);
         capacity = PetShared.GetPetCapacity(dbUser, allPets);
         allPetsCount = allPets.Count;

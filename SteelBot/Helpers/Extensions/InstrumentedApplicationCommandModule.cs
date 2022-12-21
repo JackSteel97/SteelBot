@@ -7,8 +7,8 @@ namespace SteelBot.Helpers.Extensions;
 
 public class InstrumentedApplicationCommandModule : ApplicationCommandModule
 {
-    private readonly ILogger _logger;
     private readonly AuditLogService _auditLogService;
+    private readonly ILogger _logger;
 
     protected InstrumentedApplicationCommandModule(ILogger logger, AuditLogService auditLogService)
     {

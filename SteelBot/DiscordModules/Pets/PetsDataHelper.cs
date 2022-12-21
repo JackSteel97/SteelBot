@@ -19,9 +19,9 @@ namespace SteelBot.DiscordModules.Pets;
 public class PetsDataHelper
 {
     private readonly DataCache _cache;
-    private readonly PetManagementService _managementService;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<PetsDataHelper> _logger;
+    private readonly PetManagementService _managementService;
 
     public PetsDataHelper(DataCache cache,
         PetManagementService petManagementService,
@@ -49,13 +49,15 @@ public class PetsDataHelper
                 pet.Name = newName;
                 await _cache.Pets.UpdatePet(pet);
 
-                args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet))).FireAndForget(_errorHandlingService);
+                args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet)))
+                    .FireAndForget(_errorHandlingService);
                 args.Handled = true;
                 return;
             }
         }
 
-        args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(_errorHandlingService); ;
+        args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(_errorHandlingService);
+        ;
     }
 
     public async Task HandleMovingPet(ModalSubmitEventArgs args)
@@ -71,22 +73,22 @@ public class PetsDataHelper
                 && newPosition - 1 != petBeingMoved.Priority)
             {
                 int newPriority = newPosition - 1;
-                _logger.LogInformation("User {UserId} is attempting to move Pet {PetId} from position {CurrentPriority} to {NewPriority}", petBeingMoved.OwnerDiscordId, petBeingMoved.RowId, petBeingMoved.Priority, newPriority);
+                _logger.LogInformation("User {UserId} is attempting to move Pet {PetId} from position {CurrentPriority} to {NewPriority}", petBeingMoved.OwnerDiscordId, petBeingMoved.RowId,
+                    petBeingMoved.Priority, newPriority);
 
                 await _managementService.MovePetToPosition(petBeingMoved, newPriority);
-                args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"{petBeingMoved.Name} moved to position {newPosition}"))).FireAndForget(_errorHandlingService);
+                args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"{petBeingMoved.Name} moved to position {newPosition}"))).FireAndForget(_errorHandlingService);
                 return;
             }
         }
+
         args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(_errorHandlingService);
     }
 
     public List<Pet> GetAvailablePets(ulong guildId, ulong userId, out List<Pet> disabledPets)
     {
-        if (_cache.Users.TryGetUser(guildId, userId, out var user) && _cache.Pets.TryGetUsersPets(userId, out var pets))
-        {
-            return PetShared.GetAvailablePets(user, pets, out disabledPets);
-        }
+        if (_cache.Users.TryGetUser(guildId, userId, out var user) && _cache.Pets.TryGetUsersPets(userId, out var pets)) return PetShared.GetAvailablePets(user, pets, out disabledPets);
         disabledPets = new List<Pet>();
         return new List<Pet>();
     }
@@ -100,27 +102,19 @@ public class PetsDataHelper
             bool levelledUp = PetShared.PetXpChanged(pet, changes, levelOfUser, out bool shouldPingOwner);
             if (levelledUp)
             {
-                if (shouldPingOwner)
-                {
-                    pingOwner = true;
-                }
+                if (shouldPingOwner) pingOwner = true;
                 changes.AppendLine();
             }
         }
 
         await _cache.Pets.UpdatePets(pets);
 
-        if (changes.Length > 0 && sourceGuild != default && pets.Count > 0)
-        {
-            SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId, pingOwner);
-        }
+        if (changes.Length > 0 && sourceGuild != default && pets.Count > 0) SendPetLevelledUpMessage(sourceGuild, changes, pets[0].OwnerDiscordId, pingOwner);
     }
-    
+
     private void SendPetLevelledUpMessage(DiscordGuild discordGuild, StringBuilder changes, ulong userId, bool pingOwner)
     {
         if (_cache.Guilds.TryGetGuild(discordGuild.Id, out var guild) && _cache.Users.TryGetUser(discordGuild.Id, userId, out var user))
-        {
             PetShared.SendPetLevelledUpMessage(changes, guild, discordGuild, user, pingOwner).FireAndForget(_errorHandlingService);
-        }
     }
 }

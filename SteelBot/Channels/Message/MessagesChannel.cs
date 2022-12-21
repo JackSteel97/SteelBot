@@ -11,13 +11,13 @@ namespace SteelBot.Channels.Message;
 
 public class MessagesChannel : BaseChannel<IncomingMessage>
 {
-    private readonly UserTrackingService _userTrackingService;
+    private static readonly TimeSpan _voiceUpdateTimeout = TimeSpan.FromMinutes(1);
     private readonly DiscordClient _discordClient;
     private readonly IncomingMessageHandler _incomingMessageHandler;
-    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
-    private readonly UserLockingService _userLockingService;
     private readonly Dictionary<(ulong guildId, ulong userId), DateTime> _lastVoiceUpdateFromMessage;
-    private static readonly TimeSpan _voiceUpdateTimeout = TimeSpan.FromMinutes(1);
+    private readonly UserLockingService _userLockingService;
+    private readonly UserTrackingService _userTrackingService;
+    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
 
     public MessagesChannel(ILogger<MessagesChannel> logger,
         ErrorHandlingService errorHandlingService,
@@ -48,7 +48,7 @@ public class MessagesChannel : BaseChannel<IncomingMessage>
 
                     var key = (message.Guild.Id, message.User.Id);
                     if (!_lastVoiceUpdateFromMessage.TryGetValue(key, out var lastUpdate) ||
-                        (DateTime.UtcNow - lastUpdate) > _voiceUpdateTimeout)
+                        DateTime.UtcNow - lastUpdate > _voiceUpdateTimeout)
                     {
                         _lastVoiceUpdateFromMessage[key] = DateTime.UtcNow;
 

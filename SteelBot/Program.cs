@@ -102,14 +102,14 @@ public static class Program
             ConfigureDataHelpers(serviceProvider);
 
             // Discord client setup.
-            var client = new DiscordClient(new DiscordConfiguration()
+            var client = new DiscordClient(new DiscordConfiguration
             {
                 LoggerFactory = loggerFactory,
                 MinimumLogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), appConfigurationService.Application.Discord.LogLevel),
                 MessageCacheSize = appConfigurationService.Application.Discord.MessageCacheSize,
                 Token = appConfigurationService.Application.Discord.LoginToken,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers | DiscordIntents.MessageContents,
+                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers | DiscordIntents.MessageContents
             });
 
             serviceProvider.AddSingleton(client);

@@ -13,13 +13,13 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class UsersProvider
 {
-    private readonly ILogger<UsersProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
-    private readonly AsyncReaderWriterLock _lock = new AsyncReaderWriterLock();
+    private readonly AsyncReaderWriterLock _lock = new();
+    private readonly ILogger<UsersProvider> _logger;
 
     /// <summary>
-    /// Indexed on the user's discord id & guild id
-    /// The same user has one entry per server they are in.
+    ///     Indexed on the user's discord id & guild id
+    ///     The same user has one entry per server they are in.
     /// </summary>
     private readonly Dictionary<(ulong guildId, ulong userId), User> _usersByDiscordIdAndServer;
 
@@ -100,8 +100,8 @@ public class UsersProvider
     }
 
     /// <summary>
-    /// Inserts a new user for a given guild.
-    /// If the user already exists no insert is performed.
+    ///     Inserts a new user for a given guild.
+    ///     If the user already exists no insert is performed.
     /// </summary>
     /// <param name="guildId">The Discord id of the guild.</param>
     /// <param name="user">The internal model for the </param>
@@ -121,13 +121,9 @@ public class UsersProvider
                 }
 
                 if (writtenCount > 0)
-                {
                     _usersByDiscordIdAndServer.Add((guildId, user.DiscordId), user);
-                }
                 else
-                {
                     _logger.LogError("Writing User {UserId} in Guild {GuildId} to the database inserted no entities. The internal cache was not changed", user.DiscordId, guildId);
-                }
             }
         }
     }
@@ -148,13 +144,9 @@ public class UsersProvider
                 }
 
                 if (writtenCount > 0)
-                {
                     _usersByDiscordIdAndServer.Remove((guildId, userId));
-                }
                 else
-                {
                     _logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed", userId, guildId);
-                }
             }
         }
     }
@@ -196,13 +188,9 @@ public class UsersProvider
 
             // Both audit and actual written?
             if (writtenCount > 1)
-            {
                 _usersByDiscordIdAndServer[(guildId, newUser.DiscordId)] = newUser;
-            }
             else
-            {
                 _logger.LogError("Updating User {UserId} in Guild {GuildId} did not alter any entities. The internal cache was not changed", newUser.DiscordId, guildId);
-            }
         }
     }
 
