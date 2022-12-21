@@ -3,7 +3,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
@@ -20,7 +19,7 @@ public class MiscSlashCommands : InstrumentedApplicationCommandModule
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ErrorHandlingService _errorHandlingService;
 
-    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, IHub sentry, ILogger<MiscSlashCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
+    public MiscSlashCommands(AppConfigurationService appConfigurationService, ErrorHandlingService errorHandlingService, ILogger<MiscSlashCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _appConfigurationService = appConfigurationService;
         _errorHandlingService = errorHandlingService;

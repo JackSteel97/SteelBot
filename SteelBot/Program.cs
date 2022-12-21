@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using Serilog;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
@@ -48,7 +47,7 @@ namespace SteelBot;
 public static class Program
 {
     private static readonly string _environment = Environment.GetEnvironmentVariable("STEELBOTENVIRONMENT") ?? "Test";
-    
+
     private static IServiceProvider ConfigureServices(IServiceCollection serviceProvider)
     {
         serviceProvider.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -89,21 +88,12 @@ public static class Program
                 opt.ClearProviders();
                 opt.AddSerilog(Log.Logger);
                 opt.AddConfiguration(configuration);
-                opt.AddSentry(o =>
-                {
-                    o.MinimumEventLevel = LogLevel.Warning;
-                    o.Environment = _environment;
-                    o.Release = appConfigurationService.Version;
-                    o.AutoSessionTracking = true;
-                    o.DetectStartupTime = StartupTimeDetectionMode.Best;
-                    o.ServerName = System.Environment.MachineName;
-                });
             });
 
             // Database DI.
             serviceProvider.AddPooledDbContextFactory<SteelBotContext>(options => options.UseNpgsql(appConfigurationService.Database.ConnectionString,
-                                                                                                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-                                                                                                        .EnableRetryOnFailure(10))
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                        .EnableRetryOnFailure(10))
                 .EnableSensitiveDataLogging(_environment.Equals("Development"))
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution));
 
@@ -175,7 +165,7 @@ public static class Program
         serviceProvider.AddSingleton<UserTrackingService>();
         serviceProvider.AddSingleton<LevelCardGenerator>();
         serviceProvider.AddSingleton<PetFactory>();
-        
+
         serviceProvider.AddSingleton<ErrorHandlingService>();
         serviceProvider.AddSingleton<CancellationService>();
 
@@ -218,34 +208,30 @@ public static class Program
 
         serviceProvider.AddMemoryCache();
         serviceProvider.AddSingleton<RateLimitFactory>();
-        
+
         serviceProvider.AddSingleton<UtilityService>();
-        
+
         serviceProvider.AddSingleton<AuditLogProvider>();
         serviceProvider.AddSingleton<AuditLogService>();
     }
 
     public static async Task Main(string[] args)
     {
-        using (SentrySdk.Init())
+        try
         {
-            try
-            {
-                await CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync();
-            }
-            finally
-            {
-                await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
-                Log.CloseAndFlush();
-            } 
+            await CreateHostBuilder(args).UseConsoleLifetime().Build().RunAsync();
+        }
+        finally
+        {
+            Log.CloseAndFlush();
         }
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host
-        .CreateDefaultBuilder(args)
-        .ConfigureServices((hostContext, services) =>
-        {
-            var serviceProvider = ConfigureServices(services);
-        });
+            .CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                var serviceProvider = ConfigureServices(services);
+            });
 }

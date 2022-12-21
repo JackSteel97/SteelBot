@@ -1,7 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels.Puzzle;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
@@ -23,8 +22,8 @@ public class PuzzleCommands : TypingCommandModule
     private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
     private readonly ILogger<PuzzleCommands> _logger;
 
-    public PuzzleCommands(IHub sentry, PuzzleCommandsChannel puzzleCommandsChannel, CancellationService cancellationService, ErrorHandlingService errorHandlingService, ILogger<PuzzleCommands> logger, AuditLogService auditLogService)
-        : base(logger, auditLogService, sentry)
+    public PuzzleCommands(PuzzleCommandsChannel puzzleCommandsChannel, CancellationService cancellationService, ErrorHandlingService errorHandlingService, ILogger<PuzzleCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _puzzleCommandsChannel = puzzleCommandsChannel;
         _cancellationService = cancellationService;

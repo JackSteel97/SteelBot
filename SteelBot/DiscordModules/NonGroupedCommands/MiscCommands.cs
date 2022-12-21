@@ -3,7 +3,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -19,7 +18,7 @@ public class MiscCommands : TypingCommandModule
 {
     private readonly AppConfigurationService _appConfigurationService;
 
-    public MiscCommands(AppConfigurationService appConfigurationService, IHub sentry, ILogger<MiscCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
+    public MiscCommands(AppConfigurationService appConfigurationService, ILogger<MiscCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _appConfigurationService = appConfigurationService;
     }

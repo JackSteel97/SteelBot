@@ -1,8 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Sentry;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 
 namespace SteelBot.Helpers.Extensions;
@@ -29,6 +27,4 @@ public static class InteractionContextExtensions
     {
         context.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource).FireAndForget(errorHandlingService);
     }
-
-    public static User GetSentryUser(this BaseContext context) => SentryHelpers.GetSentryUser(context.Member, context.Guild);
 }

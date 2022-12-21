@@ -40,7 +40,6 @@ using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
@@ -69,7 +68,6 @@ using SteelBot.Exceptions;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -98,7 +96,6 @@ public class BotMain : IHostedService
     private readonly CancellationService _cancellationService;
     private readonly UserLockingService _userLockingService;
     private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
-    private readonly IHub _sentry;
     private readonly AuditLogService _auditLogService;
     private readonly UserTrackingService _userTrackingService;
 
@@ -125,7 +122,6 @@ public class BotMain : IHostedService
         SelfRoleManagementChannel selfRoleManagementChannel,
         RankRoleManagementChannel rankRoleManagementChannel,
         ErrorHandlingAsynchronousCommandExecutor commandExecutor,
-        IHub sentry,
         PetCommandsChannel petCommandsChannel,
         StatsCommandsChannel statsCommandsChannel,
         PuzzleCommandsChannel puzzleCommandsChannel,
@@ -146,7 +142,6 @@ public class BotMain : IHostedService
         _selfRoleManagementChannel = selfRoleManagementChannel;
         _rankRoleManagementChannel = rankRoleManagementChannel;
         _commandExecutor = commandExecutor;
-        _sentry = sentry;
         _petCommandsChannel = petCommandsChannel;
         _statsCommandsChannel = statsCommandsChannel;
         _puzzleCommandsChannel = puzzleCommandsChannel;
@@ -186,12 +181,9 @@ public class BotMain : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Shutdown", nameof(StopAsync));
         await ShutdownDiscordClient();
         await _dataHelpers.Stats.DisconnectAllUsers();
         _cancellationService.Cancel();
-        transaction.Finish();
-        await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
     }
 
     private async Task ShutdownDiscordClient()
@@ -233,10 +225,8 @@ public class BotMain : IHostedService
 
     private async Task HandleSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleSlashCommandExecuted), "Increment Statistics");
         Interlocked.Increment(ref _appConfigurationService.HandledCommands);
         await _cache.CommandStatistics.IncrementCommandStatistic(e.Context.QualifiedName);
-        transaction.Finish();
     }
 
     private Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
@@ -293,7 +283,6 @@ public class BotMain : IHostedService
         {
             Task.Run(async () =>
             {
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
                 switch (e.Interaction.Data.CustomId)
                 {
                     case InteractionIds.Modals.PetNameEntry:
@@ -303,7 +292,6 @@ public class BotMain : IHostedService
                         await _dataHelpers.Pets.HandleMovingPet(e);
                         break;
                 }
-                transaction.Finish();
             }).FireAndForget(_errorHandlingService);
         }
         
@@ -410,11 +398,8 @@ public class BotMain : IHostedService
     {
         try
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleJoiningGuild), "Create Guild");
-
             var joinedGuild = new Guild(args.Guild.Id, args.Guild.Name);
             await _cache.Guilds.UpsertGuild(joinedGuild);
-            transaction.Finish();
         }
         catch (Exception ex)
         {
@@ -428,15 +413,12 @@ public class BotMain : IHostedService
         {
             try
             {
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleLeavingGuild), "Delete Guild");
-
                 var usersInGuild = _cache.Users.GetUsersInGuild(args.Guild.Id);
                 foreach (var user in usersInGuild)
                 {
                     await _cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
                 }
                 await _cache.Guilds.RemoveGuild(args.Guild.Id);
-                transaction.Finish();
             }
             catch (Exception ex)
             {
@@ -498,12 +480,8 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleCommandExecuted), "Increment Statistics");
-
             Interlocked.Increment(ref _appConfigurationService.HandledCommands);
             await _cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
-
-            transaction.Finish();
         }).FireAndForget(_errorHandlingService);
 
         return Task.CompletedTask;
@@ -513,9 +491,7 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildAvailable), "Update Guild Name");
             await _cache.Guilds.UpdateGuildName(e.Guild.Id, e.Guild.Name);
-            transaction.Finish();
         }).FireAndForget(_errorHandlingService);
         return Task.CompletedTask;
     }
@@ -539,17 +515,11 @@ public class BotMain : IHostedService
             try
             {
                 await _auditLogService.LeftGuild(args);
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildMemberRemoved), "Remove Member");
-
                 using (await _userLockingService.WriterLockAsync(args.Guild.Id, args.Member.Id))
                 {
-                    var span = transaction.StartChild("Delete User", args.Member.Username);
                     // Delete user data.
                     await _cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
-                    span.Finish();
                 }
-
-                transaction.Finish();
             }
             catch (Exception ex)
             {

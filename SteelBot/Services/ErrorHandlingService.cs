@@ -1,11 +1,9 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders;
 using SteelBot.Exceptions;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services.Configuration;
 using System;
 using System.Threading.Tasks;
@@ -18,23 +16,19 @@ public class ErrorHandlingService
     private readonly AppConfigurationService _appConfigurationService;
     private readonly DataCache _cache;
     private readonly ILogger<ErrorHandlingService> _logger;
-    private readonly IHub _sentry;
 
-    public ErrorHandlingService(DiscordClient client, AppConfigurationService appConfigurationService, DataCache cache, ILogger<ErrorHandlingService> logger, IHub sentry)
+    public ErrorHandlingService(DiscordClient client, AppConfigurationService appConfigurationService, DataCache cache, ILogger<ErrorHandlingService> logger)
     {
         _client = client;
         _appConfigurationService = appConfigurationService;
         _cache = cache;
         _logger = logger;
-        _sentry = sentry;
     }
 
     public async Task Log(Exception e, string source)
     {
         try
         {
-            _sentry.TryGetCurrentTransaction(out var transaction);
-
             _logger.LogError(e, "Source Method: {Source}", source);
             if (e.InnerException != null)
             {
@@ -47,11 +41,6 @@ public class ErrorHandlingService
             if (e is not FireAndForgetTaskException)
             {
                 await SendMessageToJack(e, source);
-            }
-
-            if (transaction != null)
-            {
-                transaction.Finish(e);
             }
         }
         catch (Exception ex)

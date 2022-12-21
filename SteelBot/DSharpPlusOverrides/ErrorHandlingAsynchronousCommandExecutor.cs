@@ -1,7 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Executors;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System.Collections.Generic;

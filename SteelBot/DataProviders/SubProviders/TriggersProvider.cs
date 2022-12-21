@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using SteelBot.Helpers.Sentry;
+using SteelBot.Database.Models.Users;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DataProviders.SubProviders;
 
@@ -16,13 +14,11 @@ public class TriggersProvider
     private readonly ILogger<TriggersProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
     private readonly Dictionary<ulong, Dictionary<string, Trigger>> _triggersByGuild;
-    private readonly IHub _sentry;
 
-    public TriggersProvider(ILogger<TriggersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
+    public TriggersProvider(ILogger<TriggersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
     {
         _logger = logger;
         _dbContextFactory = contextFactory;
-        _sentry = sentry;
 
         _triggersByGuild = new Dictionary<ulong, Dictionary<string, Trigger>>();
         LoadTriggersData();
@@ -30,8 +26,6 @@ public class TriggersProvider
 
     public void LoadTriggersData()
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadTriggersData));
-
         _logger.LogInformation("Loading data from database: Triggers");
         Trigger[] allTriggers;
         using (var db = _dbContextFactory.CreateDbContext())
@@ -42,8 +36,6 @@ public class TriggersProvider
         {
             AddTriggerToInternalCache(trigger.Guild.DiscordId, trigger);
         }
-
-        transaction.Finish();
     }
 
     private void AddTriggerToInternalCache(ulong guildId, Trigger trigger, User creator = null)
@@ -77,7 +69,7 @@ public class TriggersProvider
 
     public bool BotKnowsTrigger(ulong guildId, string trigger)
     {
-        return _triggersByGuild.TryGetValue(guildId, out var roles) ? roles.ContainsKey(trigger.ToLower()) : false;
+        return _triggersByGuild.TryGetValue(guildId, out var roles) && roles.ContainsKey(trigger.ToLower());
     }
 
     public bool TryGetTrigger(ulong guildId, string triggerText, out Trigger trigger)
@@ -116,7 +108,7 @@ public class TriggersProvider
 
     private async Task InsertTrigger(ulong guildId, Trigger trigger, User creator)
     {
-        _logger.LogInformation($"Writing a new Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database.");
+        _logger.LogInformation($"Writing a new Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database");
         int writtenCount;
         using (var db = _dbContextFactory.CreateDbContext())
         {
@@ -130,13 +122,13 @@ public class TriggersProvider
         }
         else
         {
-            _logger.LogError($"Writing Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database inserted no entities. The internal cache was not changed.");
+            _logger.LogError($"Writing Trigger [{trigger.TriggerText}] for Guild [{guildId}] to the database inserted no entities. The internal cache was not changed");
         }
     }
 
     private async Task UpdateTrigger(ulong guildId, Trigger newTrigger)
     {
-        _logger.LogInformation($"Updating Trigger [{newTrigger.TriggerText}] for Guild [{guildId}] in the database.");
+        _logger.LogInformation($"Updating Trigger [{newTrigger.TriggerText}] for Guild [{guildId}] in the database");
 
         int writtenCount;
         using (var db = _dbContextFactory.CreateDbContext())

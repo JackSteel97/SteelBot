@@ -1,19 +1,16 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
+using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
-using SteelBot.Helpers.Sentry;
-using SteelBot.Services;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DiscordModules.Pets.Services;
 
@@ -21,29 +18,24 @@ public class PetBefriendingService
 {
     private readonly DataCache _cache;
     private readonly ILogger<PetBefriendingService> _logger;
-    private readonly IHub _sentry;
-    private readonly CancellationService _cancellationService;
 
-    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger, IHub sentry, CancellationService cancellationService)
+    public PetBefriendingService(DataCache cache, ILogger<PetBefriendingService> logger)
     {
         _cache = cache;
         _logger = logger;
-        _sentry = sentry;
-        _cancellationService = cancellationService;
     }
 
     public async Task Befriend(PetCommandAction request, Pet foundPet, DiscordInteraction interaction)
     {
-        var transaction = _sentry.GetCurrentTransaction();
         _logger.LogInformation("User {UserId} in Guild {GuildId} is attempting to befriend a {Rarity} pet", request.Member.Id, request.Guild.Id, foundPet.Rarity);
 
-        bool hasSpace = PetSpaceHelper.HasSpaceForAnotherPet(request.Member, _cache.Users, _cache.Pets, transaction);
-        bool isReplacementBefriend = !hasSpace && PetSpaceHelper.CanReplaceToBefriend(request.Member, _cache.Users, _cache.Pets, transaction);
+        bool hasSpace = PetSpaceHelper.HasSpaceForAnotherPet(request.Member, _cache.Users, _cache.Pets);
+        bool isReplacementBefriend = !hasSpace && PetSpaceHelper.CanReplaceToBefriend(request.Member, _cache.Users, _cache.Pets);
 
-        await BefriendCore(request, foundPet, hasSpace, isReplacementBefriend, interaction, transaction);
+        await BefriendCore(request, foundPet, hasSpace, isReplacementBefriend, interaction);
     }
 
-    private async Task BefriendCore(PetCommandAction request, Pet foundPet, bool hasSpace, bool isReplacementBefriend, DiscordInteraction interaction, ITransaction transaction)
+    private async Task BefriendCore(PetCommandAction request, Pet foundPet, bool hasSpace, bool isReplacementBefriend, DiscordInteraction interaction)
     {
         if ((!hasSpace && !isReplacementBefriend) || !BefriendSuccess(request.Member, foundPet))
         {
@@ -80,13 +72,10 @@ public class PetBefriendingService
     {
         if (!PetCorrupted() || !_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var ownerUser)) return pet;
         
-        var transaction = _sentry.GetCurrentTransaction();
-        var corruptSpan = transaction.StartChild("Corrupt Pet");
         _logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
         pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
         await _cache.Pets.UpdatePet(pet);
         request.Responder.Respond(PetMessages.GetPetCorruptedMessage(pet));
-        corruptSpan.Finish();
 
         return pet;
     }
@@ -111,9 +100,7 @@ public class PetBefriendingService
             (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
             (pet) => Interactions.Pets.Replace(pet.Pet.RowId, pet.Pet.GetName()));
 
-        _sentry.GetCurrentTransaction()?.Finish();
         (string resultId, interaction) = await request.Responder.RespondPaginatedWithComponents(pages);
-        _sentry.StartNewConfiguredTransaction(nameof(PetBefriendingService), "Replacement Befriend Response");
 
         // Figure out which pet they want to replace.
         if (!string.IsNullOrWhiteSpace(resultId) &&
@@ -132,14 +119,11 @@ public class PetBefriendingService
 
     private async Task ReplacePetWith(DiscordMember member, long petId, Pet newPet)
     {
-        var transaction = _sentry.GetCurrentTransaction();
-        var removeSpan = transaction.StartChild("Remove Pet");
         if (_cache.Pets.TryGetPet(member.Id, petId, out var petToReplace))
         {
             int priority = petToReplace.Priority;
             await _cache.Pets.RemovePet(member.Id, petId);
             newPet.Priority = priority;
-            removeSpan.Finish();
             await AddPet(member.Id, newPet);
         }
     }
@@ -153,11 +137,8 @@ public class PetBefriendingService
     
     private async Task AddPet(ulong userId, Pet pet)
     {
-        var transaction = _sentry.GetCurrentTransaction();
-        var addSpan = transaction.StartChild("Add Pet");
         pet.OwnerDiscordId = userId;
         pet.RowId = await _cache.Pets.InsertPet(pet);
-        addSpan.Finish();
     }
     
     private bool BefriendSuccess(DiscordMember member, Pet target)
@@ -171,41 +152,28 @@ public class PetBefriendingService
 
     private double GetBefriendSuccessProbability(User user, Pet target)
     {
-        var transaction = _sentry.GetCurrentTransaction();
-        var befriendSuccessSpan = transaction.StartChild(nameof(GetBefriendSuccessProbability));
         const double baseRate = 0.1;
         int ownedPetCount = 0;
         double bonusMultiplier = 1;
         double petCapacity;
 
-        var dependantsSpan = befriendSuccessSpan.StartChild("Calculate Dependencies");
         if (_cache.Pets.TryGetUsersPets(user.DiscordId, out var allPets))
         {
-            var capacitySpan = dependantsSpan.StartChild("Get Capacities");
             var activePets = PetShared.GetAvailablePets(user, allPets, out _);
             ownedPetCount = allPets.Count;
             petCapacity = PetShared.GetPetCapacity(user, allPets);
-            capacitySpan.Finish();
 
-            var bonusSpan = dependantsSpan.StartChild("Get Befriend Bonus");
             bonusMultiplier = PetShared.GetBonusValue(activePets, BonusType.BefriendSuccessRate);
-            bonusSpan.Finish();
         }
         else
         {
-            var capacitySpan = dependantsSpan.StartChild("Get Base Capacity", "User has no pets");
             petCapacity = PetShared.GetBasePetCapacity(user);
-            capacitySpan.Finish();
         }
-        dependantsSpan.Finish();
 
-        var raritySpan = befriendSuccessSpan.StartChild("Get Random Rarity Modifier");
         int rarityModifier = RandomNumberGenerator.GetInt32((int)target.Rarity + 1);
-        raritySpan.Finish();
 
         double currentRate = baseRate + ((petCapacity - ownedPetCount) / (petCapacity + rarityModifier));
         double finalRate = currentRate * bonusMultiplier;
-        befriendSuccessSpan.Finish();
         return finalRate;
     }
     

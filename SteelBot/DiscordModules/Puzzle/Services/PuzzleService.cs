@@ -65,7 +65,7 @@ public class PuzzleService
         {
             return _questionFactory.GetQuestion(usersPuzzleLevel);
         }
-        catch (NotSupportedException ex)
+        catch (NotSupportedException)
         {
             responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("You've reached the end of the puzzle for now, there are no more questions", "Watch this space")));
             return null;

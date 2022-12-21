@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
-using Sentry;
 using SteelBot.Channels;
 using SteelBot.Channels.Pets;
 using SteelBot.Database.Models.Pets;
@@ -9,7 +8,6 @@ using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,46 +18,33 @@ public class PetManagementService
 {
     private readonly DataCache _cache;
     private readonly ErrorHandlingService _errorHandlingService;
-    private readonly IHub _sentry;
     private readonly CancellationService _cancellationService;
 
-    public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, IHub sentry, CancellationService cancellationService)
+    public PetManagementService(DataCache cache, ErrorHandlingService errorHandlingService, CancellationService cancellationService)
     {
         _cache = cache;
         _errorHandlingService = errorHandlingService;
-        _sentry = sentry;
         _cancellationService = cancellationService;
     }
 
     public async Task Manage(PetCommandAction request)
     {
-        var transaction = _sentry.GetCurrentTransaction();
         if (_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)
             && _cache.Pets.TryGetUsersPets(request.Member.Id, out var allPets))
         {
-            var getPetsSpan = transaction.StartChild("Get Available Pets");
             var availablePets = PetShared.GetAvailablePets(user, allPets, out var disabledPets);
             var combinedPets = PetShared.Recombine(availablePets, disabledPets);
-            getPetsSpan.Finish();
 
-            var buildEmbedSpan = transaction.StartChild("Build Owned Pets Base Embed");
             var baseEmbed = PetShared.GetOwnedPetsBaseEmbed(user, combinedPets.ConvertAll(x=>x.Pet), disabledPets.Count > 0);
-            buildEmbedSpan.Finish();
 
-            var capacitySpan = transaction.StartChild("Get Pet Capacity");
             int maxCapacity = PetShared.GetPetCapacity(user, allPets);
             int baseCapacity = PetShared.GetBasePetCapacity(user);
-            capacitySpan.Finish();
 
-            var pagesSpan = transaction.StartChild("Generate Embed Pages");
             var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, combinedPets, 10,
                 (builder, pet) => PetShared.AppendPetDisplayShort(builder, pet.Pet, pet.Active, baseCapacity, maxCapacity),
                 (pet) => Interactions.Pets.Manage(pet.Pet.RowId, pet.Pet.GetName()));
-            pagesSpan.Finish();
 
-            var waitForUserResponseSpan = transaction.StartChild("Wait for User Choice");
             (string resultId, _) = await request.Responder.RespondPaginatedWithComponents(pages);
-            waitForUserResponseSpan.Finish();
             if (!string.IsNullOrWhiteSpace(resultId))
             {
                 // Figure out which pet they want to manage.
@@ -117,11 +102,8 @@ public class PetManagementService
     {
         if (_cache.Pets.TryGetPet(request.Member.Id, petId, out var pet))
         {
-            var countPetsSpan = _sentry.StartSpanOnCurrentTransaction("Count Pets");
             _cache.Pets.TryGetUsersPetsCount(request.Member.Id, out int ownedPetCount);
-            countPetsSpan.Finish();
 
-            var buildMessageSpan = _sentry.StartSpanOnCurrentTransaction("Build Message");
             var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet, showLevelProgress: true);
             var initialResponseBuilder = new DiscordMessageBuilder()
                 .WithEmbed(petDisplay);
@@ -137,19 +119,15 @@ public class PetManagementService
                     Interactions.Pets.Abandon,
                     Interactions.Confirmation.Cancel,
                 });
-            buildMessageSpan.Finish();
 
-            var waitingForResponseSpan = _sentry.StartSpanOnCurrentTransaction("Wait for user selection");
             var message = await request.Responder.RespondAsync(initialResponseBuilder);
             var result = await message.WaitForButtonAsync(request.Member);
             request.Responder.SetInteraction(result.Result?.Interaction);
-            waitingForResponseSpan.Finish();
             initialResponseBuilder.ClearComponents();
 
             if (!result.TimedOut && result.Result.Id != InteractionIds.Confirmation.Cancel)
             {
                 message.ModifyAsync(initialResponseBuilder).FireAndForget(_errorHandlingService);
-                var performManageSpan = _sentry.StartSpanOnCurrentTransaction("Perform Manage Operation", result.Result.Id);
                 switch (result.Result.Id)
                 {
                     case InteractionIds.Pets.Rename:
@@ -174,8 +152,6 @@ public class PetManagementService
                         await PetModals.MovePet(result.Result.Interaction, pet, ownedPetCount);
                         break;
                 }
-
-                performManageSpan.Finish();
             }
             else
             {
@@ -287,18 +263,12 @@ public class PetManagementService
 
     private async Task HandlePetAbandon(PetCommandAction request, Pet pet)
     {
-        var waitingSpan = _sentry.StartSpanOnCurrentTransaction("Wait for confirmation");
         if (await InteractivityHelper.GetConfirmation(request.Responder, request.Member, "Pet Release"))
         {
-            waitingSpan.Finish();
-            
-            var removeSpan = _sentry.StartSpanOnCurrentTransaction("Remove Pet");
             await _cache.Pets.RemovePet(request.Member.Id, pet.RowId);
-            removeSpan.Finish();
             
             if (_cache.Pets.TryGetUsersPets(request.Member.Id, out var allPets))
             {
-                var movePetsSpan = _sentry.StartSpanOnCurrentTransaction("Move Pet Priority", "Move pets up in priority to fill gap.");
                 var petsToUpdate = new List<Pet>(allPets.Count - pet.Priority);
                 foreach (var ownedPet in allPets)
                 {
@@ -309,7 +279,6 @@ public class PetManagementService
                     }
                 }
                 await _cache.Pets.UpdatePets(petsToUpdate);
-                movePetsSpan.Finish();
             }
 
             request.Responder.Respond(PetMessages.GetAbandonSuccessMessage(pet));

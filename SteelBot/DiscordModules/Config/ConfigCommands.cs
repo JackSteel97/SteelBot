@@ -3,7 +3,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
@@ -20,7 +19,7 @@ public class ConfigCommands : TypingCommandModule
     private readonly DataHelpers _dataHelpers;
     private readonly ILogger<ConfigCommands> _logger;
 
-    public ConfigCommands(DataHelpers dataHelpers, IHub sentry, ILogger<ConfigCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
+    public ConfigCommands(DataHelpers dataHelpers, ILogger<ConfigCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _dataHelpers = dataHelpers;
         _logger = logger;

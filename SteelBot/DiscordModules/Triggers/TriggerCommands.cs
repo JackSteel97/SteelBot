@@ -5,7 +5,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Database.Models;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
@@ -24,8 +23,8 @@ public class TriggerCommands : TypingCommandModule
 {
     private readonly DataHelpers _dataHelpers;
 
-    public TriggerCommands(DataHelpers dataHelpers, IHub sentry, ILogger<TriggerCommands> logger, AuditLogService auditLogService)
-        : base(logger, auditLogService, sentry)
+    public TriggerCommands(DataHelpers dataHelpers, ILogger<TriggerCommands> logger, AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _dataHelpers = dataHelpers;
     }

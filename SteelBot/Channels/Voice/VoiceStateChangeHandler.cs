@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles.Helpers;
@@ -33,41 +32,29 @@ public class VoiceStateChangeHandler
         _rankRolesProvider = rankRolesProvider;
     }
 
-    public async Task HandleVoiceStateChange(VoiceStateChange changeArgs, ISpan transaction)
+    public async Task HandleVoiceStateChange(VoiceStateChange changeArgs)
     {
-        var getUsersInChannelSpan = transaction.StartChild("Get Users In Channel");
         (var usersInChannel, var usersInOldChannel) = GetUsersInChannel(changeArgs);
-        getUsersInChannelSpan.Finish();
 
-        var scalingSpan = transaction.StartChild("Get Xp Scaling Factors");
         (double baseScalingFactor, bool shouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
-        scalingSpan.Finish();
 
-        var updateUserSpan = transaction.StartChild("Update User Stats");
         // Update this user
         await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
-        updateUserSpan.Finish();
 
-        var updateOtherUsersSpan = transaction.StartChild("Update Other Users In Channel");
-        await UpdateOtherUsersStats(changeArgs, usersInChannel, updateOtherUsersSpan);
+        await UpdateOtherUsersStats(changeArgs, usersInChannel);
         // If this user is changing channels to a new channel we need to update the stats of the users in the previous channel too if there are any.
-        await UpdateOtherUsersStats(changeArgs, usersInOldChannel, updateOtherUsersSpan);
-        updateOtherUsersSpan.Finish();
+        await UpdateOtherUsersStats(changeArgs, usersInOldChannel);
     }
 
-    private async Task UpdateOtherUsersStats(VoiceStateChange changeArgs, IReadOnlyList<DiscordMember> usersInChannel, ISpan updateOtherUsersSpan)
+    private async Task UpdateOtherUsersStats(VoiceStateChange changeArgs, IReadOnlyList<DiscordMember> usersInChannel)
     {
         foreach (var userInChannel in usersInChannel)
         {
             if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
             {
-                var otherScalingSpan = updateOtherUsersSpan.StartChild("Get Xp Scaling Factors", $"For {userInChannel.Username}");
                 (double otherBaseScalingFactor, bool otherShouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
-                otherScalingSpan.Finish();
 
-                var otherUpdateSpan = updateOtherUsersSpan.StartChild("Update User Stats", $"For {userInChannel.Username}");
                 await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, otherShouldEarnVideo);
-                otherUpdateSpan.Finish();
             }
         }
     }

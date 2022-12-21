@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
-using SteelBot.Helpers.Sentry;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +13,13 @@ public class SelfRolesProvider
 {
     private readonly ILogger<SelfRolesProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
-    private readonly IHub _sentry;
 
     private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, SelfRole>> _selfRolesByGuildAndId;
 
-    public SelfRolesProvider(ILogger<SelfRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
+    public SelfRolesProvider(ILogger<SelfRolesProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
     {
         _logger = logger;
         _dbContextFactory = contextFactory;
-        _sentry = sentry;
 
         _selfRolesByGuildAndId = new ConcurrentDictionary<ulong, ConcurrentDictionary<ulong, SelfRole>>();
         LoadSelfRoleData();
@@ -31,8 +27,6 @@ public class SelfRolesProvider
 
     private void LoadSelfRoleData()
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadSelfRoleData));
-
         _logger.LogInformation("Loading data from database: SelfRoles");
 
         SelfRole[] allRoles;
@@ -45,8 +39,6 @@ public class SelfRolesProvider
         {
             AddRoleToInternalCache(role.Guild.DiscordId, role);
         }
-
-        transaction.Finish();
     }
 
     private void AddRoleToInternalCache(ulong guildId, SelfRole role)
@@ -99,32 +91,22 @@ public class SelfRolesProvider
 
     public async Task AddRole(ulong guildId, SelfRole role)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(AddRole));
-
         if (!BotKnowsRole(guildId, role.DiscordRoleId))
         {
             await InsertSelfRole(guildId, role);
         }
-
-        transaction.Finish();
     }
 
     public async Task RemoveRole(ulong guildId, ulong roleId)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveRole));
-
         if (TryGetRole(guildId, roleId, out var role))
         {
             await DeleteSelfRole(guildId, role);
         }
-
-        transaction.Finish();
     }
 
     private async Task InsertSelfRole(ulong guildId, SelfRole role)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertSelfRole));
-
         _logger.LogInformation("Writing a new Self Role {RoleName} for Guild {GuildId} to the database", role.RoleName, guildId);
 
         int writtenCount;
@@ -142,14 +124,10 @@ public class SelfRolesProvider
         {
             _logger.LogError("Writing Self Role {RoleName} for Guild {GuildId} to the database inserted no entities. The internal cache was not changed", role.RoleName, guildId);
         }
-
-        transaction.Finish();
     }
 
     private async Task DeleteSelfRole(ulong guildId, SelfRole role)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(DeleteSelfRole));
-
         _logger.LogInformation("Deleting Self Role {RoleName} for Guild {GuildId} from the database", role.RoleName, guildId);
 
         int writtenCount;
@@ -167,7 +145,5 @@ public class SelfRolesProvider
         {
             _logger.LogWarning("Deleting Self Role {RoleName} for Guild {GuildId} from the database deleted no entities. The internal cache was not changed", role.RoleName, guildId);
         }
-
-        transaction.Finish();
     }
 }

@@ -2,7 +2,6 @@
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
@@ -22,7 +21,7 @@ public class FunCommands : TypingCommandModule
     private readonly DataCache _cache;
     private readonly ILogger<FunCommands> _logger;
 
-    public FunCommands(DataHelpers dataHelpers, DataCache cache, IHub sentry, ILogger<FunCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService, sentry)
+    public FunCommands(DataHelpers dataHelpers, DataCache cache, ILogger<FunCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _dataHelpers = dataHelpers;
         _cache = cache;
