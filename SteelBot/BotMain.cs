@@ -227,7 +227,16 @@ public class BotMain : IHostedService
         
         _slashCommands.SlashCommandErrored += HandleSlashCommandErrored;
         _slashCommands.SlashCommandInvoked += HandleSlashCommandInvoked;
-        
+        _slashCommands.SlashCommandExecuted += HandleSlashCommandExecuted;
+
+    }
+
+    private async Task HandleSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
+    {
+        var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleSlashCommandExecuted), "Increment Statistics");
+        Interlocked.Increment(ref _appConfigurationService.HandledCommands);
+        await _cache.CommandStatistics.IncrementCommandStatistic(e.Context.QualifiedName);
+        transaction.Finish();
     }
 
     private Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
