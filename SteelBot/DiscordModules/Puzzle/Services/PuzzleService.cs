@@ -3,6 +3,7 @@ using SteelBot.Channels.Puzzle;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Puzzle.Questions;
 using SteelBot.Helpers;
+using SteelBot.Responders;
 using System;
 using System.Threading.Tasks;
 
@@ -23,7 +24,8 @@ public class PuzzleService
     {
         if (request.Action != PuzzleCommandActionType.Puzzle) throw new ArgumentException($"Unexpected action type sent to {nameof(Question)}");
 
-        var question = await GetCurrentQuestion(request.Member);
+        var question = await GetCurrentQuestion(request.Member, request.Responder);
+        if (question == null) return;
         question.PostPuzzle(request);
     }
 
@@ -31,7 +33,8 @@ public class PuzzleService
     {
         if (request.Action != PuzzleCommandActionType.Clue) throw new ArgumentException($"Unexpected action type sent to {nameof(Question)}");
 
-        var question = await GetCurrentQuestion(request.Member);
+        var question = await GetCurrentQuestion(request.Member, request.Responder);
+        if (question == null) return;
         question.PostClue(request);
     }
     
@@ -39,7 +42,8 @@ public class PuzzleService
     {
         if (request.Action != PuzzleCommandActionType.Answer) throw new ArgumentException($"Unexpected action type sent to {nameof(Question)}");
 
-        var question = await GetCurrentQuestion(request.Member);
+        var question = await GetCurrentQuestion(request.Member, request.Responder);
+        if (question == null) return;
         await _puzzleProvider.RecordGuess(request.Member.Id, question.GetPuzzleNumber(), request.GivenAnswer);
         
         if (question.AnswerIsCorrect(request.GivenAnswer))
@@ -53,9 +57,18 @@ public class PuzzleService
         }
     }
 
-    private async Task<IQuestion> GetCurrentQuestion(DiscordMember member)
+    private async Task<IQuestion?> GetCurrentQuestion(DiscordMember member, IResponder responder)
     {
         int usersPuzzleLevel = await _puzzleProvider.GetUserPuzzleLevel(member.Id);
-        return _questionFactory.GetQuestion(usersPuzzleLevel);
+
+        try
+        {
+            return _questionFactory.GetQuestion(usersPuzzleLevel);
+        }
+        catch (NotSupportedException ex)
+        {
+            responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("You've reached the end of the puzzle for now, there are no more questions", "Watch this space")));
+            return null;
+        }
     }
 }
