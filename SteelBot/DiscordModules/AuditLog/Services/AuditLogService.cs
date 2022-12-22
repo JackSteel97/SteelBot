@@ -72,6 +72,19 @@ public class AuditLogService
         return Log(entry);
     }
 
+    public Task ModalSubmitted(ModalSubmitEventArgs args)
+    {
+        var entry = new Audit(args.Interaction.User.Id, args.Interaction.User.Username, AuditAction.ModalSubmitted, args.Interaction.Guild.Id, args.Interaction.Guild.Name);
+        return Log(entry);
+    }
+
+    public Task MessageReactionAdded(MessageReactionAddEventArgs args)
+    {
+        var entry = new Audit(args.User.Id, args.User.Username, AuditAction.MessageReactionAdded, args.Guild.Id, args.Guild.Name, args.Channel.Id, args.Channel.Name);
+        entry.Description = args.Emoji;
+        return Log(entry);
+    }
+
     private Task JoinVoiceChannel(VoiceStateChange change)
     {
         var entry = new Audit(change.User.Id, change.User.Username, AuditAction.JoinedVoiceChannel, change.Guild.Id, change.Guild.Name, change.After.Channel.Id, change.After.Channel.Name);

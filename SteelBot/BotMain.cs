@@ -214,6 +214,7 @@ public class BotMain : IHostedService
         _client.GuildAvailable += HandleGuildAvailable;
         _client.GuildMemberAdded += HandleGuildMemberAdded;
         _client.MessageReactionAdded += HandleMessageReactionAdded;
+        
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
 
@@ -228,7 +229,12 @@ public class BotMain : IHostedService
         await _cache.CommandStatistics.IncrementCommandStatistic(e.Context.QualifiedName);
     }
 
-    private Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e) => _userTrackingService.TrackUser(e.Guild.Id, e.User, e.Guild, sender);
+    private async Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
+    {
+        await _userTrackingService.TrackUser(e.Guild.Id, e.User, e.Guild, sender);
+        await _auditLogService.MessageReactionAdded(e);
+    }
+
 
     private Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e) =>
         _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
@@ -279,6 +285,7 @@ public class BotMain : IHostedService
         {
             Task.Run(async () =>
             {
+                await _auditLogService.ModalSubmitted(e);
                 switch (e.Interaction.Data.CustomId)
                 {
                     case InteractionIds.Modals.PetNameEntry:

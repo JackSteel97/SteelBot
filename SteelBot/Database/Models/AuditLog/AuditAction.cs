@@ -8,5 +8,7 @@ public enum AuditAction
     JoinedGuild,
     LeftGuild,
     UsedCommand,
-    UsedSlashCommand
+    UsedSlashCommand,
+    ModalSubmitted,
+    MessageReactionAdded
 }
