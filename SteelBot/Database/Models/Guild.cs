@@ -29,9 +29,8 @@ public class Guild
 
     [MaxLength(255)] public string Name { get; set; }
 
-    public bool DadJokesEnabled { get; set; }
-
     public bool DadJokesEnabled { get; set; } 
+    
     /// <summary>
     ///     Empty constructor.
     ///     Do not remove - used by EF.
