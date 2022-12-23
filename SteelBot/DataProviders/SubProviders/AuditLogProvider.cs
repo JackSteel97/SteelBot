@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models.AuditLog;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,7 +35,7 @@ public class AuditLogProvider
         }
     }
 
-    public async Task<IEnumerable<Audit>> GetLatest(ulong guildId)
+    public async Task<Audit[]> GetLatest(ulong guildId, AuditAction? action = null)
     {
         _logger.LogInformation("Reading the latest entries in the audit log for Guild {GuildId}", guildId);
 
@@ -44,7 +43,7 @@ public class AuditLogProvider
         await using (var db = await _dbContextFactory.CreateDbContextAsync())
         {
             results = await db.AuditLog
-                .Where(a => a.WhereGuildId == guildId)
+                .Where(a => a.WhereGuildId == guildId && (action == null || a.What == action))
                 .OrderByDescending(a=>a.When)
                 .Take(50)
                 .ToArrayAsync();
