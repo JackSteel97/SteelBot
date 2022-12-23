@@ -19,10 +19,7 @@ public static class UserExtensions
     {
         bool levelIncreased = LevellingMaths.UpdateLevel(user.CurrentLevel, user.TotalXp, out int newLevel);
 
-        if (levelIncreased)
-        {
-            user.CurrentLevel = newLevel;
-        }
+        if (levelIncreased) user.CurrentLevel = newLevel;
         return levelIncreased;
     }
 
@@ -81,6 +78,7 @@ public static class UserExtensions
             user.LastActivity = now;
             UpdateActivityStreak(user, now);
         }
+
         UpdateVoiceCounters(user, now, availablePets, scalingFactor, shouldEarnVideoXp);
         UpdateStartTimes(user, newState, now, scalingFactor);
     }
@@ -95,7 +93,7 @@ public static class UserExtensions
         }
         else
         {
-            int daysSinceLastActive = (today.DayNumber - user.LastActiveDay.DayNumber);
+            int daysSinceLastActive = today.DayNumber - user.LastActiveDay.DayNumber;
             switch (daysSinceLastActive)
             {
                 case > 1:
@@ -110,7 +108,6 @@ public static class UserExtensions
                     break;
             }
         }
-       
     }
 
     private static void UpdateStartTimes(User user, DiscordVoiceState newState, DateTime now, double scalingFactor)
@@ -187,12 +184,8 @@ public static class UserExtensions
             IncrementVideoXp(user, durationDifference, availablePets, scalingFactor, shouldEarnVideoXp);
         }
 
-        if (user.AfkStartTime.HasValue)
-        {
-            user.TimeSpentAfk += now - user.AfkStartTime.Value;
-            // No XP earned or lost for AFK.
-        }
-
+        if (user.AfkStartTime.HasValue) user.TimeSpentAfk += now - user.AfkStartTime.Value;
+        // No XP earned or lost for AFK.
         if (user.DisconnectedStartTime.HasValue)
         {
             var durationDifference = now - user.DisconnectedStartTime.Value;
@@ -257,10 +250,7 @@ public static class UserExtensions
         if (disconnectedXpPerMin > 0)
         {
             var duration = disconnectedDuration;
-            if (disconnectedDuration > _maxDisconnectedDuration)
-            {
-                duration = _maxDisconnectedDuration;
-            }
+            if (disconnectedDuration > _maxDisconnectedDuration) duration = _maxDisconnectedDuration;
             ulong xpEarned = LevellingMaths.GetDurationXp(duration, TimeSpan.Zero, disconnectedXpPerMin);
             user.DisconnectedXpEarned += xpEarned;
         }

@@ -14,10 +14,7 @@ public class PuzzleTwentyFour : IQuestion
     private const string _answerText = "Ankle Biters";
 
     /// <inheritdoc />
-    public int GetPuzzleNumber()
-    {
-        return _number;
-    }
+    public int GetPuzzleNumber() => _number;
 
     /// <inheritdoc />
     public void PostPuzzle(PuzzleCommandAction request)
@@ -42,8 +39,5 @@ public class PuzzleTwentyFour : IQuestion
     }
 
     /// <inheritdoc />
-    public bool AnswerIsCorrect(string answer)
-    {
-        return string.Equals(answer, _answerText, StringComparison.OrdinalIgnoreCase);
-    }
+    public bool AnswerIsCorrect(string answer) => string.Equals(answer, _answerText, StringComparison.OrdinalIgnoreCase);
 }

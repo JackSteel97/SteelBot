@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.Stats.Services;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Threading.Tasks;
 
@@ -10,16 +8,14 @@ namespace SteelBot.Channels.Stats;
 
 public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
 {
-    private readonly StatsLeaderboardService _statsLeaderboardService;
-    private readonly StatsCardService _statsCardService;
     private readonly StatsAdminService _statsAdminService;
-    private readonly IHub _sentry;
+    private readonly StatsCardService _statsCardService;
+    private readonly StatsLeaderboardService _statsLeaderboardService;
 
     /// <inheritdoc />
     public StatsCommandsChannel(StatsLeaderboardService statsLeaderboardService,
         StatsCardService statsCardService,
         StatsAdminService statsAdminService,
-        IHub sentry,
         ILogger<StatsCommandsChannel> logger,
         ErrorHandlingService errorHandlingService,
         string channelLabel = "Stats")
@@ -28,7 +24,6 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
         _statsLeaderboardService = statsLeaderboardService;
         _statsCardService = statsCardService;
         _statsAdminService = statsAdminService;
-        _sentry = sentry;
     }
 
     /// <inheritdoc />
@@ -36,7 +31,6 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction("Stats", message.Action.ToString(), message.Member, message.Guild);
             switch (message.Action)
             {
                 case StatsCommandActionType.ViewMetricLeaderboard:
@@ -58,9 +52,8 @@ public class StatsCommandsChannel : BaseChannel<StatsCommandAction>
                     await _statsAdminService.Velocity(message);
                     break;
             }
-            transaction.Finish();
         }).FireAndForget(ErrorHandlingService);
-        
+
         return ValueTask.CompletedTask;
     }
 }

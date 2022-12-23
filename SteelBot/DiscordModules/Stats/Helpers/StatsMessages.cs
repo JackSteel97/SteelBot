@@ -73,45 +73,32 @@ public static class StatsMessages
     public static DiscordMessageBuilder StatsCard(User user, string username, MemoryStream imageStream)
     {
         var embedBuilder = GetStatsEmbed(user, username);
-        
+
         string fileName = $"{user.DiscordId}_stats.png";
         return new DiscordMessageBuilder()
             .AddFile(fileName, imageStream)
             .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
     }
 
-    public static DiscordMessageBuilder NoEntriesLeaderboard()
-    {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("You cannot get a leaderboard with no entries."));
-    }
-    
-    public static DiscordMessageBuilder TopNumberTooLarge()
-    {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("We can't fetch that many results!"));
-    }
+    public static DiscordMessageBuilder NoEntriesLeaderboard() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("You cannot get a leaderboard with no entries."));
 
-    public static DiscordMessageBuilder NoUsersWithStatistics()
-    {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no users with statistics in this server yet."));
-    }
+    public static DiscordMessageBuilder TopNumberTooLarge() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("We can't fetch that many results!"));
+
+    public static DiscordMessageBuilder NoUsersWithStatistics() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no users with statistics in this server yet."));
 
     public static DiscordEmbedBuilder LeaderboardBase(string guildName, string metric = null)
     {
         string metricInsert = string.Empty;
-        if (!string.IsNullOrWhiteSpace(metric))
-        {
-            metricInsert = $" {metric.Transform(To.TitleCase)}";
-        }
-        
+        if (!string.IsNullOrWhiteSpace(metric)) metricInsert = $" {metric.Transform(To.TitleCase)}";
+
         return new DiscordEmbedBuilder()
             .WithColor(EmbedGenerator.InfoColour)
             .WithTitle($"{guildName}{metricInsert} Leaderboard")
             .WithTimestamp(DateTime.Now);
     }
 
-    public static StringBuilder AppendUserStats(StringBuilder builder, User user, int index)
-    {
-        return builder
+    public static StringBuilder AppendUserStats(StringBuilder builder, User user, int index) =>
+        builder
             .Append("**__").Append((index + 1).Ordinalize()).Append("__** - <@").Append(user.DiscordId).Append("> - **Level** `").Append(user.CurrentLevel).AppendLine("`")
             .AppendLine("**__Messages__**")
             .Append(EmojiConstants.Numbers.HashKeycap).Append(" - **Count** `").AppendFormat("{0:N0}", user.MessageCount).AppendLine("`")
@@ -123,38 +110,25 @@ public static class StatsMessages
             .Append(EmojiConstants.Objects.MutedSpeaker).Append(" - **Muted** `").Append(user.TimeSpentMuted.Humanize(3)).AppendLine("`")
             .Append(EmojiConstants.Objects.BellWithSlash).Append(" - **Deafened** `").Append(user.TimeSpentDeafened.Humanize(3)).AppendLine("`")
             .Append(EmojiConstants.Symbols.Zzz).Append(" - **AFK** `").Append(user.TimeSpentAfk.Humanize(3)).AppendLine("`");
-    }
 
-    public static StringBuilder AppendUserMetric(StringBuilder builder, User user, int index, string[] metricValues)
-    {
-        return builder
+    public static StringBuilder AppendUserMetric(StringBuilder builder, User user, int index, string[] metricValues) =>
+        builder
             .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
             .AppendLine(metricValues[index]);
-    }
 
-    public static DiscordMessageBuilder NoEntriesToShow()
-    {
-        return new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("There are no entries to show"));
-    }
+    public static DiscordMessageBuilder NoEntriesToShow() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Info("There are no entries to show"));
 
-    public static StringBuilder AppendLeaderboardEntry(StringBuilder builder, User user, int index)
-    {
-        return builder
+    public static StringBuilder AppendLeaderboardEntry(StringBuilder builder, User user, int index) =>
+        builder
             .Append("**").Append((index + 1).Ordinalize()).Append("** - ").AppendLine(user.DiscordId.ToUserMention())
             .Append("Level `").Append(user.CurrentLevel).AppendLine("`")
             .Append("XP `").Append(user.TotalXp.ToString("N0")).AppendLine("`");
-    }
 
-    public static DiscordMessageBuilder MissingMetric()
-    {
-        return new DiscordMessageBuilder()
+    public static DiscordMessageBuilder MissingMetric() =>
+        new DiscordMessageBuilder()
             .WithEmbed(EmbedGenerator.Warning($"Missing metric parameter.{Environment.NewLine}Available Metrics are: {AllowedMetrics.MetricsList}"));
-    }
 
-    public static DiscordMessageBuilder InvalidMetric(string invalidMetric)
-    {
-        return new DiscordMessageBuilder()
+    public static DiscordMessageBuilder InvalidMetric(string invalidMetric) =>
+        new DiscordMessageBuilder()
             .WithEmbed(EmbedGenerator.Warning($"Invalid metric: {Formatter.Bold(invalidMetric)}{Environment.NewLine}Available Metrics are: {AllowedMetrics.MetricsList}"));
-
-    }
 }

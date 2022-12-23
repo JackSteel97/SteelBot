@@ -1,8 +1,6 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.AuditLog.Services;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System;
 using System.Threading.Tasks;
@@ -11,12 +9,11 @@ namespace SteelBot.Channels.Voice;
 
 public class VoiceStateChannel : BaseChannel<VoiceStateChange>
 {
-    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
-    private readonly UserTrackingService _userTrackingService;
+    private readonly AuditLogService _auditLogService;
     private readonly DiscordClient _discordClient;
     private readonly UserLockingService _userLockingService;
-    private readonly IHub _sentry;
-    private readonly AuditLogService _auditLogService;
+    private readonly UserTrackingService _userTrackingService;
+    private readonly VoiceStateChangeHandler _voiceStateChangeHandler;
 
     public VoiceStateChannel(ILogger<VoiceStateChannel> logger,
         ErrorHandlingService errorHandlingService,
@@ -24,44 +21,26 @@ public class VoiceStateChannel : BaseChannel<VoiceStateChange>
         UserTrackingService userTrackingService,
         DiscordClient discordClient,
         UserLockingService userLockingService,
-        IHub sentry,
         AuditLogService auditLogService) : base(logger, errorHandlingService, "Voice State")
     {
         _voiceStateChangeHandler = voiceStateChangeHandler;
         _userTrackingService = userTrackingService;
         _discordClient = discordClient;
         _userLockingService = userLockingService;
-        _sentry = sentry;
         _auditLogService = auditLogService;
     }
 
     protected override async ValueTask HandleMessage(VoiceStateChange message)
     {
-        var transaction = _sentry.StartTransaction("Voice State", "Handle State Change");
-        _sentry.ConfigureScope(scope =>
-        {
-            scope.User = SentryHelpers.GetSentryUser(message.User, message.Guild);
-            scope.Transaction = transaction;
-        });
-
         try
         {
             await _auditLogService.VoiceStateChange(message);
             using (await _userLockingService.WriterLockAsync(message.Guild.Id, message.User.Id))
             {
-                var trackUserSpan = transaction.StartChild("Track User");
                 if (await _userTrackingService.TrackUser(message.Guild.Id, message.User, message.Guild,
                         _discordClient))
-                {
-                    var stateChangeSpan = trackUserSpan.StartChild("Handle Voice State Change");
-                    await _voiceStateChangeHandler.HandleVoiceStateChange(message, stateChangeSpan);
-                    stateChangeSpan.Finish();
-                }
-
-                trackUserSpan.Finish();
+                    await _voiceStateChangeHandler.HandleVoiceStateChange(message);
             }
-
-            transaction.Finish(SpanStatus.Ok);
         }
         catch (Exception e)
         {

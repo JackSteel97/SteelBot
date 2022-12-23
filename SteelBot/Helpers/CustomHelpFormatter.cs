@@ -15,11 +15,11 @@ namespace SteelBot.Helpers;
 
 public class CustomHelpFormatter : BaseHelpFormatter
 {
-    private readonly DiscordEmbedBuilder _embed;
-    private readonly StringBuilder _content;
-    private readonly ILogger<CustomHelpFormatter> _logger;
-    private readonly DataHelpers _dataHelpers;
     private readonly string _botPrefix;
+    private readonly StringBuilder _content;
+    private readonly DataHelpers _dataHelpers;
+    private readonly DiscordEmbedBuilder _embed;
+    private readonly ILogger<CustomHelpFormatter> _logger;
     private bool _hasSubCommands;
 
     public CustomHelpFormatter(CommandContext ctx, ILogger<CustomHelpFormatter> logger, DataHelpers dataHelpers, AppConfigurationService appConfigurationService) : base(ctx)
@@ -46,11 +46,9 @@ public class CustomHelpFormatter : BaseHelpFormatter
             for (int i = 0; i < command.Aliases.Count; i++)
             {
                 aliasesBuilder.Append(Formatter.InlineCode(command.Aliases[i]));
-                if (i != command.Aliases.Count - 1)
-                {
-                    aliasesBuilder.Append(" | ");
-                }
+                if (i != command.Aliases.Count - 1) aliasesBuilder.Append(" | ");
             }
+
             _embed.AddField("Aliases", aliasesBuilder.ToString());
         }
 
@@ -62,7 +60,6 @@ public class CustomHelpFormatter : BaseHelpFormatter
         }
 
         foreach (var overload in command.Overloads)
-        {
             if (overload.Arguments.Count > 0)
             {
                 usageBuilder.Append($"`{_botPrefix}{command.QualifiedName.Transform(To.TitleCase)} ");
@@ -75,22 +72,21 @@ public class CustomHelpFormatter : BaseHelpFormatter
                         argumentStarter = "[";
                         argumentEnder = "]";
                     }
+
                     if (argument.Type == typeof(string) && !argument.IsCatchAll)
                     {
                         // Wrap with quotes.
                         argumentEnder += '"';
                         argumentStarter = $"\"{argumentStarter}";
                     }
+
                     usageBuilder.Append($"{argumentStarter}{argument.Name.Humanize().Transform(To.TitleCase)}{argumentEnder} ");
                 }
+
                 usageBuilder.Append("`\n");
             }
-        }
 
-        if (usageBuilder.Length > 0)
-        {
-            _embed.AddField("Usage", usageBuilder.ToString());
-        }
+        if (usageBuilder.Length > 0) _embed.AddField("Usage", usageBuilder.ToString());
 
         return this;
     }
@@ -100,10 +96,7 @@ public class CustomHelpFormatter : BaseHelpFormatter
         var childCommands = new StringBuilder();
         foreach (var cmd in cmds)
         {
-            if (cmd.Name.Equals("help", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+            if (cmd.Name.Equals("help", StringComparison.OrdinalIgnoreCase)) continue;
 
             if (cmd is CommandGroup cmdGroup)
             {
@@ -116,10 +109,7 @@ public class CustomHelpFormatter : BaseHelpFormatter
             }
         }
 
-        if (childCommands.Length > 0)
-        {
-            _embed.AddField("Sub-Commands", childCommands.ToString());
-        }
+        if (childCommands.Length > 0) _embed.AddField("Sub-Commands", childCommands.ToString());
 
         return this;
     }
@@ -127,14 +117,11 @@ public class CustomHelpFormatter : BaseHelpFormatter
     public override CommandHelpMessage Build()
     {
         _embed.WithColor(EmbedGenerator.InfoColour)
-            .WithAuthor(name: Context.Client.CurrentUser.Username, iconUrl: Context.Client.CurrentUser.AvatarUrl)
+            .WithAuthor(Context.Client.CurrentUser.Username, iconUrl: Context.Client.CurrentUser.AvatarUrl)
             .WithTitle("Help")
             .WithDescription(_content.ToString());
 
-        if (_hasSubCommands)
-        {
-            _embed.WithFooter("Specify a command for more information.");
-        }
+        if (_hasSubCommands) _embed.WithFooter("Specify a command for more information.");
 
         return new CommandHelpMessage(embed: _embed.Build());
     }

@@ -1,5 +1,4 @@
 ﻿using SteelBot.Channels.Puzzle;
-using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Puzzle.Questions;
 

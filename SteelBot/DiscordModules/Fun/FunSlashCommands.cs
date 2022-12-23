@@ -2,6 +2,7 @@
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
+using SteelBot.Database.Models;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
@@ -13,16 +14,21 @@ using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Fun;
 
-[SlashCommandGroup("Fun", "Commands for fun"), SlashRequireGuild]
+[SlashCommandGroup("Fun", "Commands for fun")]
+[SlashRequireGuild]
 public class FunSlashCommands : InstrumentedApplicationCommandModule
 {
-    private readonly FunProvider _funProvider;
-    private ExceptionProvider _exceptionProvider;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly ExceptionProvider _exceptionProvider;
+    private readonly FunProvider _funProvider;
     private readonly ILogger<FunSlashCommands> _logger;
 
     /// <inheritdoc />
-    public FunSlashCommands(FunProvider funProvider, ILogger<FunSlashCommands> logger, ErrorHandlingService errorHandlingService, ExceptionProvider exceptionProvider, AuditLogService auditLogService) : base(logger, auditLogService)
+    public FunSlashCommands(FunProvider funProvider,
+        ILogger<FunSlashCommands> logger,
+        ErrorHandlingService errorHandlingService,
+        ExceptionProvider exceptionProvider,
+        AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _funProvider = funProvider;
         _logger = logger;
@@ -57,7 +63,7 @@ public class FunSlashCommands : InstrumentedApplicationCommandModule
         {
             _logger.LogWarning("Failed to generate a motivational quote");
             responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("Failed to generate a motivational quote, please try again later.")), true);
-            await _exceptionProvider.InsertException(new Database.Models.ExceptionLog(new NullReferenceException("Motivational Quote stream cannot be null"), nameof(GetInspiration)));
+            await _exceptionProvider.InsertException(new ExceptionLog(new NullReferenceException("Motivational Quote stream cannot be null"), nameof(GetInspiration)));
         }
     }
 }

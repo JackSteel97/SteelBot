@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers;
 
@@ -25,10 +24,7 @@ public static class PaginationHelper
         {
             listBuilder = itemFormatter(listBuilder, item, index);
 
-            if (index != lastIndex)
-            {
-                listBuilder.AppendLine();
-            }
+            if (index != lastIndex) listBuilder.AppendLine();
 
             if ((index % itemsPerPage == pageTickOverIndexRemainder && index > 0) || index == lastIndex)
             {
@@ -40,13 +36,18 @@ public static class PaginationHelper
                 pages.Add(new Page(embed: embedPage));
                 listBuilder.Clear();
             }
+
             index++;
         }
 
         return pages;
     }
 
-    public static List<PageWithSelectionButtons> GenerateEmbedPages<TItem>(DiscordEmbedBuilder baseEmbed, IEnumerable<TItem> items, int itemsPerPage, Func<StringBuilder, TItem, StringBuilder> itemAppender, Func<TItem, DiscordComponent> componentGetter)
+    public static List<PageWithSelectionButtons> GenerateEmbedPages<TItem>(DiscordEmbedBuilder baseEmbed,
+        IEnumerable<TItem> items,
+        int itemsPerPage,
+        Func<StringBuilder, TItem, StringBuilder> itemAppender,
+        Func<TItem, DiscordComponent> componentGetter)
     {
         var chunkedItems = items.Chunk(itemsPerPage).ToList();
 
@@ -62,10 +63,7 @@ public static class PaginationHelper
             foreach (var item in chunk)
             {
                 listBuilder = itemAppender(listBuilder, item);
-                if (itemIndex != lastIndex)
-                {
-                    listBuilder.AppendLine();
-                }
+                if (itemIndex != lastIndex) listBuilder.AppendLine();
                 components.Add(componentGetter(item));
                 ++itemIndex;
             }

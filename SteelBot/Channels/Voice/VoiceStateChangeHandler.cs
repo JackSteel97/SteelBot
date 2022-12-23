@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles.Helpers;
@@ -14,11 +13,11 @@ namespace SteelBot.Channels.Voice;
 
 public class VoiceStateChangeHandler
 {
-    private readonly ILogger<VoiceStateChangeHandler> _logger;
-    private readonly UsersProvider _usersCache;
-    private readonly PetsDataHelper _petsDataHelper;
     private readonly LevelMessageSender _levelMessageSender;
+    private readonly ILogger<VoiceStateChangeHandler> _logger;
+    private readonly PetsDataHelper _petsDataHelper;
     private readonly RankRolesProvider _rankRolesProvider;
+    private readonly UsersProvider _usersCache;
 
     public VoiceStateChangeHandler(ILogger<VoiceStateChangeHandler> logger,
         UsersProvider usersCache,
@@ -33,51 +32,35 @@ public class VoiceStateChangeHandler
         _rankRolesProvider = rankRolesProvider;
     }
 
-    public async Task HandleVoiceStateChange(VoiceStateChange changeArgs, ISpan transaction)
+    public async Task HandleVoiceStateChange(VoiceStateChange changeArgs)
     {
-        var getUsersInChannelSpan = transaction.StartChild("Get Users In Channel");
-        (var usersInChannel, var usersInOldChannel) = GetUsersInChannel(changeArgs);
-        getUsersInChannelSpan.Finish();
+        var (usersInChannel, usersInOldChannel) = GetUsersInChannel(changeArgs);
 
-        var scalingSpan = transaction.StartChild("Get Xp Scaling Factors");
         (double baseScalingFactor, bool shouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
-        scalingSpan.Finish();
 
-        var updateUserSpan = transaction.StartChild("Update User Stats");
         // Update this user
         await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
-        updateUserSpan.Finish();
 
-        var updateOtherUsersSpan = transaction.StartChild("Update Other Users In Channel");
-        await UpdateOtherUsersStats(changeArgs, usersInChannel, updateOtherUsersSpan);
+        await UpdateOtherUsersStats(changeArgs, usersInChannel);
         // If this user is changing channels to a new channel we need to update the stats of the users in the previous channel too if there are any.
-        await UpdateOtherUsersStats(changeArgs, usersInOldChannel, updateOtherUsersSpan);
-        updateOtherUsersSpan.Finish();
+        await UpdateOtherUsersStats(changeArgs, usersInOldChannel);
     }
 
-    private async Task UpdateOtherUsersStats(VoiceStateChange changeArgs, IReadOnlyList<DiscordMember> usersInChannel, ISpan updateOtherUsersSpan)
+    private async Task UpdateOtherUsersStats(VoiceStateChange changeArgs, IReadOnlyList<DiscordMember> usersInChannel)
     {
         foreach (var userInChannel in usersInChannel)
-        {
             if (userInChannel.Id != changeArgs.User.Id && !userInChannel.IsBot)
             {
-                var otherScalingSpan = updateOtherUsersSpan.StartChild("Get Xp Scaling Factors", $"For {userInChannel.Username}");
                 (double otherBaseScalingFactor, bool otherShouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, userInChannel.Id, usersInChannel);
-                otherScalingSpan.Finish();
 
-                var otherUpdateSpan = updateOtherUsersSpan.StartChild("Update User Stats", $"For {userInChannel.Username}");
                 await UpdateUser(changeArgs.Guild, userInChannel, userInChannel.VoiceState, otherBaseScalingFactor, otherShouldEarnVideo);
-                otherUpdateSpan.Finish();
             }
-        }
     }
 
     private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)
     {
         if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor, shouldEarnVideoXp))
-        {
             await RankRoleShared.UserLevelledUp(guild.Id, user.Id, guild, _rankRolesProvider, _usersCache, _levelMessageSender);
-        }
     }
 
     private static (IReadOnlyList<DiscordMember> usersInNewChannel, IReadOnlyList<DiscordMember> usersInOldChannel) GetUsersInChannel(VoiceStateChange changeArgs)
@@ -90,38 +73,26 @@ public class VoiceStateChangeHandler
             var usersInOldChannel = GetUsersInOldChannel(changeArgs);
             return (usersInNewChannel, usersInOldChannel);
         }
-        
+
         if (changeArgs.After != null && changeArgs.After.Channel != null)
-        {
             // Joining voice channel.
             usersInChannel = GetUsersInNewChannel(changeArgs);
-        }
         else if (changeArgs.Before != null && changeArgs.Before.Channel != null)
-        {
             // Leaving voice channel.
             usersInChannel = GetUsersInOldChannel(changeArgs);
-        }
         else
-        {
             usersInChannel = new List<DiscordMember>();
-        }
 
         return (usersInChannel, new List<DiscordMember>());
     }
-    
-    private static IReadOnlyList<DiscordMember> GetUsersInNewChannel(VoiceStateChange changeArgs)
-    {
-        return changeArgs.After.Channel.Users;
-    }
+
+    private static IReadOnlyList<DiscordMember> GetUsersInNewChannel(VoiceStateChange changeArgs) => changeArgs.After.Channel.Users;
 
     private static IReadOnlyList<DiscordMember> GetUsersInOldChannel(VoiceStateChange changeArgs)
     {
         var usersInChannelJustBeforeLeaving = new List<DiscordMember>();
         usersInChannelJustBeforeLeaving.AddRange(changeArgs.Before.Channel.Users);
-        if (changeArgs.Guild.Members.TryGetValue(changeArgs.User.Id, out var thisMember))
-        {
-            usersInChannelJustBeforeLeaving.Add(thisMember);
-        }
+        if (changeArgs.Guild.Members.TryGetValue(changeArgs.User.Id, out var thisMember)) usersInChannelJustBeforeLeaving.Add(thisMember);
 
         return usersInChannelJustBeforeLeaving;
     }
@@ -140,21 +111,14 @@ public class VoiceStateChangeHandler
 
         bool shouldEarnVideoXp = false;
         foreach (var userInChannel in usersInChannel)
-        {
             if (userInChannel.Id != currentUserId && !userInChannel.IsBot)
             {
                 ++otherUsersCount;
                 if (_usersCache.TryGetUser(guildId, userInChannel.Id, out var otherUser) && otherUser.CurrentLevel > 0)
-                {
                     scalingFactor += Math.Min((double)otherUser.CurrentLevel / thisUser.CurrentLevel, 5);
-                }
 
-                if (userInChannel?.VoiceState?.IsSelfVideo == true)
-                {
-                    shouldEarnVideoXp = true;
-                }
+                if (userInChannel?.VoiceState?.IsSelfVideo == true) shouldEarnVideoXp = true;
             }
-        }
 
         if (otherUsersCount > 0)
         {
@@ -164,7 +128,8 @@ public class VoiceStateChangeHandler
             scalingFactor += groupBonus;
         }
 
-        _logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor} and ShouldEarnVideoXp is {ShouldEarnVideoXp}", currentUserId, guildId, scalingFactor, shouldEarnVideoXp);
+        _logger.LogInformation("Voice Xp scaling factor for User {UserId} in Guild {GuildId} is {ScalingFactor} and ShouldEarnVideoXp is {ShouldEarnVideoXp}", currentUserId, guildId, scalingFactor,
+            shouldEarnVideoXp);
 
         return (scalingFactor, shouldEarnVideoXp);
     }
@@ -186,10 +151,7 @@ public class VoiceStateChangeHandler
             {
                 // Streak changed.
                 ulong xpEarned = copyOfUser.UpdateStreakXp();
-                if (xpEarned > 0)
-                {
-                    _levelMessageSender.SendStreakMessage(guild, discordUser, copyOfUser.ConsecutiveDaysActive, xpEarned);
-                }
+                if (xpEarned > 0) _levelMessageSender.SendStreakMessage(guild, discordUser, copyOfUser.ConsecutiveDaysActive, xpEarned);
             }
 
             if (scalingFactor != 0)
@@ -200,10 +162,7 @@ public class VoiceStateChangeHandler
 
             await _usersCache.UpdateUser(guildId, copyOfUser);
 
-            if (levelIncreased)
-            {
-                _levelMessageSender.SendLevelUpMessage(guild, discordUser);
-            }
+            if (levelIncreased) _levelMessageSender.SendLevelUpMessage(guild, discordUser);
         }
 
         return levelIncreased;

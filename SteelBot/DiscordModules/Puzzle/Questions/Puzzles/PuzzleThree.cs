@@ -8,15 +8,15 @@ namespace SteelBot.DiscordModules.Puzzle.Questions.Puzzles;
 public class PuzzleThree : IQuestion
 {
     private const int _number = 3;
-    private const string _puzzleText = ".--. .- .-. ... . .. -. - -.--. .----. ..-. # -.-. -.- .----. --..-- / .--. .- .-. ... . .. -. - -.--. .----. .---- ----- ..--.- --- -.. -.. .----. --..-- / -- .- - .... .-.-.- ... --.- .-. - -.--. ..--- ..... -.... -.--.- -.--.- -.--.-";
+
+    private const string _puzzleText =
+        ".--. .- .-. ... . .. -. - -.--. .----. ..-. # -.-. -.- .----. --..-- / .--. .- .-. ... . .. -. - -.--. .----. .---- ----- ..--.- --- -.. -.. .----. --..-- / -- .- - .... .-.-.- ... --.- .-. - -.--. ..--- ..... -.... -.--.- -.--.- -.--.-";
+
     private const string _clueText = "Just Sayin'";
     private const string _answerText = "15";
 
     /// <inheritdoc />
-    public int GetPuzzleNumber()
-    {
-        return _number;
-    }
+    public int GetPuzzleNumber() => _number;
 
     /// <inheritdoc />
     public void PostPuzzle(PuzzleCommandAction request)
@@ -35,8 +35,5 @@ public class PuzzleThree : IQuestion
     }
 
     /// <inheritdoc />
-    public bool AnswerIsCorrect(string answer)
-    {
-        return string.Equals(answer, _answerText, StringComparison.OrdinalIgnoreCase);
-    }
+    public bool AnswerIsCorrect(string answer) => string.Equals(answer, _answerText, StringComparison.OrdinalIgnoreCase);
 }

@@ -18,10 +18,10 @@ namespace SteelBot.DiscordModules.Stats.Services;
 
 public class StatsAdminService
 {
-    private readonly UsersProvider _usersProvider;
+    private readonly AppConfigurationService _appConfigurationService;
     private readonly PetsDataHelper _petsDataHelper;
     private readonly UserLockingService _userLockingService;
-    private readonly AppConfigurationService _appConfigurationService;
+    private readonly UsersProvider _usersProvider;
 
     public StatsAdminService(UsersProvider usersProvider, PetsDataHelper petsDataHelper, UserLockingService userLockingService, AppConfigurationService appConfigurationService)
     {

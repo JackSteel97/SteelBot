@@ -15,10 +15,7 @@ public class MetricChoiceProvider : IChoiceProvider
     {
         var options = AllowedMetrics.Metrics;
         var choices = new List<DiscordApplicationCommandOptionChoice>(options.Count);
-        foreach (string option in options)
-        {
-            choices.Add(new DiscordApplicationCommandOptionChoice(option.Titleize(), option));
-        }
+        foreach (string option in options) choices.Add(new DiscordApplicationCommandOptionChoice(option.Titleize(), option));
 
         return Task.FromResult(choices.AsEnumerable());
     }

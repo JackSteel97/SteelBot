@@ -14,7 +14,7 @@ public class PetBonus
     public double Value { get; set; }
 
     /// <summary>
-    /// Shallow clones the bonus, <see cref="Pet"/> is nullified during this to prevent accidental alterations.
+    ///     Shallow clones the bonus, <see cref="Pet" /> is nullified during this to prevent accidental alterations.
     /// </summary>
     /// <returns>A clone of the bonus</returns>
     public PetBonus Clone()
@@ -26,7 +26,7 @@ public class PetBonus
 
     public bool HasNegativeEffect()
     {
-        var isPenaltyType = BonusType.IsPenalty();
+        bool isPenaltyType = BonusType.IsPenalty();
         return (isPenaltyType && Value > 0) || (!isPenaltyType && Value <= 0);
     }
 
@@ -35,10 +35,8 @@ public class PetBonus
         if (BonusType == BonusType.PetSlots) return;
         double increase = Math.Abs(Value * 0.02);
         if (BonusType.IsPenalty() && HasNegativeEffect())
-        {
             // Penalty bonuses should get better by levelling.
             increase *= -1;
-        }
         Value += increase;
     }
 }

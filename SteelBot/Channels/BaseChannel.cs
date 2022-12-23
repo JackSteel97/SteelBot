@@ -11,12 +11,12 @@ namespace SteelBot.Channels;
 public abstract class BaseChannel<TMsg>
 {
     private const int _maxCapacity = 10_000;
-    protected bool Started = false;
 
     private readonly Channel<TMsg> _channel;
+    private readonly string _label;
     private readonly ILogger _logger;
     protected readonly ErrorHandlingService ErrorHandlingService;
-    private readonly string _label;
+    protected bool Started;
 
     protected BaseChannel(ILogger logger, ErrorHandlingService errorHandlingService, string channelLabel = "Unlabelled")
     {
@@ -24,11 +24,7 @@ public abstract class BaseChannel<TMsg>
         ErrorHandlingService = errorHandlingService;
         _label = channelLabel;
 
-        var options = new BoundedChannelOptions(_maxCapacity)
-        {
-            FullMode = BoundedChannelFullMode.Wait,
-            SingleReader = true,
-        };
+        var options = new BoundedChannelOptions(_maxCapacity) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true };
 
         _channel = Channel.CreateBounded<TMsg>(options);
     }

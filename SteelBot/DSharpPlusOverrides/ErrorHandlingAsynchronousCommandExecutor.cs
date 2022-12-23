@@ -1,7 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Executors;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ public sealed class ErrorHandlingAsynchronousCommandExecutor : ICommandExecutor
 {
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<ErrorHandlingAsynchronousCommandExecutor> _logger;
+
     public ErrorHandlingAsynchronousCommandExecutor(ErrorHandlingService errorHandlingService, ILogger<ErrorHandlingAsynchronousCommandExecutor> logger)
     {
         _errorHandlingService = errorHandlingService;
@@ -21,10 +21,7 @@ public sealed class ErrorHandlingAsynchronousCommandExecutor : ICommandExecutor
 
     public Task ExecuteAsync(CommandContext ctx)
     {
-        _logger.BeginScope(new Dictionary<string, object>
-        {
-            ["Action"] = ctx.Command.QualifiedName
-        });
+        _logger.BeginScope(new Dictionary<string, object> { ["Action"] = ctx.Command.QualifiedName });
 
         // Don't wait for completion but also catch failed tasks.
         ctx.CommandsNext.ExecuteCommandAsync(ctx).FireAndForget(_errorHandlingService);

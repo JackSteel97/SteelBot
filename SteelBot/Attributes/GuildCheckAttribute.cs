@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace SteelBot.Attributes;
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = false)]
 public sealed class GuildCheckAttribute : CheckBaseAttribute
 {
-    private HashSet<ulong> AllowedServerIds { get; set; }
+    private HashSet<ulong> AllowedServerIds { get; }
 
     public GuildCheckAttribute(params ulong[] allowedServerIds)
     {

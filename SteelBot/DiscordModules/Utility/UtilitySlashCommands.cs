@@ -14,18 +14,22 @@ namespace SteelBot.DiscordModules.Utility;
 [SlashRequireGuild]
 public class UtilitySlashCommands : InstrumentedApplicationCommandModule
 {
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<UtilitySlashCommands> _logger;
     private readonly UtilityService _utilityService;
 
     /// <inheritdoc />
-    public UtilitySlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, ILogger<UtilitySlashCommands> logger, UtilityService utilityService, AuditLogService auditLogService) : base(logger, auditLogService)
+    public UtilitySlashCommands(ErrorHandlingService errorHandlingService,
+        CancellationService cancellationService,
+        ILogger<UtilitySlashCommands> logger,
+        UtilityService utilityService,
+        AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _cancellationService = cancellationService;
         _logger = logger;
-        _utilityService = utilityService;   
+        _utilityService = utilityService;
     }
 
     [SlashCommand("ChannelsInfo", "Displays various information about this server's channels")]
@@ -80,7 +84,8 @@ public class UtilitySlashCommands : InstrumentedApplicationCommandModule
     [SlashCooldown(2, 60, SlashCooldownBucketType.Guild)]
     [SlashRequireUserPermissions(Permissions.Administrator)]
     public async Task Speak(InteractionContext context,
-        [Option("Channel", "Channel to send the message to")] DiscordChannel channel,
+        [Option("Channel", "Channel to send the message to")]
+        DiscordChannel channel,
         [Option("Title", "Embed Title")] string title,
         [Option("Content", "Embed content")] string content,
         [Option("Footer", "Embed footer")] string footerContent = "")
@@ -91,15 +96,9 @@ public class UtilitySlashCommands : InstrumentedApplicationCommandModule
 
     [SlashCommand("Shutdown", "Gracefully shuts down the bot")]
     [SlashRequireOwner]
-    public Task Shutdown(InteractionContext context)
-    {
-        return _utilityService.Shutdown(new InteractionResponder(context, _errorHandlingService), (DiscordMember)context.User);
-    }
+    public Task Shutdown(InteractionContext context) => _utilityService.Shutdown(new InteractionResponder(context, _errorHandlingService), (DiscordMember)context.User);
 
     [SlashCommand("Logs", "Send the current log file")]
     [SlashRequireOwner]
-    public Task GetLogs(InteractionContext context)
-    {
-        return _utilityService.GetLogs(new InteractionResponder(context, _errorHandlingService));
-    }
+    public Task GetLogs(InteractionContext context) => _utilityService.GetLogs(new InteractionResponder(context, _errorHandlingService));
 }

@@ -1,44 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
-using Sentry;
 using SteelBot.Database;
 using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
-using SteelBot.Helpers.Sentry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using User = SteelBot.Database.Models.Users.User;
 
 namespace SteelBot.DataProviders.SubProviders;
 
 public class UsersProvider
 {
-    private readonly ILogger<UsersProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
-    private readonly IHub _sentry;
-    private readonly AsyncReaderWriterLock _lock = new AsyncReaderWriterLock();
+    private readonly AsyncReaderWriterLock _lock = new();
+    private readonly ILogger<UsersProvider> _logger;
 
     /// <summary>
-    /// Indexed on the user's discord id & guild id
-    /// The same user has one entry per server they are in.
+    ///     Indexed on the user's discord id & guild id
+    ///     The same user has one entry per server they are in.
     /// </summary>
     private readonly Dictionary<(ulong guildId, ulong userId), User> _usersByDiscordIdAndServer;
 
-    public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory, IHub sentry)
+    public UsersProvider(ILogger<UsersProvider> logger, IDbContextFactory<SteelBotContext> contextFactory)
     {
         _logger = logger;
         _dbContextFactory = contextFactory;
-        _sentry = sentry;
 
         _usersByDiscordIdAndServer = LoadUserData();
     }
 
     private Dictionary<(ulong, ulong), User> LoadUserData()
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("StartUp", nameof(LoadUserData));
         var result = new Dictionary<(ulong, ulong), User>();
         using (_lock.WriterLock())
         {
@@ -53,9 +47,7 @@ public class UsersProvider
             }
         }
 
-        transaction.Finish();
         return result;
-
     }
 
     public async Task<bool> ToggleLevelMention(ulong guildId, ulong userId)
@@ -108,15 +100,13 @@ public class UsersProvider
     }
 
     /// <summary>
-    /// Inserts a new user for a given guild.
-    /// If the user already exists no insert is performed.
+    ///     Inserts a new user for a given guild.
+    ///     If the user already exists no insert is performed.
     /// </summary>
     /// <param name="guildId">The Discord id of the guild.</param>
     /// <param name="user">The internal model for the </param>
     public async Task InsertUser(ulong guildId, User user)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(InsertUser));
-
         using (await _lock.WriterLockAsync())
         {
             if (!BotKnowsUserCore(guildId, user.DiscordId))
@@ -131,23 +121,15 @@ public class UsersProvider
                 }
 
                 if (writtenCount > 0)
-                {
                     _usersByDiscordIdAndServer.Add((guildId, user.DiscordId), user);
-                }
                 else
-                {
-                    _logger.LogError("Writing User {UserId} in Guild {GuildId} to the database inserted no entities. The internal cache was not changed.", user.DiscordId, guildId);
-                }
+                    _logger.LogError("Writing User {UserId} in Guild {GuildId} to the database inserted no entities. The internal cache was not changed", user.DiscordId, guildId);
             }
         }
-
-        transaction.Finish();
     }
 
     public async Task RemoveUser(ulong guildId, ulong userId)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(RemoveUser));
-
         using (await _lock.WriterLockAsync())
         {
             if (TryGetUserCore(guildId, userId, out var user))
@@ -162,23 +144,15 @@ public class UsersProvider
                 }
 
                 if (writtenCount > 0)
-                {
                     _usersByDiscordIdAndServer.Remove((guildId, userId));
-                }
                 else
-                {
-                    _logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed.", userId, guildId);
-                }
+                    _logger.LogError("Deleting User [{UserId}] in Guild [{GuildId}] from the database altered no entities. The internal cache was not changed", userId, guildId);
             }
         }
-
-        transaction.Finish();
     }
 
     public async Task UpdateRankRole(ulong guildId, ulong userId, RankRole newRole)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateRankRole));
-
         if (TryGetUser(guildId, userId, out var user))
         {
             _logger.LogInformation("Updating RankRole for User {UserId} in Guild {GuildId} to {NewRole}", userId, guildId, newRole?.RoleName);
@@ -191,14 +165,10 @@ public class UsersProvider
 
             await UpdateUser(guildId, copyOfUser);
         }
-
-        transaction.Finish();
     }
 
     public async Task UpdateUser(ulong guildId, User newUser)
     {
-        var transaction = _sentry.StartSpanOnCurrentTransaction(nameof(UpdateUser));
-
         using (await _lock.WriterLockAsync())
         {
             int writtenCount;
@@ -218,16 +188,10 @@ public class UsersProvider
 
             // Both audit and actual written?
             if (writtenCount > 1)
-            {
                 _usersByDiscordIdAndServer[(guildId, newUser.DiscordId)] = newUser;
-            }
             else
-            {
-                _logger.LogError("Updating User {UserId} in Guild {GuildId} did not alter any entities. The internal cache was not changed.", newUser.DiscordId, guildId);
-            }
+                _logger.LogError("Updating User {UserId} in Guild {GuildId} did not alter any entities. The internal cache was not changed", newUser.DiscordId, guildId);
         }
-
-        transaction.Finish();
     }
 
     private bool BotKnowsUserCore(ulong guildId, ulong userId) => _usersByDiscordIdAndServer.ContainsKey((guildId, userId));

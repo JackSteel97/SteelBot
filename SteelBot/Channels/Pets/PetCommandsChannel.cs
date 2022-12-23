@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.Pets.Services;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Threading.Tasks;
 
@@ -10,12 +8,11 @@ namespace SteelBot.Channels.Pets;
 
 public class PetCommandsChannel : BaseChannel<PetCommandAction>
 {
-    private readonly PetSearchingService _searchingService;
+    private readonly PetBonusViewingService _bonusViewingService;
     private readonly PetManagementService _managementService;
+    private readonly PetSearchingService _searchingService;
     private readonly PetTreatingService _treatingService;
     private readonly PetViewingService _viewingService;
-    private readonly PetBonusViewingService _bonusViewingService;
-    private readonly IHub _sentry;
 
     /// <inheritdoc />
     public PetCommandsChannel(PetSearchingService searchingService,
@@ -23,7 +20,6 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         PetTreatingService treatingService,
         PetViewingService viewingService,
         PetBonusViewingService bonusViewingService,
-        IHub sentry,
         ILogger<PetCommandsChannel> logger,
         ErrorHandlingService errorHandlingService,
         string channelLabel = "Pets") : base(logger, errorHandlingService, channelLabel)
@@ -33,7 +29,6 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         _treatingService = treatingService;
         _viewingService = viewingService;
         _bonusViewingService = bonusViewingService;
-        _sentry = sentry;
     }
 
     /// <inheritdoc />
@@ -41,7 +36,6 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction("Pets", message.Action.ToString(), message.Member, message.Guild);
             switch (message.Action)
             {
                 case PetCommandActionType.Search:
@@ -63,10 +57,8 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
                     _bonusViewingService.View(message);
                     break;
             }
-
-            transaction.Finish();
         }).FireAndForget(ErrorHandlingService);
-        
+
         return ValueTask.CompletedTask;
     }
 }

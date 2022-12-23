@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models;
-using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.Helpers.Algorithms;
 using System;
@@ -13,9 +12,9 @@ namespace SteelBot.DiscordModules.Triggers;
 
 public class TriggerDataHelper
 {
-    private readonly ILogger<TriggerDataHelper> _logger;
     private readonly DataCache _cache;
-    private readonly Random _random = new Random();
+    private readonly ILogger<TriggerDataHelper> _logger;
+    private readonly Random _random = new();
 
     public TriggerDataHelper(DataCache cache, ILogger<TriggerDataHelper> logger)
     {
@@ -27,13 +26,9 @@ public class TriggerDataHelper
     {
         _logger.LogInformation($"Request to create Trigger [{trigger.TriggerText}] in Guild [{guildId}] received");
         if (_cache.Guilds.TryGetGuild(guildId, out var guild))
-        {
             trigger.GuildRowId = guild.RowId;
-        }
         else
-        {
             _logger.LogWarning($"Could not create Trigger because Guild [{guildId}] does not exist.");
-        }
         if (_cache.Users.TryGetUser(guildId, creatorId, out var user))
         {
             trigger.CreatorRowId = user.RowId;
@@ -72,6 +67,7 @@ public class TriggerDataHelper
                 return true;
             }
         }
+
         return false;
     }
 
@@ -87,10 +83,7 @@ public class TriggerDataHelper
             if (!string.IsNullOrWhiteSpace(jokeResult))
             {
                 string response = $"Hi {Formatter.Italic(jokeResult)}, I'm Dad!";
-                if (_random.Next(10) == 1)
-                {
-                    response = Uwuifyer.Uwuify(response);
-                }
+                if (_random.Next(10) == 1) response = Uwuifyer.Uwuify(response);
                 await channel.SendMessageAsync(response);
             }
         }
@@ -99,9 +92,7 @@ public class TriggerDataHelper
     public async Task HandleNewMessage(ulong guildId, DiscordChannel channel, string messageContent)
     {
         if (_cache.Triggers.TryGetGuildTriggers(guildId, out var triggers))
-        {
             foreach (var trigger in triggers.Values)
-            {
                 if (!trigger.ChannelDiscordId.HasValue || trigger.ChannelDiscordId.GetValueOrDefault() == channel.Id)
                 {
                     // Can activate this trigger in this channel.
@@ -114,8 +105,6 @@ public class TriggerDataHelper
                         await _cache.Triggers.IncrementActivations(guildId, trigger);
                     }
                 }
-            }
-        }
 
         await CheckForDadJoke(channel, messageContent);
     }

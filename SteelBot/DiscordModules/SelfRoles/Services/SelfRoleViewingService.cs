@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
+using SteelBot.Database.Models;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Roles.Helpers;
@@ -16,8 +17,8 @@ namespace SteelBot.DiscordModules.Roles.Services;
 public class SelfRoleViewingService
 {
     private readonly ConfigDataHelper _configDataHelper;
-    private readonly SelfRolesProvider _selfRolesProvider;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly SelfRolesProvider _selfRolesProvider;
 
     public SelfRoleViewingService(ConfigDataHelper configDataHelper,
         SelfRolesProvider selfRolesProvider,
@@ -39,8 +40,8 @@ public class SelfRoleViewingService
         string prefix = _configDataHelper.GetPrefix(guild.Id);
 
         var builder = new DiscordEmbedBuilder()
-                .WithColor(EmbedGenerator.InfoColour)
-                .WithTitle("Available Self Roles");
+            .WithColor(EmbedGenerator.InfoColour)
+            .WithTitle("Available Self Roles");
 
         var rolesBuilder = new StringBuilder();
         rolesBuilder.Append(Formatter.Bold("All")).AppendLine(" - Join all available Self Roles");
@@ -51,16 +52,13 @@ public class SelfRoleViewingService
         responder.Respond(new DiscordMessageBuilder().AddEmbed(builder.Build()));
     }
 
-    private static void AppendSelfRoles(DiscordGuild guild, List<Database.Models.SelfRole> allRoles, StringBuilder rolesBuilder)
+    private static void AppendSelfRoles(DiscordGuild guild, List<SelfRole> allRoles, StringBuilder rolesBuilder)
     {
         foreach (var role in allRoles)
         {
             var discordRole = guild.Roles.Values.FirstOrDefault(r => r.Name.Equals(role.RoleName, StringComparison.OrdinalIgnoreCase));
             string roleMention = role.RoleName;
-            if (discordRole != default)
-            {
-                roleMention = discordRole.Mention;
-            }
+            if (discordRole != default) roleMention = discordRole.Mention;
             rolesBuilder.Append(Formatter.Bold(roleMention));
             rolesBuilder.Append(" - ").AppendLine(role.Description);
         }
