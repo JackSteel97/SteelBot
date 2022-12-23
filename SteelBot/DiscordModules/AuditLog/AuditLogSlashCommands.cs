@@ -18,12 +18,11 @@ namespace SteelBot.DiscordModules.AuditLog;
 public class AuditLogSlashCommands : InstrumentedApplicationCommandModule
 {
     private readonly AuditLogProvider _auditLogProvider;
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<AuditLogSlashCommands> _logger;
+    private readonly ErrorHandlingService _errorHandlingService;
 
     /// <inheritdoc />
-    public AuditLogSlashCommands(AuditLogService auditLogService, AuditLogProvider auditLogProvider, ILogger<AuditLogSlashCommands> logger, ErrorHandlingService errorHandlingService) : base(logger,
-        auditLogService)
+    public AuditLogSlashCommands(AuditLogService auditLogService, AuditLogProvider auditLogProvider, ILogger<AuditLogSlashCommands> logger, ErrorHandlingService errorHandlingService) : base(logger, auditLogService)
     {
         _auditLogProvider = auditLogProvider;
         _logger = logger;
@@ -31,8 +30,8 @@ public class AuditLogSlashCommands : InstrumentedApplicationCommandModule
     }
 
     [SlashCommand("ViewLatest", "View the latest 50 entries in the audit log")]
-    [SlashCooldown(5, 60, SlashCooldownBucketType.Guild)]
-    public async Task ViewLatest(InteractionContext context, [Option("OfType", "Type of audit to filter by")] AuditAction? action = null)
+    [SlashCooldown(1, 60, SlashCooldownBucketType.Guild)]
+    public async Task ViewLatest(InteractionContext context, [Option("ForType", "Type of audit to filter")] AuditAction? action = null)
     {
         var responder = new InteractionResponder(context, _errorHandlingService);
         var audits = await _auditLogProvider.GetLatest(context.Guild.Id, action);
@@ -42,7 +41,9 @@ public class AuditLogSlashCommands : InstrumentedApplicationCommandModule
             var pages = AuditLogViewingService.BuildViewResponsePages(context.Guild, audits);
             responder.RespondPaginated(pages);
         }
-        
-        responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no results for this query")));
+        else
+        {
+            responder.Respond(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("There are no results for this query")));
+        }
     }
 }
