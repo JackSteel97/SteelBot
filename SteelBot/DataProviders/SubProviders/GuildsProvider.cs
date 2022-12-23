@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models;
@@ -73,6 +74,21 @@ public class GuildsProvider
 
             await UpdateGuild(copyOfGuild);
         }
+    }
+
+    public async Task<bool> ToggleDadJoke(ulong guildId)
+    {
+        bool currentSet = false;
+        if (TryGetGuild(guildId, out var guild))
+        {
+            var copyOfGuild = guild.Clone();
+            copyOfGuild.DadJokesEnabled = !copyOfGuild.DadJokesEnabled;
+            currentSet = copyOfGuild.DadJokesEnabled;
+
+            await UpdateGuild(copyOfGuild);
+        }
+
+        return currentSet;
     }
 
     public async Task<bool> ToggleDadJoke(ulong guildId)
