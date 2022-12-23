@@ -40,7 +40,6 @@ using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels;
 using SteelBot.Channels.Message;
 using SteelBot.Channels.Pets;
@@ -69,7 +68,6 @@ using SteelBot.Exceptions;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using SteelBot.Services.Configuration;
 using System;
@@ -85,7 +83,7 @@ public class BotMain : IHostedService
 #else
     private readonly ulong? _testServerId = null;
 #endif
-    
+
     private readonly AppConfigurationService _appConfigurationService;
     private readonly ILogger<BotMain> _logger;
     private readonly DiscordClient _client;
@@ -98,7 +96,6 @@ public class BotMain : IHostedService
     private readonly CancellationService _cancellationService;
     private readonly UserLockingService _userLockingService;
     private readonly ErrorHandlingAsynchronousCommandExecutor _commandExecutor;
-    private readonly IHub _sentry;
     private readonly AuditLogService _auditLogService;
     private readonly UserTrackingService _userTrackingService;
 
@@ -125,7 +122,6 @@ public class BotMain : IHostedService
         SelfRoleManagementChannel selfRoleManagementChannel,
         RankRoleManagementChannel rankRoleManagementChannel,
         ErrorHandlingAsynchronousCommandExecutor commandExecutor,
-        IHub sentry,
         PetCommandsChannel petCommandsChannel,
         StatsCommandsChannel statsCommandsChannel,
         PuzzleCommandsChannel puzzleCommandsChannel,
@@ -146,7 +142,6 @@ public class BotMain : IHostedService
         _selfRoleManagementChannel = selfRoleManagementChannel;
         _rankRoleManagementChannel = rankRoleManagementChannel;
         _commandExecutor = commandExecutor;
-        _sentry = sentry;
         _petCommandsChannel = petCommandsChannel;
         _statsCommandsChannel = statsCommandsChannel;
         _puzzleCommandsChannel = puzzleCommandsChannel;
@@ -186,12 +181,9 @@ public class BotMain : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Shutdown", nameof(StopAsync));
         await ShutdownDiscordClient();
         await _dataHelpers.Stats.DisconnectAllUsers();
         _cancellationService.Cancel();
-        transaction.Finish();
-        await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
     }
 
     private async Task ShutdownDiscordClient()
@@ -222,23 +214,30 @@ public class BotMain : IHostedService
         _client.GuildAvailable += HandleGuildAvailable;
         _client.GuildMemberAdded += HandleGuildMemberAdded;
         _client.MessageReactionAdded += HandleMessageReactionAdded;
+        
         _commands.CommandErrored += HandleCommandErrored;
         _commands.CommandExecuted += HandleCommandExecuted;
-        
+
         _slashCommands.SlashCommandErrored += HandleSlashCommandErrored;
         _slashCommands.SlashCommandInvoked += HandleSlashCommandInvoked;
-        
+        _slashCommands.SlashCommandExecuted += HandleSlashCommandExecuted;
     }
 
-    private Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
+    private async Task HandleSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
     {
-        return _userTrackingService.TrackUser(e.Guild.Id, e.User, e.Guild, sender);
+        Interlocked.Increment(ref _appConfigurationService.HandledCommands);
+        await _cache.CommandStatistics.IncrementCommandStatistic(e.Context.QualifiedName);
     }
 
-    private Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e)
+    private async Task HandleMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
     {
-        return _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
+        await _userTrackingService.TrackUser(e.Guild.Id, e.User, e.Guild, sender);
+        await _auditLogService.MessageReactionAdded(e);
     }
+
+
+    private Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e) =>
+        _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
 
     private Task HandleSlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs args)
     {
@@ -251,13 +250,15 @@ public class BotMain : IHostedService
                 {
                     if (failedCheck is SlashCooldownAttribute cooldown)
                     {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"This `{args.Context.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
+                        await args.Context.Member.SendMessageAsync(EmbedGenerator
+                            .Warning(
+                                $"This `{args.Context.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
                         return;
                     }
+
                     if (failedCheck is SlashRequireUserPermissionsAttribute userPerms)
                     {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                        await args.Context.Member.SendMessageAsync(EmbedGenerator
                             .Warning($"This `{args.Context.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
                         return;
                     }
@@ -265,7 +266,7 @@ public class BotMain : IHostedService
             }
             else if (args.Exception is CommandRateLimitedException rateLimitedException)
             {
-                await args.Context.Member.SendMessageAsync(embed: EmbedGenerator.Warning(rateLimitedException.Message));
+                await args.Context.Member.SendMessageAsync(EmbedGenerator.Warning(rateLimitedException.Message));
             }
             else
             {
@@ -284,7 +285,7 @@ public class BotMain : IHostedService
         {
             Task.Run(async () =>
             {
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleModalSubmitted), e.Interaction.Data.CustomId, e.Interaction.User, e.Interaction.Guild);
+                await _auditLogService.ModalSubmitted(e);
                 switch (e.Interaction.Data.CustomId)
                 {
                     case InteractionIds.Modals.PetNameEntry:
@@ -294,23 +295,16 @@ public class BotMain : IHostedService
                         await _dataHelpers.Pets.HandleMovingPet(e);
                         break;
                 }
-                transaction.Finish();
             }).FireAndForget(_errorHandlingService);
         }
-        
+
 
         return Task.CompletedTask;
     }
 
     private void InitCommands()
     {
-        _commands = _client.UseCommandsNext(new CommandsNextConfiguration()
-        {
-            Services = _serviceProvider,
-            PrefixResolver = ResolvePrefix,
-            EnableDms = false,
-            CommandExecutor = _commandExecutor
-        });
+        _commands = _client.UseCommandsNext(new CommandsNextConfiguration { Services = _serviceProvider, PrefixResolver = ResolvePrefix, EnableDms = false, CommandExecutor = _commandExecutor });
 
         _commands.RegisterCommands<ConfigCommands>();
         _commands.RegisterCommands<RolesCommands>();
@@ -326,10 +320,7 @@ public class BotMain : IHostedService
 
         _commands.SetHelpFormatter<CustomHelpFormatter>();
 
-        _slashCommands = _client.UseSlashCommands(new SlashCommandsConfiguration()
-        {
-            Services = _serviceProvider,
-        });
+        _slashCommands = _client.UseSlashCommands(new SlashCommandsConfiguration { Services = _serviceProvider });
 
         _slashCommands.RegisterCommands<MiscSlashCommands>(_testServerId);
         _slashCommands.RegisterCommands<StatsSlashCommands>(_testServerId);
@@ -343,21 +334,18 @@ public class BotMain : IHostedService
         _slashCommands.RegisterCommands<AuditLogSlashCommands>(_testServerId);
     }
 
-    private void InitInteractivity()
-    {
+    private void InitInteractivity() =>
         // Enable interactivity and set default options.
         _client.UseInteractivity(new InteractivityConfiguration
         {
             // Default pagination behaviour to just ignore the reactions.
             PaginationBehaviour = PaginationBehaviour.WrapAround,
-
             AckPaginationButtons = true,
             ButtonBehavior = ButtonPaginationBehavior.DeleteButtons,
 
             // Default timeout for other actions to 2 minutes.
-            Timeout = TimeSpan.FromMinutes(2),
+            Timeout = TimeSpan.FromMinutes(2)
         });
-    }
 
     private Task<int> ResolvePrefix(DiscordMessage msg)
     {
@@ -370,11 +358,9 @@ public class BotMain : IHostedService
         try
         {
             if (args?.Guild != null && args.Author.Id != client.CurrentUser.Id && !PrefixResolver.IsPrefixedCommand(args.Message, _client.CurrentUser, _dataHelpers.Config))
-            {
                 // TODO: Atomic updates for user properties rather than updating the entire object.
                 // Only non-commands count for message stats.
                 await _incomingMessageChannel.Write(new IncomingMessage(args), _cancellationService.Token);
-            }
         }
         catch (Exception ex)
         {
@@ -386,10 +372,7 @@ public class BotMain : IHostedService
     {
         try
         {
-            if (args?.Guild != null && args.User.Id != client.CurrentUser.Id)
-            {
-                await _voiceStateChannel.Write(new VoiceStateChange(args), _cancellationService.Token);
-            }
+            if (args?.Guild != null && args.User.Id != client.CurrentUser.Id) await _voiceStateChannel.Write(new VoiceStateChange(args), _cancellationService.Token);
         }
         catch (Exception ex)
         {
@@ -401,11 +384,8 @@ public class BotMain : IHostedService
     {
         try
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleJoiningGuild), "Create Guild");
-
             var joinedGuild = new Guild(args.Guild.Id, args.Guild.Name);
             await _cache.Guilds.UpsertGuild(joinedGuild);
-            transaction.Finish();
         }
         catch (Exception ex)
         {
@@ -419,15 +399,9 @@ public class BotMain : IHostedService
         {
             try
             {
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleLeavingGuild), "Delete Guild");
-
                 var usersInGuild = _cache.Users.GetUsersInGuild(args.Guild.Id);
-                foreach (var user in usersInGuild)
-                {
-                    await _cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
-                }
+                foreach (var user in usersInGuild) await _cache.Users.RemoveUser(args.Guild.Id, user.DiscordId);
                 await _cache.Guilds.RemoveGuild(args.Guild.Id);
-                transaction.Finish();
             }
             catch (Exception ex)
             {
@@ -448,13 +422,15 @@ public class BotMain : IHostedService
                 {
                     if (failedCheck is CooldownAttribute cooldown)
                     {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
-                            .Warning($"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
+                        await args.Context.Member.SendMessageAsync(EmbedGenerator
+                            .Warning(
+                                $"The `{args.Command.QualifiedName}` command can only be executed **{"time".ToQuantity(cooldown.MaxUses)}** every **{cooldown.Reset.Humanize()}**{Environment.NewLine}{Environment.NewLine}**{cooldown.GetRemainingCooldown(args.Context).Humanize()}** remaining"));
                         return;
                     }
+
                     if (failedCheck is RequireUserPermissionsAttribute userPerms)
                     {
-                        await args.Context.Member.SendMessageAsync(embed: EmbedGenerator
+                        await args.Context.Member.SendMessageAsync(EmbedGenerator
                             .Warning($"The `{args.Command.QualifiedName}` command can only be executed by users with **{userPerms.Permissions}** permission"));
                         return;
                     }
@@ -462,10 +438,10 @@ public class BotMain : IHostedService
             }
             else if (args.Exception is CommandRateLimitedException rateLimitedException)
             {
-                await args.Context.Member.SendMessageAsync(embed: EmbedGenerator.Warning(rateLimitedException.Message));
+                await args.Context.Member.SendMessageAsync(EmbedGenerator.Warning(rateLimitedException.Message));
             }
             else if (args.Exception.Message.Equals("Could not find a suitable overload for the command.", StringComparison.OrdinalIgnoreCase)
-                || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))
+                     || args.Exception.Message.Equals("No matching subcommands were found, and this group is not executable.", StringComparison.OrdinalIgnoreCase))
             {
                 var helpCmd = _commands.FindCommand("help", out string _);
                 var helpCtx = _commands.CreateContext(args.Context.Message, args.Context.Prefix, helpCmd, args.Command.QualifiedName);
@@ -473,13 +449,12 @@ public class BotMain : IHostedService
             }
             else if (args.Exception.Message.Equals("Specified command was not found.", StringComparison.OrdinalIgnoreCase))
             {
-                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Primary(_appConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
-                return;
+                await args.Context.Channel.SendMessageAsync(EmbedGenerator.Primary(_appConfigurationService.Application.UnknownCommandResponse, "Unknown Command"));
             }
             else
             {
                 await _errorHandlingService.Log(args.Exception, args.Context.Message.Content);
-                await args.Context.Channel.SendMessageAsync(embed: EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
+                await args.Context.Channel.SendMessageAsync(EmbedGenerator.Error("Something went wrong.\nMy creator has been notified."));
             }
         }).FireAndForget(_errorHandlingService);
         return Task.CompletedTask;
@@ -489,12 +464,8 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleCommandExecuted), "Increment Statistics");
-
             Interlocked.Increment(ref _appConfigurationService.HandledCommands);
             await _cache.CommandStatistics.IncrementCommandStatistic(args.Command.QualifiedName);
-
-            transaction.Finish();
         }).FireAndForget(_errorHandlingService);
 
         return Task.CompletedTask;
@@ -504,13 +475,11 @@ public class BotMain : IHostedService
     {
         Task.Run(async () =>
         {
-            var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildAvailable), "Update Guild Name");
             await _cache.Guilds.UpdateGuildName(e.Guild.Id, e.Guild.Name);
-            transaction.Finish();
         }).FireAndForget(_errorHandlingService);
         return Task.CompletedTask;
     }
-    
+
     private async Task HandleGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs args)
     {
         try
@@ -530,17 +499,11 @@ public class BotMain : IHostedService
             try
             {
                 await _auditLogService.LeftGuild(args);
-                var transaction = _sentry.StartNewConfiguredTransaction(nameof(HandleGuildMemberRemoved), "Remove Member");
-
                 using (await _userLockingService.WriterLockAsync(args.Guild.Id, args.Member.Id))
                 {
-                    var span = transaction.StartChild("Delete User", args.Member.Username);
                     // Delete user data.
                     await _cache.Users.RemoveUser(args.Guild.Id, args.Member.Id);
-                    span.Finish();
                 }
-
-                transaction.Finish();
             }
             catch (Exception ex)
             {

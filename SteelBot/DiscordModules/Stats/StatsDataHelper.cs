@@ -20,9 +20,9 @@ public class StatsDataHelper
         _logger = logger;
         _petsDataHelper = petsDataHelper;
     }
-    
+
     /// <summary>
-    /// Called during app shutdown to make sure no timings get carried too long during downtime.
+    ///     Called during app shutdown to make sure no timings get carried too long during downtime.
     /// </summary>
     public async Task DisconnectAllUsers()
     {
@@ -35,7 +35,7 @@ public class StatsDataHelper
             var availablePets = _petsDataHelper.GetAvailablePets(user.Guild.DiscordId, user.DiscordId, out _);
 
             // Pass null to reset all start times.
-            copyOfUser.VoiceStateChange(newState: null, availablePets, scalingFactor: 1, shouldEarnVideoXp: true, updateLastActivity: false);
+            copyOfUser.VoiceStateChange(null, availablePets, 1, true, false);
             copyOfUser.UpdateLevel();
             await _cache.Users.UpdateUser(user.Guild.DiscordId, copyOfUser);
             await _petsDataHelper.PetXpUpdated(availablePets, default, copyOfUser.CurrentLevel); // Default - Don't try to send level up messages

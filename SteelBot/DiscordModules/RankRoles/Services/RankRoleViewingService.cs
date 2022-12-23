@@ -11,12 +11,13 @@ using SteelBot.Services;
 using System;
 
 namespace SteelBot.DiscordModules.RankRoles.Services;
+
 public class RankRoleViewingService
 {
+    private readonly DiscordClient _discordClient;
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<RankRoleViewingService> _logger;
     private readonly RankRolesProvider _rankRolesProvider;
-    private readonly ErrorHandlingService _errorHandlingService;
-    private readonly DiscordClient _discordClient;
 
     public RankRoleViewingService(ILogger<RankRoleViewingService> logger, RankRolesProvider rankRolesProvider, ErrorHandlingService errorHandlingService, DiscordClient discordClient)
     {

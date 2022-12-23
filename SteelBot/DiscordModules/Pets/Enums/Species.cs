@@ -55,8 +55,7 @@ public enum Species
     Beaver,
     RedPanda,
 
-    [Description("T-Rex")]
-    Rex,
+    [Description("T-Rex")] Rex,
 
     Phoenix,
     Pegasus,
@@ -86,8 +85,7 @@ public enum Species
     BlackPhantomTetra,
     Doge,
 
-    [Description("Yoda-ling")]
-    Yodaling,
+    [Description("Yoda-ling")] Yodaling,
     Rock,
     Ogre,
     Kraken,
@@ -97,11 +95,13 @@ public enum Species
 
 public static class SpeciesExtensions
 {
+    private static readonly TimeSpan _year = TimeSpan.FromDays(365.25);
+    private static readonly TimeSpan _month = TimeSpan.FromDays(30);
+    private static readonly TimeSpan _week = TimeSpan.FromDays(7);
     public static string GetName(this Species species) => species.Humanize().Transform(To.TitleCase);
 
-    public static Rarity GetRarity(this Species species)
-    {
-        return species switch
+    public static Rarity GetRarity(this Species species) =>
+        species switch
         {
             Species.Dog => Rarity.Common,
             Species.Cat => Rarity.Common,
@@ -186,14 +186,9 @@ public static class SpeciesExtensions
             Species.Dodo => Rarity.Rare,
             _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
         };
-    }
 
-    private static readonly TimeSpan _year = TimeSpan.FromDays(365.25);
-    private static readonly TimeSpan _month = TimeSpan.FromDays(30);
-    private static readonly TimeSpan _week = TimeSpan.FromDays(7);
-    public static TimeSpan GetMaxStartingAge(this Species species)
-    {
-        return species switch
+    public static TimeSpan GetMaxStartingAge(this Species species) =>
+        species switch
         {
             Species.Dog => 8 * _year,
             Species.Cat => 8 * _year,
@@ -279,11 +274,10 @@ public static class SpeciesExtensions
 
             _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined max starting age for {species}")
         };
-    }
 
     public static List<BodyPart> GetBodyParts(this Species species)
     {
-        var bodyParts = new List<BodyPart>() { BodyPart.Head, BodyPart.Eyes, BodyPart.Body };
+        var bodyParts = new List<BodyPart> { BodyPart.Head, BodyPart.Eyes, BodyPart.Body };
 
         // Get additional parts.
         switch (species)
@@ -518,7 +512,6 @@ public static class SpeciesExtensions
             case Species.Dodo:
                 bodyParts.Add(BodyPart.Wings);
                 break;
-
         }
 
         return bodyParts;

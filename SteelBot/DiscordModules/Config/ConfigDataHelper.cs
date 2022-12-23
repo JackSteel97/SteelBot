@@ -7,9 +7,9 @@ namespace SteelBot.DiscordModules.Config;
 
 public class ConfigDataHelper
 {
-    private readonly ILogger<ConfigDataHelper> _logger;
-    private readonly DataCache _cache;
     private readonly AppConfigurationService _appConfigurationService;
+    private readonly DataCache _cache;
+    private readonly ILogger<ConfigDataHelper> _logger;
 
     public ConfigDataHelper(ILogger<ConfigDataHelper> logger, DataCache cache, AppConfigurationService appConfigurationService)
     {
@@ -38,7 +38,7 @@ public class ConfigDataHelper
 
     public Task<bool> ToggleLevelMentions(ulong guildId, ulong userId)
     {
-        _logger.LogInformation("Toggling Level Mentions for User {UserId} in Guild {GuildId}",userId, guildId);
+        _logger.LogInformation("Toggling Level Mentions for User {UserId} in Guild {GuildId}", userId, guildId);
         return _cache.Users.ToggleLevelMention(guildId, userId);
     }
 

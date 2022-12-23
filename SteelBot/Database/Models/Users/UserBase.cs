@@ -40,8 +40,5 @@ public abstract class UserBase
         }
     }
 
-    public long GetAverageMessageLength()
-    {
-        return MessageCount > 0 ? Convert.ToInt64(TotalMessageLength) / MessageCount : 0;
-    }
+    public long GetAverageMessageLength() => MessageCount > 0 ? Convert.ToInt64(TotalMessageLength) / MessageCount : 0;
 }

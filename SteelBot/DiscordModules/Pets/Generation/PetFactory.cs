@@ -1,9 +1,7 @@
-﻿using Humanizer;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
-using SteelBot.Helpers.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +45,7 @@ public class PetFactory
         var size = PetGenerationShared.GetRandomEnumValue<Size>();
         var birthDate = GetBirthDate(species);
 
-        var pet = new Pet()
+        var pet = new Pet
         {
             Rarity = finalRarity,
             Species = species,
@@ -88,25 +86,13 @@ public class PetFactory
 
         int random = RandomNumberGenerator.GetInt32(maxBound);
 
-        if (random <= mythicalBound)
-        {
-            return Rarity.Mythical;
-        }
+        if (random <= mythicalBound) return Rarity.Mythical;
 
-        if (random <= legendaryBound)
-        {
-            return Rarity.Legendary;
-        }
+        if (random <= legendaryBound) return Rarity.Legendary;
 
-        if (random <= epicBound)
-        {
-            return Rarity.Epic;
-        }
+        if (random <= epicBound) return Rarity.Epic;
 
-        if (random <= rareBound)
-        {
-            return Rarity.Rare;
-        }
+        if (random <= rareBound) return Rarity.Rare;
 
         return random <= UncommonBound ? Rarity.Uncommon : Rarity.Common;
     }
@@ -135,10 +121,7 @@ public class PetFactory
 
         for (int i = currentRarity + 1; i <= maxRarity; ++i)
         {
-            if (!MathsHelper.TrueWithProbability(rarityUpChance))
-            {
-                break;
-            }
+            if (!MathsHelper.TrueWithProbability(rarityUpChance)) break;
 
             finalRarity = i;
         }
@@ -167,7 +150,7 @@ public class PetFactory
         var attributes = new List<PetAttribute>(bodyParts.Count);
         foreach (var part in bodyParts)
         {
-            var attribute = new PetAttribute() { Pet = pet, Name = part.ToString(), Description = GenerateColourCombo() };
+            var attribute = new PetAttribute { Pet = pet, Name = part.ToString(), Description = GenerateColourCombo() };
             attributes.Add(attribute);
         }
 
@@ -185,11 +168,9 @@ public class PetFactory
 
             return $"{primary} and {secondary} {mixing} patterned";
         }
-        else
-        {
-            // Has one colour.
-            var colour = PetGenerationShared.GetRandomEnumValue<Colour>();
-            return colour.ToString();
-        }
+
+        // Has one colour.
+        var colour = PetGenerationShared.GetRandomEnumValue<Colour>();
+        return colour.ToString();
     }
 }

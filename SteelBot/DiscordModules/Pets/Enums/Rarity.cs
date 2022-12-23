@@ -22,25 +22,22 @@ public static class RarityExtensions
     private const string _mythical = "#DC2367";
     private const string _corrupt = "#B80F0A";
 
-    public static string GetColour(this Rarity rarity, bool isCorrupt)
-    {
-        return isCorrupt
+    public static string GetColour(this Rarity rarity, bool isCorrupt) =>
+        isCorrupt
             ? _corrupt
             : rarity switch
-        {
-            Rarity.Common => _common,
-            Rarity.Uncommon => _uncommon,
-            Rarity.Rare => _rare,
-            Rarity.Epic => _epic,
-            Rarity.Legendary => _legendary,
-            Rarity.Mythical => _mythical,
-            _ => throw new ArgumentOutOfRangeException(nameof(rarity)),
-        };
-    }
+            {
+                Rarity.Common => _common,
+                Rarity.Uncommon => _uncommon,
+                Rarity.Rare => _rare,
+                Rarity.Epic => _epic,
+                Rarity.Legendary => _legendary,
+                Rarity.Mythical => _mythical,
+                _ => throw new ArgumentOutOfRangeException(nameof(rarity))
+            };
 
-    public static int GetStartingBonusCount(this Rarity rarity)
-    {
-        return rarity switch
+    public static int GetStartingBonusCount(this Rarity rarity) =>
+        rarity switch
         {
             Rarity.Common => 1,
             Rarity.Uncommon => 1,
@@ -50,11 +47,9 @@ public static class RarityExtensions
             Rarity.Mythical => 5,
             _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
         };
-    }
 
-    public static double GetMaxBonusValue(this Rarity rarity)
-    {
-        return rarity switch
+    public static double GetMaxBonusValue(this Rarity rarity) =>
+        rarity switch
         {
             Rarity.Common => 0.2,
             Rarity.Uncommon => 0.3,
@@ -64,5 +59,4 @@ public static class RarityExtensions
             Rarity.Mythical => 1,
             _ => throw new ArgumentOutOfRangeException(nameof(rarity), $"Value {rarity} not valid")
         };
-    }
 }

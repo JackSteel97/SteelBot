@@ -3,16 +3,17 @@
 namespace SteelBot.Database.Models.Users;
 
 /// <summary>
-/// Serves as a historical audit entry whenever anything changes on the user.
+///     Serves as a historical audit entry whenever anything changes on the user.
 /// </summary>
 public class UserAudit : UserBase
 {
     public ulong GuildDiscordId { get; set; }
     public string CurrentRankRoleName { get; set; }
     public DateTime Timestamp { get; set; }
+
     /// <summary>
-    /// Empty constructor.
-    /// Used by EF do not remove.
+    ///     Empty constructor.
+    ///     Used by EF do not remove.
     /// </summary>
     public UserAudit() { }
 

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SteelBot.Helpers.Maths;
+﻿namespace SteelBot.Helpers.Maths;
 
 /// <summary>
-/// https://stackoverflow.com/a/26312275/4739697
+///     https://stackoverflow.com/a/26312275/4739697
 /// </summary>
 public static class PermutationsAndCombinations
 {
@@ -27,8 +21,5 @@ public static class PermutationsAndCombinations
         return result;
     }
 
-    private static long Factorial(int i)
-    {
-        return i <= 1 ? 1 : i * Factorial(i - 1);
-    }
+    private static long Factorial(int i) => i <= 1 ? 1 : i * Factorial(i - 1);
 }

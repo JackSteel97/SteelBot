@@ -18,17 +18,14 @@ public class AuditLogViewingService
         var pages = PaginationHelper.GenerateEmbedPages(baseEmbed, audits, 5, (builder, audit, _) => AppendEntry(builder, audit));
         return pages;
     }
-    
+
     private static StringBuilder AppendEntry(StringBuilder builder, Audit entry)
     {
         builder.AppendLine(Formatter.Bold(entry.What.Humanize()))
             .AppendLine($"When?: `{entry.When.ToString("g")}`")
             .AppendLine($"Who?: {entry.Who.ToUserMention()}  (`{entry.WhoName}`)");
 
-        if (entry.WhereChannelId.HasValue)
-        {
-            builder.AppendLine($"Where?: `{entry.WhereChannelName}`");
-        }
+        if (entry.WhereChannelId.HasValue) builder.AppendLine($"Where?: `{entry.WhereChannelName}`");
 
         return builder;
     }

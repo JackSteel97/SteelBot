@@ -12,8 +12,8 @@ public class ExceptionLog
     public string FullDetail { get; set; }
 
     /// <summary>
-    /// Empty constructor.
-    /// Used by EF - do not remove.
+    ///     Empty constructor.
+    ///     Used by EF - do not remove.
     /// </summary>
     public ExceptionLog() { }
 

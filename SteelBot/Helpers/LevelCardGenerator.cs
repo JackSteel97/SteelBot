@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Entities;
+﻿using DSharpPlus;
+using DSharpPlus.Entities;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -27,6 +28,7 @@ public class LevelCardGenerator
     private const int _xpBarHeight = 35;
 
     private const int _y1 = _height - _yPadding - _xpBarHeight;
+    private const string _fontName = "Roboto";
 
     private static readonly int _avatarHeight = _height - (_yPadding * 2);
     private static readonly int _xpBarWidth = _width - (_xPadding * 2) - _avatarHeight;
@@ -35,11 +37,10 @@ public class LevelCardGenerator
 
     private static readonly int _x1 = _xPadding + _avatarHeight;
 
-    private static readonly ColorStop[] _xpGradient = new ColorStop[] { new ColorStop(0, Color.FromRgb(57, 161, 255)), new ColorStop(1, Color.FromRgb(0, 71, 191)) };
-    private static readonly LinearGradientBrush _gradientBrush = new LinearGradientBrush(new PointF(0, 0), new PointF(0, _xpBarHeight), GradientRepetitionMode.Repeat, _xpGradient);
+    private static readonly ColorStop[] _xpGradient = { new(0, Color.FromRgb(57, 161, 255)), new(1, Color.FromRgb(0, 71, 191)) };
+    private static readonly LinearGradientBrush _gradientBrush = new(new PointF(0, 0), new PointF(0, _xpBarHeight), GradientRepetitionMode.Repeat, _xpGradient);
 
-    private static readonly FontCollection _fonts = new FontCollection();
-    private const string _fontName = "Roboto";
+    private static readonly FontCollection _fonts = new();
 
     public LevelCardGenerator(AppConfigurationService appConfigurationService)
     {
@@ -52,15 +53,12 @@ public class LevelCardGenerator
         ulong xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
 
         ulong xpIntoThisLevel = 0;
-        if (user.TotalXp > xpForThisLevel)
-        {
-            xpIntoThisLevel = user.TotalXp - xpForThisLevel;
-        }
+        if (user.TotalXp > xpForThisLevel) xpIntoThisLevel = user.TotalXp - xpForThisLevel;
         ulong xpToAchieveNextLevel = xpForNextLevel - xpForThisLevel;
 
-        double progressToNextLevel = ((double)xpIntoThisLevel / (double)xpToAchieveNextLevel * _xpBarWidth) + _xPadding + _avatarHeight;
+        double progressToNextLevel = (xpIntoThisLevel / (double)xpToAchieveNextLevel * _xpBarWidth) + _xPadding + _avatarHeight;
 
-        using (var avatar = await GetAvatar(member.GetAvatarUrl(DSharpPlus.ImageFormat.Auto, 256)))
+        using (var avatar = await GetAvatar(member.GetAvatarUrl(ImageFormat.Auto, 256)))
         using (var image = new Image<Rgba32>(_width, _height))
         {
             image.Mutate(imageContext =>
@@ -74,10 +72,8 @@ public class LevelCardGenerator
                 imageContext.DrawRoundedRectangle(_xpBarWidth, _xpBarHeight, _x1, _y1, _xpBarHeight / 2, new SolidBrush(_xpBarBaseColour));
 
                 if (progressWidth > 0)
-                {
                     // Draw current xp bar on top.
                     imageContext.DrawRoundedRectangle(progressWidth, _xpBarHeight, _x1, _y1, _xpBarHeight / 2, _gradientBrush);
-                }
 
                 // Avatar Image.
                 using (var avatarRound = avatar.Clone(x => x.ConvertToAvatar(new Size(_avatarHeight, _avatarHeight), _avatarHeight / 2)))
@@ -86,7 +82,7 @@ public class LevelCardGenerator
                 }
 
                 float xpBarMidpointX = _x1 + (_xpBarWidth / 2),
-                xpBarMidpointY = _y1 + (_xpBarHeight / 2);
+                    xpBarMidpointY = _y1 + (_xpBarHeight / 2);
                 // Current XP text.
                 imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Right, VerticalAlignment.Center),
                     user.TotalXp.KiloFormat(),
@@ -116,7 +112,8 @@ public class LevelCardGenerator
                 var tagFont = _fonts.CreateFont(_fontName, 28);
                 var usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
                 imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(_avatarHeight + (_xPadding * 2), _y1 - (_xPadding * 2)));
-                imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray, new PointF(_avatarHeight + (_xPadding * 2) + usernameMeasurements.Width, _y1 - (_xPadding * 2)));
+                imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray,
+                    new PointF(_avatarHeight + (_xPadding * 2) + usernameMeasurements.Width, _y1 - (_xPadding * 2)));
 
                 var topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
                 if (topRole != default)
@@ -132,10 +129,7 @@ public class LevelCardGenerator
             });
 
             var stream = new MemoryStream();
-            image.Save(stream, new PngEncoder()
-            {
-                CompressionLevel = PngCompressionLevel.BestCompression
-            });
+            image.Save(stream, new PngEncoder { CompressionLevel = PngCompressionLevel.BestCompression });
             stream.Position = 0;
             return stream;
         }
@@ -143,18 +137,8 @@ public class LevelCardGenerator
 
     private static DrawingOptions GetOptions(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
     {
-        var opts = new DrawingOptions()
-        {
-            TextOptions = new TextOptions()
-            {
-                HorizontalAlignment = horizontalAlignment,
-                VerticalAlignment = verticalAlignment
-            }
-        };
-        if (wrapWidth.HasValue)
-        {
-            opts.TextOptions.WrapTextWidth = wrapWidth.Value;
-        }
+        var opts = new DrawingOptions { TextOptions = new TextOptions { HorizontalAlignment = horizontalAlignment, VerticalAlignment = verticalAlignment } };
+        if (wrapWidth.HasValue) opts.TextOptions.WrapTextWidth = wrapWidth.Value;
         return opts;
     }
 
@@ -162,7 +146,6 @@ public class LevelCardGenerator
     {
         Image avatar = null;
         if (!string.IsNullOrWhiteSpace(avatarUrl))
-        {
             using (var client = new HttpClient())
             {
                 using (var bytes = await client.GetStreamAsync(avatarUrl))
@@ -170,7 +153,7 @@ public class LevelCardGenerator
                     avatar = Image.Load(bytes);
                 }
             }
-        }
+
         return avatar;
     }
 }

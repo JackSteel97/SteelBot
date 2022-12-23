@@ -12,9 +12,9 @@ public static class PetModals
     public static async Task NamePet(DiscordInteraction interaction, Pet pet)
     {
         var response = new DiscordInteractionResponseBuilder()
-               .WithTitle("Befriend Success")
-               .WithCustomId(InteractionIds.Modals.PetNameEntry)
-               .AddComponents(Interactions.Pets.NameInput(pet.RowId, $"{pet.Rarity} {pet.Species.GetName()}"));
+            .WithTitle("Befriend Success")
+            .WithCustomId(InteractionIds.Modals.PetNameEntry)
+            .AddComponents(Interactions.Pets.NameInput(pet.RowId, $"{pet.Rarity} {pet.Species.GetName()}"));
 
         await interaction.CreateResponseAsync(InteractionResponseType.Modal, response);
     }

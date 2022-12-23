@@ -14,8 +14,8 @@ namespace SteelBot.Helpers;
 public static class InteractivityHelper
 {
     /// <summary>
-    /// Add components, handling starting new rows.
-    /// Cuts off any excess components.
+    ///     Add components, handling starting new rows.
+    ///     Cuts off any excess components.
     /// </summary>
     /// <param name="message">The message builder.</param>
     /// <param name="components">The flat collection of components to add.</param>
@@ -29,10 +29,8 @@ public static class InteractivityHelper
         int currentRowCount = message.Components?.Count ?? 0;
 
         if (currentRowCount == maxRows)
-        {
             // Message already at max rows.
             return message;
-        }
 
         var currentRowComponents = new List<DiscordComponent>(maxColumns);
 
@@ -49,37 +47,30 @@ public static class InteractivityHelper
                 currentColumnCount = 0;
                 ++currentRowCount;
                 if (currentRowCount == maxRows)
-                {
                     // Can't fit any more rows.
                     return message;
-                }
             }
         }
 
         if (currentRowComponents.Count > 0)
-        {
             // Add remaining components.
             message.AddComponents(currentRowComponents);
-        }
 
         return message;
     }
 
     /// <summary>
-    /// Send a simple confirm/cancel confirmation message to the current channel.
+    ///     Send a simple confirm/cancel confirmation message to the current channel.
     /// </summary>
     /// <param name="context">Current command context.</param>
     /// <param name="actionDescription">A description for the confirmation action.</param>
-    /// <returns><see langword="true"/> if the user confirms the action, otherwise <see langword="false"/></returns>
+    /// <returns><see langword="true" /> if the user confirms the action, otherwise <see langword="false" /></returns>
     public static async Task<bool> GetConfirmation(CommandContext context, string actionDescription)
     {
         var confirmMessageBuilder = new DiscordMessageBuilder()
             .WithContent($"Attention {context.Member.Mention}!")
             .WithEmbed(EmbedGenerator.Warning($"This action ({actionDescription}) **cannot** be undone, please confirm you want to continue."))
-            .AddComponents(new DiscordComponent[] {
-                Interactions.Confirmation.Confirm,
-                Interactions.Confirmation.Cancel
-            });
+            .AddComponents(Interactions.Confirmation.Confirm, Interactions.Confirmation.Cancel);
 
         var message = await context.Channel.SendMessageAsync(confirmMessageBuilder);
 
@@ -92,11 +83,9 @@ public static class InteractivityHelper
             await result.Result.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(confirmMessageBuilder));
             return result.Result.Id == InteractionIds.Confirmation.Confirm;
         }
-        else
-        {
-            await message.DeleteAsync();
-            return false;
-        }
+
+        await message.DeleteAsync();
+        return false;
     }
 
     public static async Task<bool> GetConfirmation(IResponder responder, DiscordMember member, string actionDescription)
@@ -104,7 +93,7 @@ public static class InteractivityHelper
         var confirmMessageBuilder = new DiscordMessageBuilder()
             .WithContent($"Attention {member.Mention}!")
             .WithEmbed(EmbedGenerator.Warning($"This action ({actionDescription}) **cannot** be undone, please confirm you want to continue.")
-            ).AddComponents((new[] { Interactions.Confirmation.Confirm, Interactions.Confirmation.Cancel }));
+            ).AddComponents(Interactions.Confirmation.Confirm, Interactions.Confirmation.Cancel);
 
         var message = await responder.RespondAsync(confirmMessageBuilder);
         var result = await message.WaitForButtonAsync(member);
@@ -128,27 +117,22 @@ public static class InteractivityHelper
             .WithContent(currentPage.Content)
             .WithEmbed(currentPage.Embed)
             .AddComponents(paginationComponents);
-        if (currentPage.Options.Count > 0)
-        {
-            AddComponents(messageBuilder, currentPage.Options);
-        }
+        if (currentPage.Options.Count > 0) AddComponents(messageBuilder, currentPage.Options);
 
         return messageBuilder;
     }
-    
+
     public static async Task<(string selectedId, DiscordInteraction interaction)> SendPaginatedMessageWithComponentsAsync(IResponder responder, DiscordUser user, List<PageWithSelectionButtons> pages)
     {
         var paginationComponents = new DiscordComponent[]
         {
-            Interactions.Pagination.PrevPage.Disable(pages.Count <= 1),
-            Interactions.Pagination.Exit,
-            Interactions.Pagination.NextPage.Disable(pages.Count <= 1),
+            Interactions.Pagination.PrevPage.Disable(pages.Count <= 1), Interactions.Pagination.Exit, Interactions.Pagination.NextPage.Disable(pages.Count <= 1)
         };
-        
+
         var messageBuilder = BuildPaginatedMessageWithComponents(paginationComponents, pages);
 
-       var message = await responder.RespondAsync(messageBuilder);
-        
+        var message = await responder.RespondAsync(messageBuilder);
+
         return await HandlePaginatedMessageWithComponentsResponses(user, pages, message, messageBuilder, paginationComponents);
     }
 
@@ -201,10 +185,7 @@ public static class InteractivityHelper
         messageBuilder.WithContent(page.Content).WithEmbed(page.Embed);
         messageBuilder.AddComponents(paginationComponents);
 
-        if (page.Options.Count > 0)
-        {
-            AddComponents(messageBuilder, page.Options);
-        }
+        if (page.Options.Count > 0) AddComponents(messageBuilder, page.Options);
 
         await messageInteraction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder(messageBuilder));
     }

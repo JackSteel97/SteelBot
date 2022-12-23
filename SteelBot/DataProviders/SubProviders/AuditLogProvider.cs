@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SteelBot.Database;
 using SteelBot.Database.Models.AuditLog;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,8 +9,8 @@ namespace SteelBot.DataProviders.SubProviders;
 
 public class AuditLogProvider
 {
-    private readonly ILogger<AuditLogProvider> _logger;
     private readonly IDbContextFactory<SteelBotContext> _dbContextFactory;
+    private readonly ILogger<AuditLogProvider> _logger;
 
     public AuditLogProvider(ILogger<AuditLogProvider> logger, IDbContextFactory<SteelBotContext> dbContextFactory)
     {
@@ -30,13 +29,10 @@ public class AuditLogProvider
             writtenCount = await db.SaveChangesAsync();
         }
 
-        if (writtenCount == 0)
-        {
-            _logger.LogError("Writing a new {Action} item to the audit log for {UserId} instered no entries", auditLogItem.What, auditLogItem.Who);
-        }
+        if (writtenCount == 0) _logger.LogError("Writing a new {Action} item to the audit log for {UserId} instered no entries", auditLogItem.What, auditLogItem.Who);
     }
 
-    public async Task<IEnumerable<Audit>> GetLatest(ulong guildId)
+    public async Task<Audit[]> GetLatest(ulong guildId, AuditAction? action = null)
     {
         _logger.LogInformation("Reading the latest entries in the audit log for Guild {GuildId}", guildId);
 
@@ -44,8 +40,8 @@ public class AuditLogProvider
         await using (var db = await _dbContextFactory.CreateDbContextAsync())
         {
             results = await db.AuditLog
-                .Where(a => a.WhereGuildId == guildId)
-                .OrderByDescending(a=>a.When)
+                .Where(a => a.WhereGuildId == guildId && (action ==  null || a.What == action))
+                .OrderByDescending(a => a.When)
                 .Take(50)
                 .ToArrayAsync();
         }

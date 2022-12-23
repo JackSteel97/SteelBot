@@ -18,7 +18,7 @@ public static class QuestionConstructionHelpers
     {
         string basePath = Directory.GetCurrentDirectory();
         var streams = new Dictionary<string, Stream>();
-        foreach (var fileName in fileNames)
+        foreach (string fileName in fileNames)
         {
             var stream = File.OpenRead(Path.Combine(basePath, "Resources", "Puzzle", fileName));
             streams.Add(fileName, stream);

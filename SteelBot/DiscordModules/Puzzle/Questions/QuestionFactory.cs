@@ -15,10 +15,7 @@ public class QuestionFactory
 
     public IQuestion GetQuestion(int number)
     {
-        if (!_questions.TryGetValue(number, out var question))
-        {
-            throw new NotSupportedException($"There is no supported implementation for question {number}");
-        }
+        if (!_questions.TryGetValue(number, out var question)) throw new NotSupportedException($"There is no supported implementation for question {number}");
 
         return question;
     }

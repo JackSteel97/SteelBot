@@ -1,7 +1,6 @@
 ﻿using SteelBot.DiscordModules.Config;
 using SteelBot.DiscordModules.Fun;
 using SteelBot.DiscordModules.Pets;
-using SteelBot.DiscordModules.RankRoles;
 using SteelBot.DiscordModules.Roles;
 using SteelBot.DiscordModules.Stats;
 using SteelBot.DiscordModules.Triggers;

@@ -3,7 +3,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels.RankRole;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
@@ -21,11 +20,15 @@ namespace SteelBot.DiscordModules.RankRoles;
 public class RankRoleCommands : TypingCommandModule
 {
     private readonly CancellationService _cancellationService;
-    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
     private readonly ErrorHandlingService _errorHandlingService;
+    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
 
-    public RankRoleCommands(IHub sentry, CancellationService cancellationService, RankRoleManagementChannel rankRoleManagementChannel, ErrorHandlingService errorHandlingService, ILogger<RankRoleCommands> logger, AuditLogService auditLogService)
-        : base(logger, auditLogService, sentry)
+    public RankRoleCommands(CancellationService cancellationService,
+        RankRoleManagementChannel rankRoleManagementChannel,
+        ErrorHandlingService errorHandlingService,
+        ILogger<RankRoleCommands> logger,
+        AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _cancellationService = cancellationService;
         _rankRoleManagementChannel = rankRoleManagementChannel;

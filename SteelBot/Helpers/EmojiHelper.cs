@@ -56,6 +56,7 @@ public static class EmojiConstants
         public const string StopButton = "\u23F9\uFE0F";
         public const string LeftRightArrow = "\u2194\uFE0F";
     }
+
     public static class Faces
     {
         public const string Hugging = "\uD83E\uDD17";
@@ -94,7 +95,7 @@ public static class EmojiConstants
     }
 
     /// <summary>
-    /// Discord emoji ids from my dev server.
+    ///     Discord emoji ids from my dev server.
     /// </summary>
     public static class CustomDiscordEmojis
     {
@@ -166,9 +167,8 @@ public static class EmojiConstants
 
 public static class EmojiHelper
 {
-    public static string GetNumberEmoji(int number)
-    {
-        return number switch
+    public static string GetNumberEmoji(int number) =>
+        number switch
         {
             0 => EmojiConstants.Numbers.NumberZero,
             1 => EmojiConstants.Numbers.NumberOne,
@@ -181,7 +181,6 @@ public static class EmojiHelper
             8 => EmojiConstants.Numbers.NumberEight,
             9 => EmojiConstants.Numbers.NumberNine,
             10 => EmojiConstants.Numbers.NumberTen,
-            _ => throw new ArgumentException("This number does not have an emoji equivalent", nameof(number)),
+            _ => throw new ArgumentException("This number does not have an emoji equivalent", nameof(number))
         };
-    }
 }

@@ -1,7 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.Channels.Puzzle;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers.Extensions;
@@ -18,13 +17,17 @@ namespace SteelBot.DiscordModules.Puzzle;
 public class PuzzleCommands : TypingCommandModule
 {
     private const string _puzzleRequirements = "\n\n**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity";
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
-    private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<PuzzleCommands> _logger;
+    private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
 
-    public PuzzleCommands(IHub sentry, PuzzleCommandsChannel puzzleCommandsChannel, CancellationService cancellationService, ErrorHandlingService errorHandlingService, ILogger<PuzzleCommands> logger, AuditLogService auditLogService)
-        : base(logger, auditLogService, sentry)
+    public PuzzleCommands(PuzzleCommandsChannel puzzleCommandsChannel,
+        CancellationService cancellationService,
+        ErrorHandlingService errorHandlingService,
+        ILogger<PuzzleCommands> logger,
+        AuditLogService auditLogService)
+        : base(logger, auditLogService)
     {
         _puzzleCommandsChannel = puzzleCommandsChannel;
         _cancellationService = cancellationService;

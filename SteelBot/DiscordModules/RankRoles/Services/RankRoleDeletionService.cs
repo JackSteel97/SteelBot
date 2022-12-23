@@ -5,23 +5,28 @@ using SteelBot.Database.Models;
 using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.RankRoles.Helpers;
-using SteelBot.Helpers.Extensions;
 using SteelBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.RankRoles.Services;
+
 public class RankRoleDeletionService
 {
+    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly LevelMessageSender _levelMessageSender;
     private readonly ILogger<RankRoleDeletionService> _logger;
     private readonly RankRolesProvider _rankRolesProvider;
-    private readonly UsersProvider _usersProvider;
     private readonly UserLockingService _userLockingService;
-    private readonly LevelMessageSender _levelMessageSender;
-    private readonly ErrorHandlingService _errorHandlingService;
+    private readonly UsersProvider _usersProvider;
 
-    public RankRoleDeletionService(ILogger<RankRoleDeletionService> logger, RankRolesProvider rankRolesProvider, UsersProvider usersProvider, UserLockingService userLockingService, LevelMessageSender levelMessageSender, ErrorHandlingService errorHandlingService)
+    public RankRoleDeletionService(ILogger<RankRoleDeletionService> logger,
+        RankRolesProvider rankRolesProvider,
+        UsersProvider usersProvider,
+        UserLockingService userLockingService,
+        LevelMessageSender levelMessageSender,
+        ErrorHandlingService errorHandlingService)
     {
         _logger = logger;
         _rankRolesProvider = rankRolesProvider;
@@ -60,10 +65,7 @@ public class RankRoleDeletionService
         using (await _userLockingService.WriteLockAllUsersAsync(guild.Id))
         {
             var guildUsers = _usersProvider.GetUsersInGuild(guild.Id);
-            foreach (var guildUser in guildUsers)
-            {
-                await HandleRoleRemovalFromUser(guild, roleToDelete, guildRoles, excludedRoles, guildUser);
-            }
+            foreach (var guildUser in guildUsers) await HandleRoleRemovalFromUser(guild, roleToDelete, guildRoles, excludedRoles, guildUser);
         }
     }
 
@@ -94,23 +96,17 @@ public class RankRoleDeletionService
 
     private async ValueTask<RankRole> ReplaceRoleWithNext(DiscordGuild guild, List<RankRole> guildRoles, HashSet<ulong> excludedRoles, User guildUser, DiscordMember member)
     {
-        var roleToGrant = RankRoleShared.FindHighestRankRoleForLevel(guildRoles, guildUser.CurrentLevel, guildUser.CurrentRankRole, excludedRoles, currentRoleIsBeingRemoved: true);
+        var roleToGrant = RankRoleShared.FindHighestRankRoleForLevel(guildRoles, guildUser.CurrentLevel, guildUser.CurrentRankRole, excludedRoles, true);
 
         // If their role can be replaced, replace it
-        if (roleToGrant != default)
-        {
-            await GrantRoleToUser(guild, roleToGrant.RoleDiscordId, member, "Previous rank role deleted");
-        }
+        if (roleToGrant != default) await GrantRoleToUser(guild, roleToGrant.RoleDiscordId, member, "Previous rank role deleted");
 
         return roleToGrant;
     }
 
     private bool TryGetRankRole(RankRoleManagementAction request, out RankRole role)
     {
-        if (request.RoleId != default)
-        {
-            return _rankRolesProvider.TryGetRole(request.Guild.Id, request.RoleId, out role);
-        }
+        if (request.RoleId != default) return _rankRolesProvider.TryGetRole(request.Guild.Id, request.RoleId, out role);
 
         // Fallback to search by name.
         if (_rankRolesProvider.TryGetGuildRankRoles(request.Guild.Id, out var allGuildRoles))

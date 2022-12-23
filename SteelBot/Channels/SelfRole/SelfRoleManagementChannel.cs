@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.Roles.Services;
-using SteelBot.Helpers.Sentry;
 using SteelBot.Services;
 using System.Threading.Tasks;
 
@@ -11,22 +9,18 @@ public class SelfRoleManagementChannel : BaseChannel<SelfRoleManagementAction>
 {
     private readonly SelfRoleCreationService _selfRoleCreationService;
     private readonly SelfRoleMembershipService _selfRoleMembershipService;
-    private readonly IHub _sentry;
 
     public SelfRoleManagementChannel(ILogger<SelfRoleManagementChannel> logger,
         ErrorHandlingService errorHandlingService,
         SelfRoleCreationService selfRoleCreationService,
-        SelfRoleMembershipService selfRoleMembershipService,
-        IHub sentry) : base(logger, errorHandlingService, "Self Role")
+        SelfRoleMembershipService selfRoleMembershipService) : base(logger, errorHandlingService, "Self Role")
     {
         _selfRoleCreationService = selfRoleCreationService;
         _selfRoleMembershipService = selfRoleMembershipService;
-        _sentry = sentry;
     }
 
     protected override async ValueTask HandleMessage(SelfRoleManagementAction message)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction("Self Roles", message.Action.ToString(), message.Member, message.Member.Guild);
         switch (message.Action)
         {
             case SelfRoleActionType.Join:
@@ -45,7 +39,5 @@ public class SelfRoleManagementChannel : BaseChannel<SelfRoleManagementAction>
                 await _selfRoleCreationService.Remove(message);
                 break;
         }
-
-        transaction.Finish();
     }
 }

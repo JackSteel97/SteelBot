@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using Humanizer;
+using Humanizer.Localisation;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Models;
@@ -29,22 +30,13 @@ public static class PetDisplayHelpers
             .AddField("Age", Formatter.InlineCode($"{GetAge(pet.BornAt)}"), true)
             .AddField("Found", Formatter.InlineCode(pet.FoundAt.Humanize()), true);
 
-        if (showLevelProgress)
-        {
-            embedBuilder.WithDescription(PetShared.GetPetLevelProgressBar(pet));
-        }
+        if (showLevelProgress) embedBuilder.WithDescription(PetShared.GetPetLevelProgressBar(pet));
 
-        foreach (var attribute in pet.Attributes)
-        {
-            embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description.ToZalgo(pet.IsCorrupt)), true);
-        }
+        foreach (var attribute in pet.Attributes) embedBuilder.AddField(attribute.Name, Formatter.InlineCode(attribute.Description.ToZalgo(pet.IsCorrupt)), true);
 
         var bonuses = AppendBonuses(new StringBuilder(), pet);
         string bonusList = bonuses.ToString();
-        if (!string.IsNullOrWhiteSpace(bonusList))
-        {
-            embedBuilder.AddField("Bonuses", bonuses.ToString());
-        }
+        if (!string.IsNullOrWhiteSpace(bonusList)) embedBuilder.AddField("Bonuses", bonuses.ToString());
 
         return embedBuilder;
     }
@@ -62,34 +54,27 @@ public static class PetDisplayHelpers
         {
             totals.Add(pet);
 
-            if (!anyDisabled && !pet.Active)
-            {
-                anyDisabled = true;
-            }
+            if (!anyDisabled && !pet.Active) anyDisabled = true;
         }
 
-        if (anyDisabled)
-        {
-            embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
-        }
+        if (anyDisabled) embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
 
         var totalsBuilder = new StringBuilder();
         AppendBonuses(totalsBuilder, totals, false);
-        if (totalsBuilder.Length > 0)
-        {
-            embedBuilder.AddField("Totals", totalsBuilder.ToString());
-        }
+        if (totalsBuilder.Length > 0) embedBuilder.AddField("Totals", totalsBuilder.ToString());
 
         return PaginationHelper.GenerateEmbedPages(embedBuilder, allPets, 5, (builder, petWithActivation, _) =>
         {
             var pet = petWithActivation.Pet;
             builder.AppendLine(Formatter.Bold((pet.Priority + 1).Ordinalize()))
-            .Append(Formatter.Bold(pet.GetName().ToZalgo(pet.IsCorrupt))).Append(" - Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ').Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
+                .Append(Formatter.Bold(pet.GetName().ToZalgo(pet.IsCorrupt))).Append(" - Level ").Append(pet.CurrentLevel).Append(' ')
+                .Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ').Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
             if (!petWithActivation.Active)
             {
                 int levelRequired = PetShared.GetRequiredLevelForPet(pet.Priority, baseCapacity, maxCapacity);
                 builder.Append(" - **Inactive**, Level ").Append(levelRequired).Append(" required");
             }
+
             builder.AppendLine();
             return AppendBonuses(builder, pet);
         });
@@ -100,16 +85,13 @@ public static class PetDisplayHelpers
     private static string GetAge(DateTime birthdate)
     {
         var age = DateTime.UtcNow - birthdate;
-        string ageStr = age.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Year);
+        string ageStr = age.Humanize(maxUnit: TimeUnit.Year);
         return string.Concat(ageStr, " old");
     }
 
     private static StringBuilder AppendBonuses(StringBuilder bonuses, BonusTotals totals, bool isCorrupt)
     {
-        foreach (var bonus in totals.Totals.Values.OrderBy(x => x.BonusType))
-        {
-            AppendBonus(bonuses, bonus, isCorrupt);
-        }
+        foreach (var bonus in totals.Totals.Values.OrderBy(x => x.BonusType)) AppendBonus(bonuses, bonus, isCorrupt);
         return bonuses;
     }
 
@@ -134,29 +116,22 @@ public static class PetDisplayHelpers
         if (bonusValue != 0)
         {
             char bonusSign = char.MinValue;
-            if (bonusValue >= 0)
-            {
-                bonusSign = '+';
-            }
+            if (bonusValue >= 0) bonusSign = '+';
 
             string bonusSuffix = "";
-            if (bonus.BonusType == BonusType.PetSlots && bonusValue > 50)
-            {
-                bonusSuffix = " (Capped at +50)";
-            }
+            if (bonus.BonusType == BonusType.PetSlots && bonusValue > 50) bonusSuffix = " (Capped at +50)";
 
-            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize().ToZalgo(isCorrupt)).Append(": ").Append(bonusSign).Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
+            bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize().ToZalgo(isCorrupt)).Append(": ").Append(bonusSign)
+                .Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
         }
+
         return bonuses;
     }
 
     private static string GetEmoji(PetBonus bonus)
     {
         string emoji = EmojiConstants.CustomDiscordEmojis.GreenArrowUp;
-        if (bonus.HasNegativeEffect())
-        {
-            emoji = EmojiConstants.CustomDiscordEmojis.RedArrowDown;
-        }
+        if (bonus.HasNegativeEffect()) emoji = EmojiConstants.CustomDiscordEmojis.RedArrowDown;
         return emoji;
     }
 }

@@ -27,12 +27,13 @@ public class StatsLeaderboardService
 
     public async Task MetricLeaderboard(StatsCommandAction request)
     {
-       const int top = 50;
+        const int top = 50;
         if (string.IsNullOrWhiteSpace(request.Metric))
         {
             request.Responder.Respond(StatsMessages.MissingMetric());
             return;
         }
+
         if (!AllowedMetrics.Metrics.Contains(request.Metric.ToLower()))
         {
             request.Responder.Respond(StatsMessages.InvalidMetric(request.Metric));
@@ -136,6 +137,7 @@ public class StatsLeaderboardService
             request.Responder.Respond(StatsMessages.NoEntriesLeaderboard());
             return;
         }
+
         if (top > 1000)
         {
             request.Responder.Respond(StatsMessages.TopNumberTooLarge());
@@ -151,7 +153,7 @@ public class StatsLeaderboardService
                 request.Responder.Respond(StatsMessages.NoUsersWithStatistics());
                 return;
             }
-            
+
             var orderedByXp = guildUsers
                 .Where(u => u.TotalXp > 0)
                 .OrderByDescending(u => u.TotalXp)
@@ -167,7 +169,7 @@ public class StatsLeaderboardService
             var baseEmbed = StatsMessages.LeaderboardBase(request.Guild.Name);
             pages = PaginationHelper.GenerateEmbedPages(baseEmbed, orderedByXp, 5, StatsMessages.AppendLeaderboardEntry);
         }
-        
+
         request.Responder.RespondPaginated(pages);
     }
 
@@ -181,6 +183,7 @@ public class StatsLeaderboardService
             request.Responder.Respond(StatsMessages.NoEntriesLeaderboard());
             return;
         }
+
         if (top > 1000)
         {
             request.Responder.Respond(StatsMessages.TopNumberTooLarge());
@@ -197,13 +200,10 @@ public class StatsLeaderboardService
                 return;
             }
 
-            if (top > guildUsers.Count)
-            {
-                top = guildUsers.Count;
-            }
-            
+            if (top > guildUsers.Count) top = guildUsers.Count;
+
             // Sort by XP.
-            guildUsers.Sort((u1, u2)=> u2.TotalXp.CompareTo(u1.TotalXp));
+            guildUsers.Sort((u1, u2) => u2.TotalXp.CompareTo(u1.TotalXp));
 
             var orderedByXp = guildUsers.GetRange(0, (int)top);
 
@@ -211,7 +211,7 @@ public class StatsLeaderboardService
 
             pages = PaginationHelper.GenerateEmbedPages(baseEmbed, orderedByXp, 2, StatsMessages.AppendUserStats);
         }
-        
+
         request.Responder.RespondPaginated(pages);
     }
 }

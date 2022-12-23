@@ -13,10 +13,7 @@ public class PuzzleTwentySeven : IQuestion
     private const string _clueText = "There is no extra clue available for this one.";
 
     /// <inheritdoc />
-    public int GetPuzzleNumber()
-    {
-        return _number;
-    }
+    public int GetPuzzleNumber() => _number;
 
     /// <inheritdoc />
     public void PostPuzzle(PuzzleCommandAction request)
@@ -35,8 +32,5 @@ public class PuzzleTwentySeven : IQuestion
     }
 
     /// <inheritdoc />
-    public bool AnswerIsCorrect(string answer)
-    {
-        return string.Equals(answer, DateTime.UtcNow.ToString("HH:mm"), StringComparison.OrdinalIgnoreCase);
-    }
+    public bool AnswerIsCorrect(string answer) => string.Equals(answer, DateTime.UtcNow.ToString("HH:mm"), StringComparison.OrdinalIgnoreCase);
 }

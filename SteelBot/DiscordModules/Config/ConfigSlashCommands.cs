@@ -3,11 +3,9 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
-using SteelBot.Helpers.Sentry;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Config;
@@ -18,14 +16,12 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
 {
     private readonly ConfigDataHelper _configDataHelper;
     private readonly ILogger<ConfigSlashCommands> _logger;
-    private readonly IHub _sentry;
 
     /// <inheritdoc />
-    public ConfigSlashCommands(ConfigDataHelper configDataHelper, ILogger<ConfigSlashCommands> logger, IHub sentry, AuditLogService auditLogService) : base(logger, auditLogService)
+    public ConfigSlashCommands(ConfigDataHelper configDataHelper, ILogger<ConfigSlashCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _configDataHelper = configDataHelper;
         _logger = logger;
-        _sentry = sentry;
     }
 
     [SlashCommand("Environment", "Gets the environment the bot is currently running in")]
@@ -34,7 +30,7 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     public Task Environment(InteractionContext context) =>
         context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
             new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Primary($"I'm currently running in my **{_configDataHelper.GetEnvironment()}** environment!")));
-    
+
     [SlashCommand("Version", "Displays the current version of the bot")]
     [SlashRequireOwner]
     [SlashCooldown(2, 300, SlashCooldownBucketType.Channel)]
@@ -47,21 +43,16 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     [SlashCooldown(2, 300, SlashCooldownBucketType.Guild)]
     public async Task ToggleDadJoke(InteractionContext context)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction(nameof(ConfigSlashCommands), nameof(ToggleDadJoke), context.User, context.Guild);
         bool newSetting = await _configDataHelper.ToggleDadJoke(context.Guild.Id);
         await context.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"Dad Joke Detector Toggled **{(newSetting ? "On" : "Off")}**")));
-        transaction.Finish();
     }
 
     [SlashCommand("ToggleLevelMentions", "Toggles you getting pinged for level up alerts for this server")]
     [SlashCooldown(6, 300, SlashCooldownBucketType.Channel)]
     public async Task ToggleLevelMentions(InteractionContext context)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction(nameof(ConfigSlashCommands), nameof(ToggleLevelMentions), context.User, context.Guild);
         bool newSetting = await _configDataHelper.ToggleLevelMentions(context.Guild.Id, context.User.Id);
         await context.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"Level Mentions Toggled **{(!newSetting ? "On" : "Off")}**")));
-        transaction.Finish();
-
     }
 
     [SlashCommand("SetLevelChannel", "Set the channel to notify users of level-ups")]
@@ -69,7 +60,6 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
     [SlashCooldown(1, 300, SlashCooldownBucketType.Guild)]
     public async Task SetLevelChannel(InteractionContext context, [Option("Channel", "Channel to send level-up notifications to")] DiscordChannel channel)
     {
-        var transaction = _sentry.StartNewConfiguredTransaction(nameof(ConfigSlashCommands), nameof(SetLevelChannel), context.User, context.Guild);
         if (channel == null || channel.Type != ChannelType.Text || !context.Guild.Channels.ContainsKey(channel.Id))
         {
             _logger.LogWarning("Invalid channel entered for setting the levelling channel");
@@ -78,6 +68,5 @@ public class ConfigSlashCommands : InstrumentedApplicationCommandModule
 
         await _configDataHelper.SetLevellingChannel(context.Guild.Id, channel.Id);
         await context.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(EmbedGenerator.Success($"Levelling channel set to {channel.Mention}")));
-        transaction.Finish();
     }
 }

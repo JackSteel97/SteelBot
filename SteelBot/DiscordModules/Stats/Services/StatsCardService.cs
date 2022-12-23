@@ -10,9 +10,9 @@ namespace SteelBot.DiscordModules.Stats.Services;
 
 public class StatsCardService
 {
+    private readonly LevelCardGenerator _levelCardGenerator;
     private readonly UserLockingService _userLockingService;
     private readonly UsersProvider _usersProvider;
-    private readonly LevelCardGenerator _levelCardGenerator;
 
     public StatsCardService(UserLockingService userLockingService, UsersProvider usersProvider, LevelCardGenerator levelCardGenerator)
     {
@@ -20,7 +20,7 @@ public class StatsCardService
         _usersProvider = usersProvider;
         _levelCardGenerator = levelCardGenerator;
     }
-    
+
     public async Task View(StatsCommandAction request)
     {
         if (request.Action != StatsCommandActionType.ViewPersonalStats) throw new ArgumentException($"Unexpected action type sent to {nameof(View)}");

@@ -26,7 +26,7 @@ public class SteelBotContext : DbContext
     public DbSet<UserAudit> UserAudits { get; set; }
     public DbSet<Guess> Guesses { get; set; }
     public DbSet<Progress> PuzzleProgress { get; set; }
-    
+
     public DbSet<Audit> AuditLog { get; set; }
 
     public SteelBotContext(DbContextOptions<SteelBotContext> options) : base(options)
@@ -110,7 +110,7 @@ public class SteelBotContext : DbContext
             entity.HasKey(a => a.RowId);
             entity.Property(a => a.What).HasConversion<string>();
         });
-        
+
         ApplyDateTimeConverters(modelBuilder);
     }
 
@@ -127,22 +127,12 @@ public class SteelBotContext : DbContext
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            if (entityType.IsKeyless)
-            {
-                continue;
-            }
+            if (entityType.IsKeyless) continue;
 
             foreach (var property in entityType.GetProperties())
-            {
                 if (property.ClrType == typeof(DateTime))
-                {
                     property.SetValueConverter(dateTimeConverter);
-                }
-                else if (property.ClrType == typeof(DateTime?))
-                {
-                    property.SetValueConverter(nullableDateTimeConverter);
-                }
-            }
+                else if (property.ClrType == typeof(DateTime?)) property.SetValueConverter(nullableDateTimeConverter);
         }
     }
 }

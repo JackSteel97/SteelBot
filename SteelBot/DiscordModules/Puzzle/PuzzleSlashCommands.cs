@@ -16,18 +16,22 @@ namespace SteelBot.DiscordModules.Puzzle;
 [SlashRequireGuild]
 public class PuzzleSlashCommands : InstrumentedApplicationCommandModule
 {
-    private readonly ErrorHandlingService _errorHandlingService;
     private readonly CancellationService _cancellationService;
-    private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<PuzzleSlashCommands> _logger;
+    private readonly PuzzleCommandsChannel _puzzleCommandsChannel;
 
     /// <inheritdoc />
-    public PuzzleSlashCommands(ErrorHandlingService errorHandlingService, CancellationService cancellationService, PuzzleCommandsChannel puzzleCommandsChannel, ILogger<PuzzleSlashCommands> logger, AuditLogService auditLogService) : base(logger, auditLogService)
+    public PuzzleSlashCommands(ErrorHandlingService errorHandlingService,
+        CancellationService cancellationService,
+        PuzzleCommandsChannel puzzleCommandsChannel,
+        ILogger<PuzzleSlashCommands> logger,
+        AuditLogService auditLogService) : base(logger, auditLogService)
     {
         _errorHandlingService = errorHandlingService;
         _cancellationService = cancellationService;
         _puzzleCommandsChannel = puzzleCommandsChannel;
-        _logger = logger;  
+        _logger = logger;
     }
 
     [SlashCommand("Question", "Get the current puzzle question")]
@@ -64,7 +68,8 @@ public class PuzzleSlashCommands : InstrumentedApplicationCommandModule
         _logger.LogInformation("[Slash Command] User {UserId} requested to view the puzzle requirements", context.User.Id);
         var responder = new InteractionResponder(context, _errorHandlingService);
         var message = new DiscordMessageBuilder().WithEmbed(
-            EmbedGenerator.Info("**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity", "Requirements for the entire puzzle"));
+            EmbedGenerator.Info("**You will need:**\nA web browser\n7-Zip\nAn image editing program - e.g. Photoshop / Paint.NET\nAn Audio editing program - e.g. Audacity",
+                "Requirements for the entire puzzle"));
         responder.Respond(message);
         return Task.CompletedTask;
     }

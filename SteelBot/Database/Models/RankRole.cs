@@ -10,8 +10,7 @@ public class RankRole
     public long RowId { get; set; }
     public ulong RoleDiscordId { get; set; }
 
-    [MaxLength(255)]
-    public string RoleName { get; set; }
+    [MaxLength(255)] public string RoleName { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public long GuildRowId { get; set; }
@@ -20,8 +19,8 @@ public class RankRole
     public List<User> UsersWithRole { get; set; }
 
     /// <summary>
-    /// Empty constructor.
-    /// Used by EF do not remove.
+    ///     Empty constructor.
+    ///     Used by EF do not remove.
     /// </summary>
     public RankRole() { }
 

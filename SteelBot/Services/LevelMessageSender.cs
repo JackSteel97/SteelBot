@@ -8,9 +8,9 @@ namespace SteelBot.Services;
 
 public class LevelMessageSender
 {
+    private readonly ErrorHandlingService _errorHandlingService;
     private readonly GuildsProvider _guildsProvider;
     private readonly UsersProvider _usersProvider;
-    private readonly ErrorHandlingService _errorHandlingService;
 
     public LevelMessageSender(GuildsProvider guildsProvider, UsersProvider usersProvider, ErrorHandlingService errorHandlingService)
     {
@@ -26,10 +26,9 @@ public class LevelMessageSender
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
 
             if (channel != null)
-            {
-                channel.SendMessageAsync(embed: EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
+                channel.SendMessageAsync(EmbedGenerator.Info($"{discordUser.Mention} just advanced to level {user.CurrentLevel}!", "LEVEL UP!",
+                        $"Use {guild.CommandPrefix}Stats Me to check your progress"))
                     .FireAndForget(_errorHandlingService);
-            }
         }
     }
 
@@ -40,13 +39,12 @@ public class LevelMessageSender
             var channel = guild.GetLevelAnnouncementChannel(discordGuild);
 
             if (channel == null) return;
-            
+
             string content = "";
-            if (!user.OptedOutOfMentions)
-            {
-                content = discordUser.Mention;
-            }
-            channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{discordUser.Mention} has been active for `{streakDays}` {(streakDays > 1 ? "days" : "day")} and earned a bonus of `{earnedXp}` XP!", "Active Streak!", $"Use {guild.CommandPrefix}Stats Me to check your progress"))
+            if (!user.OptedOutOfMentions) content = discordUser.Mention;
+            channel.SendMessageAsync(content,
+                    EmbedGenerator.Info($"{discordUser.Mention} has been active for `{streakDays}` {(streakDays > 1 ? "days" : "day")} and earned a bonus of `{earnedXp}` XP!", "Active Streak!",
+                        $"Use {guild.CommandPrefix}Stats Me to check your progress"))
                 .FireAndForget(_errorHandlingService);
         }
     }
@@ -71,7 +69,8 @@ public class LevelMessageSender
                     embedPrefix = $"{userId.ToUserMention()}\n";
                 }
 
-                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{embedPrefix}Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"))
+                channel.SendMessageAsync(content,
+                        EmbedGenerator.Info($"{embedPrefix}Your previous rank role **{previousRole.RoleName}** has been deleted by an admin, {newRoleText}", "Rank Role Changed"))
                     .FireAndForget(_errorHandlingService);
             }
         }
@@ -91,8 +90,9 @@ public class LevelMessageSender
                     content = "";
                     embedPrefix = $"{userId.ToUserMention()}\n";
                 }
-                
-                channel.SendMessageAsync(content, embed: EmbedGenerator.Info($"{embedPrefix}You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
+
+                channel.SendMessageAsync(content,
+                        EmbedGenerator.Info($"{embedPrefix}You have been granted the **{roleMention}** role for reaching rank **{achievedRole.LevelRequired}**!", "Rank Role Granted!"))
                     .FireAndForget(_errorHandlingService);
             }
         }

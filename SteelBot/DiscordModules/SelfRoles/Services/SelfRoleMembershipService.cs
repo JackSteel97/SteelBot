@@ -5,7 +5,6 @@ using SteelBot.Channels.SelfRole;
 using SteelBot.Database.Models;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Roles.Helpers;
-using SteelBot.Helpers.Extensions;
 using SteelBot.Responders;
 using SteelBot.Services;
 using System;
@@ -19,8 +18,8 @@ namespace SteelBot.DiscordModules.Roles.Services;
 public class SelfRoleMembershipService
 {
     private readonly ErrorHandlingService _errorHandlingService;
-    private readonly SelfRolesProvider _selfRolesProvider;
     private readonly ILogger<SelfRoleMembershipService> _logger;
+    private readonly SelfRolesProvider _selfRolesProvider;
 
     public SelfRoleMembershipService(ErrorHandlingService errorHandlingService, SelfRolesProvider selfRolesProvider, ILogger<SelfRoleMembershipService> logger)
     {
@@ -53,13 +52,9 @@ public class SelfRoleMembershipService
         {
             var joinedRolesBuilder = await JoinRoles(request, allSelfRoles);
             if (joinedRolesBuilder.Length > 0)
-            {
                 request.Responder.Respond(SelfRoleMessages.JoinedRolesSuccess(joinedRolesBuilder));
-            }
             else
-            {
                 request.Responder.Respond(SelfRoleMessages.NoSelfRolesLeftToJoin());
-            }
         }
     }
 
@@ -88,6 +83,7 @@ public class SelfRoleMembershipService
             request.Responder.Respond(SelfRoleMessages.InvalidRole(discordRole.Mention));
             valid = false;
         }
+
         return valid;
     }
 

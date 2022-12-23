@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using Humanizer;
+using Humanizer.Localisation;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SteelBot.DataProviders;
@@ -17,11 +18,11 @@ namespace SteelBot.DiscordModules.Utility;
 
 public class UtilityService
 {
-    private readonly DataCache _cache;
-    private readonly Random _rand;
     private readonly AppConfigurationService _appConfigurationService;
     private readonly IHostApplicationLifetime _applicationLifetime;
+    private readonly DataCache _cache;
     private readonly ILogger<UtilityService> _logger;
+    private readonly Random _rand;
 
     public UtilityService(DataCache cache, AppConfigurationService appConfigurationService, IHostApplicationLifetime applicationLifetime, ILogger<UtilityService> logger)
     {
@@ -29,7 +30,7 @@ public class UtilityService
         _rand = new Random();
         _appConfigurationService = appConfigurationService;
         _applicationLifetime = applicationLifetime;
-        _logger = logger;   
+        _logger = logger;
     }
 
     public void ChannelsInfo(DiscordGuild discordGuild, IResponder responder)
@@ -49,10 +50,7 @@ public class UtilityService
                 .AppendLine($"{Formatter.Bold("Type")}: {Formatter.InlineCode(channel.Type.ToString())}")
                 .AppendLine($"{Formatter.Bold("Created")}: {Formatter.InlineCode(channel.CreationTimestamp.ToString("g"))}");
 
-            if (channel.Bitrate.HasValue)
-            {
-                output.AppendLine($"{Formatter.Bold("Bitrate")}: {Formatter.InlineCode($"{channel.Bitrate / 1000}kbps")}");
-            }
+            if (channel.Bitrate.HasValue) output.AppendLine($"{Formatter.Bold("Bitrate")}: {Formatter.InlineCode($"{channel.Bitrate / 1000}kbps")}");
 
             output.AppendLine();
             return output;
@@ -73,43 +71,25 @@ public class UtilityService
         int totalRoles = discordGuild.Roles.Count;
         int textChannels = 0, voiceChannels = 0, categories = 0;
         foreach (var channel in discordGuild.Channels)
-        {
             if (channel.Value.Type == ChannelType.Text)
-            {
                 ++textChannels;
-            }
             else if (channel.Value.Type == ChannelType.Voice)
-            {
                 ++voiceChannels;
-            }
-            else if (channel.Value.Type == ChannelType.Category)
-            {
-                ++categories;
-            }
-        }
+            else if (channel.Value.Type == ChannelType.Category) ++categories;
 
-        string created = (discordGuild.CreationTimestamp - DateTime.UtcNow).Humanize(2, maxUnit: Humanizer.Localisation.TimeUnit.Year);
-        string botAdded = (guild.BotAddedTo - DateTime.UtcNow).Humanize(2, maxUnit: Humanizer.Localisation.TimeUnit.Year);
+        string created = (discordGuild.CreationTimestamp - DateTime.UtcNow).Humanize(2, maxUnit: TimeUnit.Year);
+        string botAdded = (guild.BotAddedTo - DateTime.UtcNow).Humanize(2, maxUnit: TimeUnit.Year);
         var levelAnnouncementChannel = guild.GetLevelAnnouncementChannel(discordGuild);
 
         int rankRolesCount = 0;
         int selfRolesCount = 0;
         int triggersCount = 0;
 
-        if (_cache.RankRoles.TryGetGuildRankRoles(guild.DiscordId, out var rankRoles))
-        {
-            rankRolesCount = rankRoles.Count;
-        }
+        if (_cache.RankRoles.TryGetGuildRankRoles(guild.DiscordId, out var rankRoles)) rankRolesCount = rankRoles.Count;
 
-        if (_cache.SelfRoles.TryGetGuildRoles(guild.DiscordId, out var selfRoles))
-        {
-            selfRolesCount = selfRoles.Count;
-        }
+        if (_cache.SelfRoles.TryGetGuildRoles(guild.DiscordId, out var selfRoles)) selfRolesCount = selfRoles.Count;
 
-        if (_cache.Triggers.TryGetGuildTriggers(guild.DiscordId, out var triggers))
-        {
-            triggersCount = triggers.Count;
-        }
+        if (_cache.Triggers.TryGetGuildTriggers(guild.DiscordId, out var triggers)) triggersCount = triggers.Count;
 
         var builder = new DiscordEmbedBuilder().WithColor(EmbedGenerator.InfoColour)
             .WithTitle($"{discordGuild.Name} Info")
@@ -180,7 +160,8 @@ public class UtilityService
         if (numberToSelect > options.Length)
         {
             _logger.LogWarning("Invalid Choose command request, options provided {OptionsAmount} are less than the amount to select {NumberToSelect}", options.Length, numberToSelect);
-            responder.Respond(new DiscordMessageBuilder().AddEmbed(EmbedGenerator.Error($"There are not enough options to choose {numberToSelect} unique options.\nPlease provide more options or choose less.")));
+            responder.Respond(new DiscordMessageBuilder().AddEmbed(
+                EmbedGenerator.Error($"There are not enough options to choose {numberToSelect} unique options.\nPlease provide more options or choose less.")));
             return;
         }
 
@@ -204,10 +185,7 @@ public class UtilityService
     {
         int side = _rand.Next(100);
         string result = "Heads!";
-        if (side < 50)
-        {
-            result = "Tails!";
-        }
+        if (side < 50) result = "Tails!";
 
         var message = new DiscordMessageBuilder()
             .WithEmbed(EmbedGenerator.Primary(result));
@@ -245,7 +223,7 @@ public class UtilityService
 
         return string.IsNullOrWhiteSpace(content)
             ? responder.RespondAsync(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("No valid message content was provided.")))
-            : (Task)channel.SendMessageAsync(embed: EmbedGenerator.Info(content, title, footerContent));
+            : (Task)channel.SendMessageAsync(EmbedGenerator.Info(content, title, footerContent));
     }
 
     public async Task Shutdown(IResponder responder, DiscordMember member)
@@ -266,7 +244,6 @@ public class UtilityService
         var latestLogFile = logDirectory.GetFiles().MaxBy(x => x.LastWriteTimeUtc);
 
         if (latestLogFile != null)
-        {
             await using (var stream = File.Open(latestLogFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (var fs = new MemoryStream())
@@ -278,7 +255,6 @@ public class UtilityService
                     return;
                 }
             }
-        }
 
         responder.Respond(new DiscordMessageBuilder().AddEmbed(EmbedGenerator.Warning("Something went wrong and I couldn't find the latest log file.")));
     }

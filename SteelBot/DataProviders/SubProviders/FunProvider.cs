@@ -13,7 +13,7 @@ public class FunProvider
     private async Task UpdateJoke()
     {
         var client = new RestClient("https://api.jokes.one");
-        var request = new RestRequest("jod", Method.Get);
+        var request = new RestRequest("jod");
 
         var response = await client.ExecuteAsync(request);
 
@@ -25,10 +25,8 @@ public class FunProvider
     public async Task<JokeWrapper> GetJoke()
     {
         if (_cachedJoke == null || _cachedJoke.Jokes[0].Joke.Date.Date != DateTime.Today)
-        {
             // Needs updating.
             await UpdateJoke();
-        }
 
         return _cachedJoke;
     }

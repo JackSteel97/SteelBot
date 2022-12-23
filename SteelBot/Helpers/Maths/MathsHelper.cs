@@ -5,10 +5,7 @@ namespace SteelBot.Helpers;
 
 public static class MathsHelper
 {
-    public static decimal PercentageChange(decimal oldValue, decimal newValue)
-    {
-        return oldValue != 0 ? (newValue - oldValue) / Math.Abs(oldValue) : newValue / 100;
-    }
+    public static decimal PercentageChange(decimal oldValue, decimal newValue) => oldValue != 0 ? (newValue - oldValue) / Math.Abs(oldValue) : newValue / 100;
 
     public static double GetPercentageOfDuration(TimeSpan smallerDuration, TimeSpan largerDuration) => smallerDuration.TotalSeconds / largerDuration.TotalSeconds;
 

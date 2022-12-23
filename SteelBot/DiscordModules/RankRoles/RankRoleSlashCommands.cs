@@ -17,18 +17,22 @@ namespace SteelBot.DiscordModules.RankRoles;
 public class RankRoleSlashCommands : InstrumentedApplicationCommandModule
 {
     private readonly CancellationService _cancellationService;
-    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
     private readonly ErrorHandlingService _errorHandlingService;
     private readonly ILogger<RankRoleSlashCommands> _logger;
+    private readonly RankRoleManagementChannel _rankRoleManagementChannel;
 
     /// <inheritdoc />
-    public RankRoleSlashCommands(CancellationService cancellationService, RankRoleManagementChannel rankRoleManagementChannel, ErrorHandlingService errorHandlingService, ILogger<RankRoleSlashCommands> logger, AuditLogService auditLogService)
+    public RankRoleSlashCommands(CancellationService cancellationService,
+        RankRoleManagementChannel rankRoleManagementChannel,
+        ErrorHandlingService errorHandlingService,
+        ILogger<RankRoleSlashCommands> logger,
+        AuditLogService auditLogService)
         : base(logger, auditLogService)
     {
         _cancellationService = cancellationService;
         _rankRoleManagementChannel = rankRoleManagementChannel;
         _errorHandlingService = errorHandlingService;
-        _logger = logger;  
+        _logger = logger;
     }
 
     [SlashCommand("View", "View the rank roles set up in this server")]
@@ -43,8 +47,10 @@ public class RankRoleSlashCommands : InstrumentedApplicationCommandModule
     [SlashCooldown(5, 60, SlashCooldownBucketType.Guild)]
     [SlashRequireUserPermissions(Permissions.ManageRoles)]
     public async Task SetRankRole(InteractionContext context,
-        [Option("RequiredRank", "The level the user needs to reach to be granted this role")] long requiredRank,
-        [Option("Role", "The role to assign once the user reaches the required level")] DiscordRole role)
+        [Option("RequiredRank", "The level the user needs to reach to be granted this role")]
+        long requiredRank,
+        [Option("Role", "The role to assign once the user reaches the required level")]
+        DiscordRole role)
     {
         var action = new RankRoleManagementAction(RankRoleManagementActionType.Create, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, role.Id, role.Name,
             (int)requiredRank);
@@ -54,16 +60,16 @@ public class RankRoleSlashCommands : InstrumentedApplicationCommandModule
     [SlashCommand("Remove", "Removes the given role from the list of rank roles")]
     [SlashCooldown(5, 60, SlashCooldownBucketType.Guild)]
     [SlashRequireUserPermissions(Permissions.ManageRoles)]
-    public async Task RemoveRankRole(InteractionContext context, [Option("Role", "The role to remove as a rank role")]DiscordRole role)
+    public async Task RemoveRankRole(InteractionContext context, [Option("Role", "The role to remove as a rank role")] DiscordRole role)
     {
         var action = new RankRoleManagementAction(RankRoleManagementActionType.Delete, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, role.Id, role.Name);
         await _rankRoleManagementChannel.Write(action, _cancellationService.Token);
     }
-    
+
     [SlashCommand("RemoveByName", "Removes the given role from the list of rank roles. Use this one if the role has been deleted")]
     [SlashCooldown(5, 60, SlashCooldownBucketType.Guild)]
     [SlashRequireUserPermissions(Permissions.ManageRoles)]
-    public async Task RemoveRankRole(InteractionContext context, [Option("RoleName", "The name of the role to remove as a rank role")]string roleName)
+    public async Task RemoveRankRole(InteractionContext context, [Option("RoleName", "The name of the role to remove as a rank role")] string roleName)
     {
         var action = new RankRoleManagementAction(RankRoleManagementActionType.Delete, new InteractionResponder(context, _errorHandlingService), context.Member, context.Guild, roleName);
         await _rankRoleManagementChannel.Write(action, _cancellationService.Token);

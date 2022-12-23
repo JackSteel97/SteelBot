@@ -21,6 +21,25 @@ public class User : UserBase
     public List<Trigger> CreatedTriggers { get; set; }
     public DateTime? LastUpdated { get; set; }
 
+    /// <summary>
+    ///     Empty constructor.
+    ///     Used by EF do not remove.
+    /// </summary>
+    public User() { }
+
+    public User(ulong userId, long guildRowId)
+    {
+        DiscordId = userId;
+        GuildRowId = guildRowId;
+        UserFirstSeen = DateTime.UtcNow;
+    }
+
+    public User Clone()
+    {
+        var userCopy = (User)MemberwiseClone();
+        return userCopy;
+    }
+
     #region TimeSpan Computers
 
     public TimeSpan TimeSpentInVoice
@@ -66,23 +85,4 @@ public class User : UserBase
     }
 
     #endregion TimeSpan Computers
-
-    /// <summary>
-    ///  Empty constructor.
-    ///  Used by EF do not remove.
-    /// </summary>
-    public User() { }
-
-    public User(ulong userId, long guildRowId)
-    {
-        DiscordId = userId;
-        GuildRowId = guildRowId;
-        UserFirstSeen = DateTime.UtcNow;
-    }
-
-    public User Clone()
-    {
-        var userCopy = (User)MemberwiseClone();
-        return userCopy;
-    }
 }

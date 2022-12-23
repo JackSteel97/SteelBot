@@ -29,10 +29,7 @@ public static class PetShared
             .WithColor(EmbedGenerator.InfoColour)
             .WithTitle($"{username} Owned Pets");
 
-        if (hasDisabledPets)
-        {
-            embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
-        }
+        if (hasDisabledPets) embedBuilder.WithFooter("Inactive pet's bonuses have no effect until you reach the required level in this server or activate bonus pet slots.");
 
         int petCapacity = GetPetCapacity(user, allPets);
         embedBuilder
@@ -45,7 +42,8 @@ public static class PetShared
     public static StringBuilder AppendPetDisplayShort(StringBuilder builder, Pet pet, bool active, double baseCapacity, double maxCapacity)
     {
         builder.Append(Formatter.Bold((pet.Priority + 1).Ordinalize())).Append(" - ").AppendLine(Formatter.Bold(pet.GetName().ToZalgo(pet.IsCorrupt)))
-            .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ').Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
+            .Append("Level ").Append(pet.CurrentLevel).Append(' ').Append(Formatter.Italic(pet.Rarity.ToString().ToZalgo(pet.IsCorrupt))).Append(' ')
+            .Append(pet.Species.GetName().ToZalgo(pet.IsCorrupt));
 
         if (!active)
         {
@@ -76,6 +74,7 @@ public static class PetShared
                 availablePets = orderedPets;
             }
         }
+
         return availablePets;
     }
 
@@ -93,20 +92,14 @@ public static class PetShared
     {
         int result = _startingPetSlots;
 
-        if (user != default)
-        {
-            result += user.CurrentLevel / _newPetSlotUnlockLevels;
-        }
+        if (user != default) result += user.CurrentLevel / _newPetSlotUnlockLevels;
         return result;
     }
 
     public static bool TryGetPetIdFromComponentId(string buttonId, out long petId)
     {
         string[] parts = buttonId.Split(':');
-        if (parts.Length == 2)
-        {
-            return long.TryParse(parts[1], out petId);
-        }
+        if (parts.Length == 2) return long.TryParse(parts[1], out petId);
         petId = default;
         return false;
     }
@@ -124,10 +117,7 @@ public static class PetShared
             for (int level = nextLevel; level <= pet.CurrentLevel; ++level)
             {
                 var newBonus = PetLevelledUp(pet, level, levelOfUser);
-                if (newBonus != null)
-                {
-                    newBonuses.Add(newBonus);
-                }
+                if (newBonus != null) newBonuses.Add(newBonus);
             }
         }
 
@@ -135,10 +125,7 @@ public static class PetShared
         {
             shouldPingOwner = true;
             changes.AppendLine(Formatter.Bold("Learned New Bonuses:"));
-            foreach (var newBonus in newBonuses)
-            {
-                PetDisplayHelpers.AppendBonusDisplay(changes, newBonus);
-            }
+            foreach (var newBonus in newBonuses) PetDisplayHelpers.AppendBonusDisplay(changes, newBonus);
         }
 
         return levelledUp;
@@ -151,13 +138,9 @@ public static class PetShared
         {
             string content = "";
             if (pingUser && !user.OptedOutOfMentions)
-            {
                 content = user.DiscordId.ToUserMention();
-            }
             else
-            {
                 changes.Insert(0, user.DiscordId.ToUserMention() + Environment.NewLine);
-            }
 
             var embed = new DiscordEmbedBuilder(EmbedGenerator.Info(changes.ToString(), "Pet Level Up"));
 
@@ -183,20 +166,12 @@ public static class PetShared
         var sb = new StringBuilder();
         sb.Append('[');
         if (progressedCharacterCount > 0)
-        {
             for (int i = 0; i < progressedCharacterCount; ++i)
-            {
                 sb.Append(progressCharacter);
-            }
-        }
 
         if (remainingCharacters > 0)
-        {
             for (int i = 0; i < remainingCharacters; ++i)
-            {
                 sb.Append(remainingCharacter);
-            }
-        }
         sb.Append(']').Append(" Level ").Append(pet.CurrentLevel + 1);
         return sb.ToString();
     }
@@ -207,20 +182,13 @@ public static class PetShared
         bool isRounded = targetType.IsRounded();
         double multiplier = isPercentage ? 1 : 0;
         foreach (var pet in activePets)
-        {
-            foreach (var bonus in pet.Bonuses)
+        foreach (var bonus in pet.Bonuses)
+            if (bonus.BonusType.HasFlag(targetType))
             {
-                if (bonus.BonusType.HasFlag(targetType))
-                {
-                    double value = bonus.Value;
-                    if (isRounded)
-                    {
-                        value = Math.Round(bonus.Value);
-                    }
-                    multiplier += value;
-                }
+                double value = bonus.Value;
+                if (isRounded) value = Math.Round(bonus.Value);
+                multiplier += value;
             }
-        }
 
         return multiplier;
     }
@@ -228,14 +196,8 @@ public static class PetShared
     public static List<PetWithActivation> Recombine(List<Pet> availablePets, List<Pet> disabledPets)
     {
         var combinedPets = new List<PetWithActivation>(availablePets.Count + disabledPets.Count);
-        if (availablePets.Count > 0)
-        {
-            combinedPets.AddRange(availablePets.ConvertAll(p => new PetWithActivation(p, true)));
-        }
-        if (disabledPets.Count > 0)
-        {
-            combinedPets.AddRange(disabledPets.ConvertAll(p => new PetWithActivation(p, false)));
-        }
+        if (availablePets.Count > 0) combinedPets.AddRange(availablePets.ConvertAll(p => new PetWithActivation(p, true)));
+        if (disabledPets.Count > 0) combinedPets.AddRange(disabledPets.ConvertAll(p => new PetWithActivation(p, false)));
         return combinedPets;
     }
 
@@ -249,11 +211,8 @@ public static class PetShared
     private static PetBonus PetLevelledUp(Pet pet, int level, int levelOfUser)
     {
         PetBonus newBonus = null;
-        double chanceToGenerateNewBonus = (((double)pet.Rarity) + 1) / 10;
-        if (level % 10 == 0 && MathsHelper.TrueWithProbability(chanceToGenerateNewBonus))
-        {
-            newBonus = GivePetNewBonus(pet, levelOfUser);
-        }
+        double chanceToGenerateNewBonus = ((double)pet.Rarity + 1) / 10;
+        if (level % 10 == 0 && MathsHelper.TrueWithProbability(chanceToGenerateNewBonus)) newBonus = GivePetNewBonus(pet, levelOfUser);
         ImproveCurrentPetBonuses(pet);
         return newBonus;
     }
@@ -267,9 +226,6 @@ public static class PetShared
 
     private static void ImproveCurrentPetBonuses(Pet pet)
     {
-        foreach (var bonus in pet.Bonuses)
-        {
-            bonus.LevelUp();
-        }
+        foreach (var bonus in pet.Bonuses) bonus.LevelUp();
     }
 }

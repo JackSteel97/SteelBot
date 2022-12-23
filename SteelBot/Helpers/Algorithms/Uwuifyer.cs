@@ -1,28 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SteelBot.Helpers.Algorithms;
 
 public static class Uwuifyer
 {
-    private static readonly string[] _faces = new string[]
-    { "(・`ω´・)",
-        ";;w;;",
-        "OwO",
-        "UwU",
-        ">w<",
-        "^w^",
-        "ÚwÚ",
-        "^-^",
-        ":3",
-        "x3"
-    };
+    private static readonly string[] _faces = { "(・`ω´・)", ";;w;;", "OwO", "UwU", ">w<", "^w^", "ÚwÚ", "^-^", ":3", "x3" };
 
-    private static readonly Random _random = new Random();
+    private static readonly Random _random = new();
 
     public static string Uwuify(string input, bool addFaces = true)
     {
@@ -48,10 +32,7 @@ public static class Uwuifyer
         output = output.Replace("have ", "haz ");
         output = output.Replace("HAVE ", "HAZ ");
 
-        if (addFaces)
-        {
-            output = $"{output} {GetRandomFace()}";
-        }
+        if (addFaces) output = $"{output} {GetRandomFace()}";
         return output;
     }
 
