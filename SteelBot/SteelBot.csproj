@@ -11,8 +11,8 @@
         <PlatformTarget>AnyCPU</PlatformTarget>
         <DebugType>portable</DebugType>
         <ImplicitUsings>disable</ImplicitUsings>
-        <PackageVersion>0.9.3.2</PackageVersion>
-        <AssemblyVersion>0.9.3.2</AssemblyVersion>
+        <PackageVersion>0.9.3.3</PackageVersion>
+        <AssemblyVersion>0.9.3.3</AssemblyVersion>
         <Deterministic>false</Deterministic>
         <PackageProjectUrl>https://github.com/JackSteel97/SteelBot</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/JackSteel97/SteelBot/blob/main/LICENSE</PackageLicenseUrl>
@@ -25,12 +25,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DSharpPlus" Version="4.4.0-nightly-01225" />
-        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.0-nightly-01225" />
-        <PackageReference Include="DSharpPlus.Interactivity" Version="4.4.0-nightly-01225" />
-        <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.0-nightly-01225" />
+        <PackageReference Include="DSharpPlus" Version="5.0.0-nightly-00009" />
+        <PackageReference Include="DSharpPlus.CommandsNext" Version="5.0.0-nightly-00009" />
+        <PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0-nightly-00009" />
+        <PackageReference Include="DSharpPlus.SlashCommands" Version="5.0.0-nightly-00009" />
         <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.1">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
