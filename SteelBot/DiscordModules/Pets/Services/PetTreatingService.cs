@@ -80,10 +80,10 @@ public class PetTreatingService
 
     private async Task HandleTreatGivenCore(PetCommandAction request, Pet pet, User user, double petTreatXpBonus)
     {
-        int xpGain;
+        double xpGain;
         using (_logger.BeginScope("Calculating Treat XP for User {UserId}, Pet {PetId} with Rarity {Rarity}", user.DiscordId, pet.RowId, pet.Rarity))
         {
-            xpGain = (int)PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, _logger);
+            xpGain = PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, _logger);
         }
 
         pet.EarnedXp += xpGain;

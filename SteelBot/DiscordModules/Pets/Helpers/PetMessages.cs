@@ -79,7 +79,7 @@ public static class PetMessages
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
     }
 
-    public static DiscordMessageBuilder GetPetTreatedMessage(Pet pet, int xpGain)
+    public static DiscordMessageBuilder GetPetTreatedMessage(Pet pet, double xpGain)
     {
         var embedBuilder = EmbedGenerator.Info($"{Formatter.Bold(pet.GetName())} Greatly enjoyed their treat and gained {xpGain:N0} XP", "Tasty!");
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
