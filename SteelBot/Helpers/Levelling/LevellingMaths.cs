@@ -8,7 +8,7 @@ namespace SteelBot.Helpers.Levelling;
 
 public static class LevellingMaths
 {
-    public static ulong XpForLevel(int level)
+    public static double XpForLevel(int level)
     {
         // XP = High-Level Scale + Low-Level Scale + Base Scale
         // High-Level Scale = (1.2^level)-1
@@ -17,15 +17,19 @@ public static class LevellingMaths
         double highLevelScale = Math.Pow(1.2, level) - 1;
         double lowLevelScale = Math.Pow(level, 2.5) * level;
         double baseScale = 500 * level;
-        return Convert.ToUInt64(Math.Round(highLevelScale + lowLevelScale + baseScale));
+        return Math.Round(highLevelScale + lowLevelScale + baseScale);
     }
 
-    public static double PetXpForLevel(int level, Rarity rarity)
+    public static double PetXpForLevel(int level, Rarity rarity, bool isCorrupt)
     {
         // Pets start at level 1.
         if (level == 1) return 0;
 
         double multiplier = 1 + ((rarity - Rarity.Rare) / 10D);
+        if (isCorrupt)
+        {
+            multiplier += 1;
+        }
 
         return XpForLevel(level) * multiplier;
     }
@@ -37,7 +41,7 @@ public static class LevellingMaths
         bool hasEnoughXp;
         do
         {
-            ulong requiredXp = XpForLevel(newLevel + 1);
+            double requiredXp = XpForLevel(newLevel + 1);
             hasEnoughXp = totalXp >= requiredXp;
             if (hasEnoughXp) ++newLevel;
         } while (hasEnoughXp);
@@ -45,14 +49,13 @@ public static class LevellingMaths
         return newLevel > currentLevel;
     }
 
-    public static bool UpdatePetLevel(int currentLevel, double totalXp, Rarity rarity, out int newLevel)
+    public static bool UpdatePetLevel(int currentLevel, double totalXp, Rarity rarity, bool isCorrupt, out int newLevel)
     {
         newLevel = currentLevel;
-
         bool hasEnoughXp;
         do
         {
-            double requiredXp = PetXpForLevel(newLevel + 1, rarity);
+            double requiredXp = PetXpForLevel(newLevel + 1, rarity, isCorrupt);
             hasEnoughXp = totalXp >= requiredXp;
             if (hasEnoughXp) ++newLevel;
         } while (hasEnoughXp);

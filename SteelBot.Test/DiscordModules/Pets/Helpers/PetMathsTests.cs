@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace SteelBot.Test.DiscordModules.Pets.Helpers;
 
@@ -24,11 +23,11 @@ public class PetMathsTests
     [InlineData(150, Rarity.Mythical)]
     public void CalculateTreatXp_ShouldBeWithinBounds(int petLevel, Rarity rarity)
     {
-        double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity);
-        double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity);
+        double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity, false);
+        double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity, false);
         double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
         var loggerMock = new Mock<ILogger>();
-        double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, loggerMock.Object);
+        double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, false, loggerMock.Object);
         xpGain.Should()
             .BeLessThan(xpRequiredToLevel)
             .And
@@ -47,8 +46,8 @@ public class PetMathsTests
     [InlineData(200, Rarity.Mythical)]
     public void CalculateTreatXp_DistributionShouldDeviateByLessThan3Percent(int petLevel, Rarity rarity)
     {
-        double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity);
-        double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity);
+        double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity, false);
+        double xpRequiredForThisLevel = LevellingMaths.PetXpForLevel(petLevel, rarity, false);
         double xpRequiredToLevel = xpRequiredForNextLevel - xpRequiredForThisLevel;
         var loggerMock = new Mock<ILogger>();
 
@@ -56,7 +55,7 @@ public class PetMathsTests
         var percentBucketCounter = new Dictionary<int, int>();
         for (int i = 0; i < iterations; ++i)
         {
-            double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, loggerMock.Object);
+            double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, false, loggerMock.Object);
             double gainPercent = (xpGain / xpRequiredToLevel) * 100;
 
             int roundedPercent = (int)Math.Round(gainPercent, MidpointRounding.AwayFromZero);

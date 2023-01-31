@@ -34,9 +34,10 @@ public class LevellingMathsTests
     [InlineData(50, 917_983)]
     [InlineData(70, 32_53_632)]
     [InlineData(100, 92_867_974)]
-    public void XpForLevel(int level, ulong expectedXp)
+    [InlineData(245, 2.508449034568226E+19)]
+    public void XpForLevel(int level, double expectedXp)
     {
-        ulong actualXp = LevellingMaths.XpForLevel(level);
+        double actualXp = LevellingMaths.XpForLevel(level);
 
         Assert.Equal(expectedXp, actualXp);
     }

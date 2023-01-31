@@ -49,14 +49,14 @@ public class LevelCardGenerator
 
     public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
     {
-        ulong xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
-        ulong xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
+        double xpForNextLevel = LevellingMaths.XpForLevel(user.CurrentLevel + 1);
+        double xpForThisLevel = LevellingMaths.XpForLevel(user.CurrentLevel);
 
-        ulong xpIntoThisLevel = 0;
+        double xpIntoThisLevel = 0;
         if (user.TotalXp > xpForThisLevel) xpIntoThisLevel = user.TotalXp - xpForThisLevel;
-        ulong xpToAchieveNextLevel = xpForNextLevel - xpForThisLevel;
+        double xpToAchieveNextLevel = xpForNextLevel - xpForThisLevel;
 
-        double progressToNextLevel = (xpIntoThisLevel / (double)xpToAchieveNextLevel * _xpBarWidth) + _xPadding + _avatarHeight;
+        double progressToNextLevel = (xpIntoThisLevel / xpToAchieveNextLevel * _xpBarWidth) + _xPadding + _avatarHeight;
 
         using (var avatar = await GetAvatar(member.GetAvatarUrl(ImageFormat.Auto, 256)))
         using (var image = new Image<Rgba32>(_width, _height))
@@ -93,7 +93,7 @@ public class LevelCardGenerator
 
                 // Remaining Xp text.
                 imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Left, VerticalAlignment.Center),
-                    $" / {xpForNextLevel.KiloFormat()}",
+                    $" / {Convert.ToUInt64(xpForNextLevel).KiloFormat()}",
                     _fonts.CreateFont(_fontName, _xpBarHeight - 12),
                     Color.LightGray,
                     xpBarMidpointX,

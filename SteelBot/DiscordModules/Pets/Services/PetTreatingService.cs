@@ -83,7 +83,7 @@ public class PetTreatingService
         double xpGain;
         using (_logger.BeginScope("Calculating Treat XP for User {UserId}, Pet {PetId} with Rarity {Rarity}", user.DiscordId, pet.RowId, pet.Rarity))
         {
-            xpGain = PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, _logger);
+            xpGain = PetMaths.CalculateTreatXp(pet.CurrentLevel, pet.Rarity, petTreatXpBonus, pet.IsCorrupt, _logger);
         }
 
         pet.EarnedXp += xpGain;

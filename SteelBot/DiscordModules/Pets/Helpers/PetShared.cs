@@ -108,7 +108,7 @@ public static class PetShared
     {
         shouldPingOwner = false;
         var newBonuses = new List<PetBonus>();
-        bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, out int newLevel);
+        bool levelledUp = LevellingMaths.UpdatePetLevel(pet.CurrentLevel, pet.EarnedXp, pet.Rarity, pet.IsCorrupt, out int newLevel);
         if (levelledUp)
         {
             changes.Append("Your pet ").Append(Formatter.Italic(pet.GetName())).Append(" advanced to level ").Append(Formatter.Bold(newLevel.ToString())).AppendLine(" and improved their abilities!");
@@ -153,8 +153,8 @@ public static class PetShared
         const string progressCharacter = EmojiConstants.Symbols.GreenSquare;
         const char remainingCharacter = '⬛';
 
-        double thisLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity);
-        double nextLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity);
+        double thisLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel, pet.Rarity, pet.IsCorrupt);
+        double nextLevelXp = LevellingMaths.PetXpForLevel(pet.CurrentLevel + 1, pet.Rarity, pet.IsCorrupt);
         double xpIntoThisLevel = pet.EarnedXp - thisLevelXp;
         double xpToLevelUp = nextLevelXp - thisLevelXp;
 
