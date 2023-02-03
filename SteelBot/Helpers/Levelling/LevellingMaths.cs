@@ -25,7 +25,7 @@ public static class LevellingMaths
         // Pets start at level 1.
         if (level == 1) return 0;
 
-        double multiplier = 1 + ((rarity - Rarity.Rare) / 10D);
+        double multiplier = 1 + (((rarity - Rarity.Rare) / 10D)*2);
         if (isCorrupt)
         {
             multiplier += 1;
