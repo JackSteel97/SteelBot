@@ -44,7 +44,7 @@ public class GuildsProvider
     {
         string prefix = _appConfigurationService.Application.DefaultCommandPrefix;
 
-        if (TryGetGuild(discordId, out var guild)) prefix = guild.CommandPrefix;
+        if (TryGetGuild(discordId, out var guild)) prefix = guild.CommandPrefix ?? prefix;
 
         return prefix;
     }
