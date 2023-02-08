@@ -236,8 +236,13 @@ public class BotMain : IHostedService
     }
 
 
-    private Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e) =>
-        _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
+    private async Task HandleSlashCommandInvoked(SlashCommandsExtension sender, SlashCommandInvokedEventArgs e)
+    {
+        if (e.Context.Guild != null)
+        {
+            await _userTrackingService.TrackUser(e.Context.Guild.Id, e.Context.User, e.Context.Guild, e.Context.Client);
+        }
+    }
 
     private Task HandleSlashCommandErrored(SlashCommandsExtension sender, SlashCommandErrorEventArgs args)
     {
@@ -267,6 +272,11 @@ public class BotMain : IHostedService
             else if (args.Exception is CommandRateLimitedException rateLimitedException)
             {
                 await args.Context.Member.SendMessageAsync(EmbedGenerator.Warning(rateLimitedException.Message));
+            }
+            else if (args.Context.Guild == null)
+            {
+                await args.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder(new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Error("Sorry, you can't use commands outside of a server"))).AsEphemeral());
             }
             else
             {
