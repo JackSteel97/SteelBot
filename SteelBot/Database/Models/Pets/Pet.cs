@@ -10,7 +10,7 @@ using System.Linq;
 namespace SteelBot.Database.Models.Pets;
 
 [DebuggerDisplay("{Rarity} {Species} {Name}")]
-public class Pet
+public class Pet : IEquatable<Pet>
 {
     public long RowId { get; set; }
     public ulong OwnerDiscordId { get; set; }
@@ -71,4 +71,28 @@ public class Pet
 
         return clone;
     }
+
+    /// <inheritdoc />
+    public bool Equals(Pet other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return RowId == other.RowId && OwnerDiscordId == other.OwnerDiscordId;
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((Pet)obj);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine(RowId, OwnerDiscordId);
+
+    public static bool operator ==(Pet left, Pet right) => Equals(left, right);
+
+    public static bool operator !=(Pet left, Pet right) => !Equals(left, right);
 }

@@ -6,6 +6,7 @@ using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.Helpers;
 using SteelBot.Services;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SteelBot.DiscordModules.Pets.Services;
@@ -38,30 +39,52 @@ public class PetDeathService
             return;
         }
 
+        var petsChanged = new HashSet<Pet>();
         foreach (var pet in allPets)
         {
-            bool died = await CheckPet(pet);
-            if (died)
+            bool died = CheckPet(pet);
+            if (!died) continue;
+            
+            var affectedPets = KillPet(pet, allPets);
+            foreach (var affectedPet in affectedPets)
             {
-                _levelMessageSender.SendPetDiedMessage(request.Guild, request.Member, pet);
+                petsChanged.Add(affectedPet);
             }
+            _levelMessageSender.SendPetDiedMessage(request.Guild, request.Member, pet);
+        }
+
+        if (petsChanged.Count > 0)
+        {
+            await _cache.Pets.UpdatePets(petsChanged);
         }
     }
 
-    private async Task<bool> CheckPet(Pet pet)
+    private bool CheckPet(Pet pet)
     {
         double chanceToDie = ChanceToDie(pet);
         if (!MathsHelper.TrueWithProbability(chanceToDie)) return false;
         
         _logger.LogInformation("Killing pet {PetId}, a {PetDescription}, with probability {ChanceToDie}", pet.RowId, pet.ShortDescription, chanceToDie);
-        await KillPet(pet);
         return true;
     }
 
-    private async Task KillPet(Pet pet)
+    private List<Pet> KillPet(Pet pet, List<Pet> allPets)
     {
         pet.IsDead = true;
-        await _cache.Pets.UpdatePet(pet);
+        var petsToUpdate = new List<Pet>(allPets.Count - pet.Priority);
+        foreach (var ownedPet in allPets)
+        {
+            if (ownedPet.Priority > pet.Priority)
+            {
+                _logger.LogDebug("Decreasing priority of pet {PetId} by 1 to {NewPriority}", ownedPet.RowId, ownedPet.Priority - 1);
+                --ownedPet.Priority;
+                petsToUpdate.Add(ownedPet);
+            } 
+        }
+        pet.Priority = allPets.Count;
+        _logger.LogDebug("Setting pet {PetId} priority to the end of the list, {LastPriority}", pet.RowId, pet.Priority);
+        petsToUpdate.Add(pet);
+        return petsToUpdate;
     }
 
     private double ChanceToDie(Pet pet)

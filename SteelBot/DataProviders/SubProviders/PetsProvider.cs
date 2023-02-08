@@ -46,7 +46,7 @@ public class PetsProvider
         using (_lock.ReaderLock())
         {
             userHasPets = _petsByUserId.TryGetValue(userDiscordId, out var indexedPets);
-            pets = userHasPets ? indexedPets.Values.ToList() : new List<Pet>();
+            pets = userHasPets ? indexedPets.Values.Where(p=>!p.IsDead).ToList() : new List<Pet>();
         }
 
         return userHasPets && pets.Count > 0;
@@ -57,7 +57,7 @@ public class PetsProvider
         bool userHasPets;
         using (_lock.ReaderLock())
         {
-            userHasPets = _petsByUserId.TryGetValue(userDiscordId, out var pets);
+            userHasPets = TryGetUsersPets(userDiscordId, out var pets);
             numberOfOwnedPets = userHasPets ? pets.Count : 0;
         }
 
@@ -98,7 +98,7 @@ public class PetsProvider
                 }
                 else
                 {
-                    _logger.LogError("Writing Pet [{PetName}] for User [{UserId}] to the database inserted no entities. The internal cache was not changed.", pet.GetName(), pet.OwnerDiscordId);
+                    _logger.LogError("Writing Pet [{PetName}] for User [{UserId}] to the database inserted no entities. The internal cache was not changed", pet.GetName(), pet.OwnerDiscordId);
                 }
             }
         }
@@ -124,7 +124,7 @@ public class PetsProvider
                 if (writtenCount > 0)
                     RemoveFromCache(pet);
                 else
-                    _logger.LogError("Deleting Pet [{PetName}] from User [{UserId}] from the database altered no entities. The internal cache was not changed.", pet.GetName(), pet.OwnerDiscordId);
+                    _logger.LogError("Deleting Pet [{PetName}] from User [{UserId}] from the database altered no entities. The internal cache was not changed", pet.GetName(), pet.OwnerDiscordId);
             }
         }
     }
@@ -194,7 +194,7 @@ public class PetsProvider
     private bool TryGetPetCore(ulong userDiscordId, long petId, out Pet pet)
     {
         pet = null;
-        return _petsByUserId.TryGetValue(userDiscordId, out var pets) && pets.TryGetValue(petId, out pet);
+        return _petsByUserId.TryGetValue(userDiscordId, out var pets) && pets.TryGetValue(petId, out pet) && !pet.IsDead;
     }
 
     private bool BotKnowsPet(ulong userDiscordId, long petId) => _petsByUserId.TryGetValue(userDiscordId, out var pets) && pets.ContainsKey(petId);
