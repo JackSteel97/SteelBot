@@ -9,22 +9,21 @@ namespace SteelBot.DiscordModules.Pets.Helpers;
 
 public static class PetMessages
 {
-    public static DiscordMessageBuilder GetPetOwnedSuccessMessage(DiscordMember owner, Pet pet)
-    {
-        string nameInsert = !string.IsNullOrWhiteSpace(pet.Name) ? Formatter.Italic(pet.Name) : Formatter.Italic(pet.Species.GetName());
-        var embedBuilder = new DiscordEmbedBuilder()
-            .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
-            .WithTitle("Congrats")
-            .WithDescription($"{owner.Mention} Congratulations on your new pet {nameInsert}");
-        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
-    }
-
     public static DiscordMessageBuilder GetPetRanAwayMessage(Pet pet)
     {
         var embedBuilder = new DiscordEmbedBuilder()
             .WithColor(new DiscordColor(pet.Rarity.GetColour(pet.IsCorrupt)))
             .WithTitle("It got away!")
             .WithDescription($"The {pet.Species.GetName()} ran away before you could befriend it.{Environment.NewLine}Better luck next time!");
+        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+    }
+    
+    public static DiscordMessageBuilder GetPetDiedMessage(Pet pet)
+    {
+        var embedBuilder = new DiscordEmbedBuilder()
+            .WithColor(EmbedGenerator.WarningColour)
+            .WithTitle("Pet Retired!")
+            .WithDescription($"Your {pet.Rarity.ToString()} {pet.Species.GetName()} \"{Formatter.Italic(pet.GetName())}\" has grown too old and left to retire peacefully.");
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
     }
 

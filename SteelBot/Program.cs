@@ -193,6 +193,7 @@ public static class Program
         serviceProvider.AddSingleton<PetSearchingService>();
         serviceProvider.AddSingleton<PetManagementService>();
         serviceProvider.AddSingleton<PetTreatingService>();
+        serviceProvider.AddSingleton<PetDeathService>();
 
         serviceProvider.AddSingleton<UserLockingService>();
         serviceProvider.AddSingleton<ErrorHandlingAsynchronousCommandExecutor>();

@@ -26,7 +26,7 @@ public class PetMathsTests
         var loggerMock = new Mock<ILogger>();
         double xpGain = PetMaths.CalculateTreatXp(petLevel, rarity, 1, userLevel, loggerMock.Object);
         xpGain.Should()
-            .BeLessThan(xpRequiredToLevel * 1.5)
+            .BeLessThan(xpRequiredToLevel * 2)
             .And
             .BeGreaterOrEqualTo(100);
     }

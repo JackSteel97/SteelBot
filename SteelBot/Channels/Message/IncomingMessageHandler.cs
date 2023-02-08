@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
+using SteelBot.Channels.Pets;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.AuditLog.Services;
 using SteelBot.DiscordModules.Pets;
@@ -19,14 +21,17 @@ public class IncomingMessageHandler
     private readonly RankRolesProvider _rankRolesProvider;
     private readonly TriggerDataHelper _triggerDataHelper;
     private readonly UsersProvider _usersProvider;
-
+    private readonly PetCommandsChannel _petCommandsChannel;
+    private readonly CancellationService _cancellationService;
     public IncomingMessageHandler(UsersProvider usersProvider,
         ILogger<IncomingMessageHandler> logger,
         LevelMessageSender levelMessageSender,
         PetsDataHelper petsDataHelper,
         TriggerDataHelper triggerDataHelper,
         RankRolesProvider rankRolesProvider,
-        AuditLogService auditLogService)
+        AuditLogService auditLogService,
+        PetCommandsChannel petCommandsChannel,
+        CancellationService cancellationService)
     {
         _usersProvider = usersProvider;
         _logger = logger;
@@ -35,6 +40,8 @@ public class IncomingMessageHandler
         _triggerDataHelper = triggerDataHelper;
         _rankRolesProvider = rankRolesProvider;
         _auditLogService = auditLogService;
+        _petCommandsChannel = petCommandsChannel;
+        _cancellationService = cancellationService;
     }
 
     public async Task HandleMessage(IncomingMessage messageArgs)
@@ -68,7 +75,9 @@ public class IncomingMessageHandler
 
             if (user.ConsecutiveDaysActive != copyOfUser.ConsecutiveDaysActive)
             {
-                // Streak changed.
+                // Streak changed - new day.
+                await _petCommandsChannel.Write(new PetCommandAction(PetCommandActionType.CheckForDeath, null, (DiscordMember)messageArgs.User, messageArgs.Guild), _cancellationService.Token);
+
                 ulong xpEarned = copyOfUser.UpdateStreakXp();
                 if (xpEarned > 0) _levelMessageSender.SendStreakMessage(messageArgs.Guild, messageArgs.User, copyOfUser.ConsecutiveDaysActive, xpEarned);
             }

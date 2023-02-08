@@ -28,15 +28,18 @@ public class Pet
     public bool IsCorrupt { get; set; }
     public List<PetAttribute> Attributes { get; set; }
     public List<PetBonus> Bonuses { get; set; }
+    public bool IsDead { get; set; }
 
     public bool IsPrimary => Priority == 0;
 
     public override string ToString()
     {
-        var age = DateTime.UtcNow - BornAt;
-
-        return $"A {Rarity} {age.Humanize(maxUnit: TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
+        return $"A {Rarity} {Age.Humanize(maxUnit: TimeUnit.Year)} old, {Size} {Species.GetName()} with\n\t{string.Join("\n\t", Attributes.Select(a => $"{a.Description} {a.Name}"))}";
     }
+
+    public string ShortDescription => $"{Size} {Rarity} {Species} - {Name} ({Age.Humanize(maxUnit: TimeUnit.Year)} old)";
+
+    public TimeSpan Age => DateTime.UtcNow - BornAt;
 
     public string GetName() => Name?.Trim() ?? $"Unnamed {Species.GetName()}";
 

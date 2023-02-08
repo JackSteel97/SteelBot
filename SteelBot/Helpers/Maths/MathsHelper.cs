@@ -11,7 +11,7 @@ public static class MathsHelper
 
     public static bool TrueWithProbability(double probability)
     {
-        const int maxBound = 10000;
+        const int maxBound = 10000000;
         return RandomNumberGenerator.GetInt32(maxBound) <= maxBound * probability;
     }
 

@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
+using SteelBot.Channels.Pets;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Pets;
 using SteelBot.DiscordModules.RankRoles.Helpers;
@@ -18,18 +19,24 @@ public class VoiceStateChangeHandler
     private readonly PetsDataHelper _petsDataHelper;
     private readonly RankRolesProvider _rankRolesProvider;
     private readonly UsersProvider _usersCache;
+    private readonly PetCommandsChannel _petCommandsChannel;
+    private readonly CancellationService _cancellationService;
 
     public VoiceStateChangeHandler(ILogger<VoiceStateChangeHandler> logger,
         UsersProvider usersCache,
         PetsDataHelper petsDataHelper,
         LevelMessageSender levelMessageSender,
-        RankRolesProvider rankRolesProvider)
+        RankRolesProvider rankRolesProvider,
+        PetCommandsChannel petCommandsChannel,
+        CancellationService cancellationService)
     {
         _logger = logger;
         _usersCache = usersCache;
         _petsDataHelper = petsDataHelper;
         _levelMessageSender = levelMessageSender;
         _rankRolesProvider = rankRolesProvider;
+        _petCommandsChannel = petCommandsChannel;
+        _cancellationService = cancellationService;
     }
 
     public async Task HandleVoiceStateChange(VoiceStateChange changeArgs)
@@ -39,7 +46,7 @@ public class VoiceStateChangeHandler
         (double baseScalingFactor, bool shouldEarnVideo) = GetVoiceXpScalingFactors(changeArgs.Guild.Id, changeArgs.User.Id, usersInChannel);
 
         // Update this user
-        await UpdateUser(changeArgs.Guild, changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
+        await UpdateUser(changeArgs.Guild, (DiscordMember)changeArgs.User, changeArgs.After, baseScalingFactor, shouldEarnVideo);
 
         await UpdateOtherUsersStats(changeArgs, usersInChannel);
         // If this user is changing channels to a new channel we need to update the stats of the users in the previous channel too if there are any.
@@ -57,7 +64,7 @@ public class VoiceStateChangeHandler
             }
     }
 
-    private async ValueTask UpdateUser(DiscordGuild guild, DiscordUser user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)
+    private async ValueTask UpdateUser(DiscordGuild guild, DiscordMember user, DiscordVoiceState voiceState, double scalingFactor, bool shouldEarnVideoXp)
     {
         if (await UpdateUserVoiceStats(guild, user, voiceState, scalingFactor, shouldEarnVideoXp))
             await RankRoleShared.UserLevelledUp(guild.Id, user.Id, guild, _rankRolesProvider, _usersCache, _levelMessageSender);
@@ -134,7 +141,7 @@ public class VoiceStateChangeHandler
         return (scalingFactor, shouldEarnVideoXp);
     }
 
-    private async ValueTask<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordUser discordUser, DiscordVoiceState newState, double scalingFactor, bool shouldEarnVideoXp)
+    private async ValueTask<bool> UpdateUserVoiceStats(DiscordGuild guild, DiscordMember discordUser, DiscordVoiceState newState, double scalingFactor, bool shouldEarnVideoXp)
     {
         ulong guildId = guild.Id;
         ulong userId = discordUser.Id;
@@ -147,9 +154,12 @@ public class VoiceStateChangeHandler
             var copyOfUser = user.Clone();
             var availablePets = _petsDataHelper.GetAvailablePets(guildId, userId, out _);
             copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor, shouldEarnVideoXp);
+
             if (user.ConsecutiveDaysActive != copyOfUser.ConsecutiveDaysActive)
             {
-                // Streak changed.
+                // Streak changed - new day.
+                await _petCommandsChannel.Write(new PetCommandAction(PetCommandActionType.CheckForDeath, null, discordUser, guild), _cancellationService.Token);
+
                 ulong xpEarned = copyOfUser.UpdateStreakXp();
                 if (xpEarned > 0) _levelMessageSender.SendStreakMessage(guild, discordUser, copyOfUser.ConsecutiveDaysActive, xpEarned);
             }

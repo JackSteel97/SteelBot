@@ -1,6 +1,8 @@
 ﻿using DSharpPlus.Entities;
 using SteelBot.Database.Models;
+using SteelBot.Database.Models.Pets;
 using SteelBot.DataProviders.SubProviders;
+using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 
@@ -47,6 +49,20 @@ public class LevelMessageSender
                         $"Use {guild.CommandPrefix}Stats Me to check your progress"))
                 .FireAndForget(_errorHandlingService);
         }
+    }
+    
+    public void SendPetDiedMessage(DiscordGuild discordGuild, DiscordUser discordUser, Pet pet)
+    {
+        if (!_guildsProvider.TryGetGuild(discordGuild.Id, out var guild) || !_usersProvider.TryGetUser(discordGuild.Id, discordUser.Id, out var user)) return;
+        var channel = guild.GetLevelAnnouncementChannel(discordGuild);
+
+        if (channel == null) return;
+
+        string content = "";
+        if (!user.OptedOutOfMentions) content = discordUser.Mention;
+        var message = PetMessages.GetPetDiedMessage(pet);
+        message.WithContent(content);
+        channel.SendMessageAsync(message).FireAndForget(_errorHandlingService);
     }
 
     public void SendRankChangeDueToDeletionMessage(DiscordGuild discordGuild, ulong userId, RankRole previousRole, ulong? newRoleId = null)

@@ -10,7 +10,8 @@ public enum PetCommandActionType
     Treat,
     ManageOne,
     ViewBonuses,
-    View
+    View,
+    CheckForDeath
 }
 
 public record PetCommandAction : BaseAction<PetCommandActionType>

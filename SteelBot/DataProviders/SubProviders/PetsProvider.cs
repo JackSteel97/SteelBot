@@ -162,7 +162,7 @@ public class PetsProvider
                 foreach (var newPet in pets)
                     UpdateInCache(newPet);
             else
-                _logger.LogError("Updating A collection of Pets did not alter any entities. The internal cache was not changed.");
+                _logger.LogError("Updating A collection of Pets did not alter any entities. The internal cache was not changed");
         }
     }
 
@@ -187,7 +187,7 @@ public class PetsProvider
             if (writtenCount > 0)
                 UpdateInCache(newPet);
             else
-                _logger.LogError("Updating Pet [{PetId}] with Owner [{UserId}] did not alter any entities. The internal cache was not changed.", newPet.RowId, newPet.OwnerDiscordId);
+                _logger.LogError("Updating Pet [{PetId}] with Owner [{UserId}] did not alter any entities. The internal cache was not changed", newPet.RowId, newPet.OwnerDiscordId);
         }
     }
 

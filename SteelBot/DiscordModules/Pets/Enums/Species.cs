@@ -55,7 +55,8 @@ public enum Species
     Beaver,
     RedPanda,
 
-    [Description("T-Rex")] Rex,
+    [Description("T-Rex")]
+    Rex,
 
     Phoenix,
     Pegasus,
@@ -85,7 +86,8 @@ public enum Species
     BlackPhantomTetra,
     Doge,
 
-    [Description("Yoda-ling")] Yodaling,
+    [Description("Yoda-ling")]
+    Yodaling,
     Rock,
     Ogre,
     Kraken,
@@ -186,6 +188,8 @@ public static class SpeciesExtensions
             Species.Dodo => Rarity.Rare,
             _ => throw new ArgumentOutOfRangeException(nameof(species), $"Species does not have a defined rarity for {species}")
         };
+
+    public static TimeSpan GetMaxAge(this Species species) => GetMaxStartingAge(species) * 3;
 
     public static TimeSpan GetMaxStartingAge(this Species species) =>
         species switch
