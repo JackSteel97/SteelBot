@@ -25,22 +25,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DSharpPlus" Version="4.4.0-nightly-01258" />
-        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.0-nightly-01258" />
-        <PackageReference Include="DSharpPlus.Interactivity" Version="4.4.0-nightly-01258" />
-        <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.0-nightly-01258" />
+        <PackageReference Include="DSharpPlus" Version="4.4.0-nightly-01362" />
+        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.0-nightly-01362" />
+        <PackageReference Include="DSharpPlus.Interactivity" Version="4.4.0-nightly-01362" />
+        <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.0-nightly-01362" />
         <PackageReference Include="Humanizer.Core" Version="2.14.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
         <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.1" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.3" />
         <PackageReference Include="RestSharp" Version="108.0.3" />
         <PackageReference Include="ScottPlot" Version="4.1.45" />
         <PackageReference Include="Serilog" Version="2.12.0" />
