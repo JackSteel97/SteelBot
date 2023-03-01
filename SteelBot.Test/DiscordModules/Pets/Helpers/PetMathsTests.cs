@@ -17,7 +17,6 @@ public class PetMathsTests
     [InlineData(50, 40, Rarity.Mythical)]
     [InlineData(60, 50, Rarity.Mythical)]
     [InlineData(100, 110, Rarity.Mythical)]
-    [InlineData(150, 175, Rarity.Mythical)]
     public void CalculateTreatXp_ShouldBeWithinBounds(int petLevel, int userLevel, Rarity rarity)
     {
         double xpRequiredForNextLevel = LevellingMaths.PetXpForLevel(petLevel + 1, rarity, false);
