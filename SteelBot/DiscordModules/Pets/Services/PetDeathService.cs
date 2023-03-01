@@ -92,10 +92,17 @@ public class PetDeathService
         if (pet.FoundAt.Date == DateTime.Today) return 0;
 
         double lifeProgress = pet.Age / pet.Species.GetMaxAge();
+        if (lifeProgress < 0.1)
+        {
+            _logger.LogDebug("Pet is too young, chance to die is zero");
+            return 0;
+        }
+       
+        double lifeProgressScaled = Math.Pow(lifeProgress, Math.E);
         double baseMultiplier = 1D / (pet.Rarity.GetStartingBonusCount() + (int)pet.Rarity + (int)pet.Size);
 
-        double chanceToDie = lifeProgress * baseMultiplier;
-        _logger.LogDebug("Chance to die is {ChanceToDie}, Life Progress is {LifeProgress}, Base Multiplier is {BaseMultiplier}", chanceToDie, lifeProgress, baseMultiplier);
+        double chanceToDie = lifeProgressScaled * baseMultiplier;
+        _logger.LogDebug("Chance to die is {ChanceToDie}, Life Progress is {LifeProgress}, after scaling it is {LifeProgressScaled}, Base Multiplier is {BaseMultiplier}", chanceToDie, lifeProgress, lifeProgressScaled, baseMultiplier);
         return chanceToDie;
     }
 }
