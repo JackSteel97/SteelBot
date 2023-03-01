@@ -1,10 +1,7 @@
 # SteelBot
-A Discord Bot
+A Discord Bot for use in my discord server
 
-This bot is in Alpha development stages and is subject to frequent changes.
-Currently it is NOT reccommended you add this bot to your own server as it is unstable and not suitable for general usage.
-
-Watch this space for future releases in late 2022.
+This is several years of messy development and I don't have time to refactor this to be nicely organised.
 
 ## Status
 [![Build & Test](https://github.com/JackSteel97/SteelBot/actions/workflows/dotnet-test.yml/badge.svg?branch=main)](https://github.com/JackSteel97/SteelBot/actions/workflows/dotnet-test.yml)
