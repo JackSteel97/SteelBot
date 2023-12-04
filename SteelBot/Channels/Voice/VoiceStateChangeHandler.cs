@@ -150,7 +150,7 @@ public class VoiceStateChangeHandler
         if (_usersCache.TryGetUser(guildId, userId, out var user))
         {
             _logger.LogInformation("Updating voice state for User {UserId} in Guild {GuildId}", userId, guildId);
-
+            
             var copyOfUser = user.Clone();
             var availablePets = _petsDataHelper.GetAvailablePets(guildId, userId, out _);
             copyOfUser.VoiceStateChange(newState, availablePets, scalingFactor, shouldEarnVideoXp);

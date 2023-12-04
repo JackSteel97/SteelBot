@@ -51,13 +51,11 @@ public class PetsDataHelper
 
                 args.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(PetMessages.GetNamingSuccessMessage(pet)))
                     .FireAndForget(_errorHandlingService);
-                args.Handled = true;
                 return;
             }
         }
 
         args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate).FireAndForget(_errorHandlingService);
-        ;
     }
 
     public async Task HandleMovingPet(ModalSubmitEventArgs args)
