@@ -1,9 +1,9 @@
-﻿using SixLabors.Fonts;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Numerics;
 
 namespace SteelBot.Helpers.Extensions;
 
@@ -53,7 +53,7 @@ public static class ImageContextExtensions
         return new PathCollection(cornerTopLeft, cornerBottomLeft, cornerTopRight, cornerBottomRight);
     }
 
-    public static void DrawRoundedRectangle(this IImageProcessingContext ctx, int width, int height, int topLeftX, int topLeftY, float roundingRadius, IBrush fillBrush)
+    public static void DrawRoundedRectangle(this IImageProcessingContext ctx, int width, int height, int topLeftX, int topLeftY, float roundingRadius, Brush fillBrush)
     {
         using (var roundedBar = new Image<Rgba32>(width, height))
         {
@@ -67,6 +67,12 @@ public static class ImageContextExtensions
         }
     }
 
-    public static void DrawSimpleText(this IImageProcessingContext ctx, DrawingOptions opts, string text, Font font, Color color, float x, float y) =>
-        ctx.DrawText(opts, text, font, color, new PointF(x, y));
+    /*public static void DrawSimpleText(this IImageProcessingContext ctx, RichTextOptions opts, string text, Color color, float x, float y) =>
+        ctx.DrawText(opts, text, color, new PointF(x, y));*/
+
+    public static void DrawSimpleText(this IImageProcessingContext ctx, RichTextOptions opts, string text, Color color, float x, float y)
+    {
+        opts.Origin = new Vector2(x, y);
+        ctx.DrawText(opts, text, color);
+    }
 }

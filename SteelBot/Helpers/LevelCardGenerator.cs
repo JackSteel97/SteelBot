@@ -28,7 +28,6 @@ public class LevelCardGenerator
     private const int _xpBarHeight = 35;
 
     private const int _y1 = _height - _yPadding - _xpBarHeight;
-    private const string _fontName = "Roboto";
 
     private static readonly int _avatarHeight = _height - (_yPadding * 2);
     private static readonly int _xpBarWidth = _width - (_xPadding * 2) - _avatarHeight;
@@ -41,10 +40,12 @@ public class LevelCardGenerator
     private static readonly LinearGradientBrush _gradientBrush = new(new PointF(0, 0), new PointF(0, _xpBarHeight), GradientRepetitionMode.Repeat, _xpGradient);
 
     private static readonly FontCollection _fonts = new();
+    private readonly FontFamily _robotoFont;
 
     public LevelCardGenerator(AppConfigurationService appConfigurationService)
     {
-        _fonts.Install(Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf"));
+        var fontPath = Path.Combine(appConfigurationService.BasePath, "Resources", "Fonts", "Roboto-Regular.ttf");
+        _robotoFont = _fonts.Add(fontPath);
     }
 
     public async Task<MemoryStream> GenerateCard(User user, DiscordMember member)
@@ -84,44 +85,40 @@ public class LevelCardGenerator
                 float xpBarMidpointX = _x1 + (_xpBarWidth / 2),
                     xpBarMidpointY = _y1 + (_xpBarHeight / 2);
                 // Current XP text.
-                imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Right, VerticalAlignment.Center),
+                imageContext.DrawSimpleText(GetOptions(_robotoFont.CreateFont(_xpBarHeight - 12), HorizontalAlignment.Right, VerticalAlignment.Center),
                     user.TotalXp.KiloFormat(),
-                    _fonts.CreateFont(_fontName, _xpBarHeight - 12),
                     Color.WhiteSmoke,
                     xpBarMidpointX,
                     xpBarMidpointY);
 
                 // Remaining Xp text.
-                imageContext.DrawSimpleText(GetOptions(HorizontalAlignment.Left, VerticalAlignment.Center),
+                imageContext.DrawSimpleText(GetOptions(_robotoFont.CreateFont(_xpBarHeight - 12), HorizontalAlignment.Left, VerticalAlignment.Center),
                     $" / {Convert.ToUInt64(xpForNextLevel).KiloFormat()}",
-                    _fonts.CreateFont(_fontName, _xpBarHeight - 12),
                     Color.LightGray,
                     xpBarMidpointX,
                     xpBarMidpointY);
 
                 // Current Level text.
-                var levelTextOpts = GetOptions(HorizontalAlignment.Right, VerticalAlignment.Top);
                 string levelText = $"Level {user.CurrentLevel}";
-                var levelFont = _fonts.CreateFont(_fontName, 48);
-                var levelMeasurements = TextMeasurer.Measure(levelText, new RendererOptions(levelFont));
-                imageContext.DrawText(levelTextOpts, levelText, levelFont, Color.WhiteSmoke, new PointF(_width - _xPadding, _yPadding));
+                var levelFont = _robotoFont.CreateFont(48);
+                var levelTextOpts = GetOptions(levelFont, HorizontalAlignment.Right, VerticalAlignment.Top);
+                var levelMeasurements = TextMeasurer.MeasureBounds(levelText, new TextOptions(levelFont));
+                imageContext.DrawSimpleText(levelTextOpts, levelText, Color.WhiteSmoke, _width - _xPadding, _yPadding);
 
                 // Username Text.
-                var usernameTextOpts = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom);
-                var usernameFont = _fonts.CreateFont(_fontName, 44);
-                var tagFont = _fonts.CreateFont(_fontName, 28);
-                var usernameMeasurements = TextMeasurer.Measure(member.Username, new RendererOptions(usernameFont));
-                imageContext.DrawText(usernameTextOpts, member.Username, usernameFont, Color.WhiteSmoke, new PointF(_avatarHeight + (_xPadding * 2), _y1 - (_xPadding * 2)));
-                imageContext.DrawText(usernameTextOpts, $" #{member.Discriminator}", tagFont, Color.Gray,
-                    new PointF(_avatarHeight + (_xPadding * 2) + usernameMeasurements.Width, _y1 - (_xPadding * 2)));
+                var usernameFont = _robotoFont.CreateFont(44);
+                var usernameTextOpts = GetOptions(usernameFont, HorizontalAlignment.Left, VerticalAlignment.Bottom);
+                var usernameMeasurements = TextMeasurer.MeasureBounds(member.Username, new TextOptions(usernameFont));
+                imageContext.DrawSimpleText(usernameTextOpts, member.Username, Color.WhiteSmoke, _avatarHeight + (_xPadding * 2), _y1 - (_xPadding * 2));
 
-                var topRole = member.Roles.OrderByDescending(r => r.Position).FirstOrDefault();
+                var topRole = member.Roles.MaxBy(r => r.Position);
                 if (topRole != default)
                 {
-                    var serverRoleOptions = GetOptions(HorizontalAlignment.Left, VerticalAlignment.Bottom, _width - _avatarHeight - (_xPadding * 2) - levelMeasurements.Width);
+                    var serverRoleOptions = GetOptions(_robotoFont.CreateFont(28), HorizontalAlignment.Left, VerticalAlignment.Bottom,
+                        _width - _avatarHeight - (_xPadding * 2) - levelMeasurements.Width);
+                    
                     imageContext.DrawSimpleText(serverRoleOptions,
                         topRole.Name,
-                        _fonts.CreateFont(_fontName, 28),
                         Color.FromRgb(topRole.Color.R, topRole.Color.G, topRole.Color.B),
                         _avatarHeight + (_xPadding * 2),
                         _y1 - (_yPadding * 2) - usernameMeasurements.Height);
@@ -135,11 +132,10 @@ public class LevelCardGenerator
         }
     }
 
-    private static DrawingOptions GetOptions(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
+    private RichTextOptions GetOptions(Font font, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, float? wrapWidth = null)
     {
-        var opts = new DrawingOptions { TextOptions = new TextOptions { HorizontalAlignment = horizontalAlignment, VerticalAlignment = verticalAlignment } };
-        if (wrapWidth.HasValue) opts.TextOptions.WrapTextWidth = wrapWidth.Value;
-        return opts;
+        var textOpts = new RichTextOptions(font) { HorizontalAlignment = horizontalAlignment, VerticalAlignment = verticalAlignment, WrappingLength = wrapWidth ?? -1 };
+        return textOpts;
     }
 
     private static async Task<Image> GetAvatar(string avatarUrl)
