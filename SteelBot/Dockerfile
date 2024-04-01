@@ -14,7 +14,7 @@ RUN dotnet publish "SteelBot.csproj" --self-contained true -c $BUILD_CONFIGURATI
 FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim-arm64v8 AS final
 ENV DOTNET_RUNNING_IN_CONTAINER=true \
         COMPlus_EnableDiagnostics=0
-ENV VERIBOTENVIRONMENT=Development
+ENV STEELBOTENVIRONMENT=Test
 
 USER $APP_UID
 WORKDIR /app
