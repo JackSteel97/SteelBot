@@ -8,12 +8,14 @@ using SteelBot.DiscordModules.RankRoles.Helpers;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace SteelBot.Channels.Message;
 
 public class IncomingMessageHandler
 {
+    private static readonly Random _rand = new();
     private readonly AuditLogService _auditLogService;
     private readonly LevelMessageSender _levelMessageSender;
     private readonly ILogger<IncomingMessageHandler> _logger;
@@ -52,6 +54,7 @@ public class IncomingMessageHandler
         if (levelledUp) await RankRoleShared.UserLevelledUp(messageArgs.Guild.Id, messageArgs.User.Id, messageArgs.Guild, _rankRolesProvider, _usersProvider, _levelMessageSender);
 
         await _triggerDataHelper.HandleNewMessage(messageArgs.Guild.Id, messageArgs.Message.Channel, messageArgs.Message.Content);
+        await TriggerMessagePetDiscovery(messageArgs);
     }
 
     private async ValueTask<bool> UpdateMessageCounters(IncomingMessage messageArgs)
@@ -89,4 +92,17 @@ public class IncomingMessageHandler
 
         return levelIncreased;
     }
+
+    private async Task TriggerMessagePetDiscovery(IncomingMessage messageArgs)
+    {
+        string[] allWords = messageArgs.Message.Content?.Split(" ");
+        if (allWords == null || allWords.Length < 3)
+        {
+            return;
+        }
+        int maxIdx = allWords.Length;
+        int randIdx = _rand.Next(0, maxIdx);
+        string triggerWord = allWords[randIdx];
+        await _petCommandsChannel.Write(new PetCommandAction(PetCommandActionType.MessageBasedPetDiscovery, null, (DiscordMember)messageArgs.User, messageArgs.Guild, triggerWord), _cancellationService.Token);
+    } 
 }

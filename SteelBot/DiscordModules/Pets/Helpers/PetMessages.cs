@@ -18,13 +18,21 @@ public static class PetMessages
         return new DiscordMessageBuilder().WithEmbed(embedBuilder);
     }
     
-    public static DiscordMessageBuilder GetPetDiedMessage(Pet pet)
+    public static DiscordEmbedBuilder GetPetDiedMessage(Pet pet)
     {
         var embedBuilder = new DiscordEmbedBuilder()
             .WithColor(EmbedGenerator.WarningColour)
             .WithTitle("Pet Retired!")
             .WithDescription($"Your {pet.Rarity.ToString()} {pet.Species.GetName()} \"{Formatter.Italic(pet.GetName())}\" has grown too old and left to retire peacefully.");
-        return new DiscordMessageBuilder().WithEmbed(embedBuilder);
+        return embedBuilder;
+    }
+    
+    public static DiscordEmbedBuilder GetPetSummonedMessage(Pet pet, DiscordUser user)
+    {
+        var petDisplay = PetDisplayHelpers.GetPetDisplayEmbed(pet);
+
+        petDisplay.WithDescription($"As {user.Mention} uttered the word `{pet.Name}` a {pet.Size} {pet.Species} emerged from the bushes and attached themselves to {user.Mention}, it seems that is their name...");
+        return petDisplay;
     }
 
     public static DiscordMessageBuilder GetBefriendFailedMessage(Pet pet)

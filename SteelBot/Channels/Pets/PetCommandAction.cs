@@ -11,17 +11,27 @@ public enum PetCommandActionType
     ManageOne,
     ViewBonuses,
     View,
-    CheckForDeath
+    CheckForDeath,
+    MessageBasedPetDiscovery,
 }
 
 public record PetCommandAction : BaseAction<PetCommandActionType>
 {
     public DiscordMember Target { get; }
     public long PetId { get; init; }
+    public string TriggerWord { get; init; }
+    
 
     public PetCommandAction(PetCommandActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, DiscordMember target = null)
         : base(action, responder, member, guild)
     {
+        Target = target ?? member;
+    }
+    
+    public PetCommandAction(PetCommandActionType action, IResponder responder, DiscordMember member, DiscordGuild guild, string triggerWord, DiscordMember target = null)
+        : base(action, responder, member, guild)
+    {
+        TriggerWord = triggerWord;
         Target = target ?? member;
     }
 

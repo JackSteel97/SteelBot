@@ -60,9 +60,22 @@ public class LevelMessageSender
 
         string content = "";
         if (!user.OptedOutOfMentions) content = discordUser.Mention;
-        var message = PetMessages.GetPetDiedMessage(pet);
-        message.WithContent(content);
-        channel.SendMessageAsync(message).FireAndForget(_errorHandlingService);
+        var embed = PetMessages.GetPetDiedMessage(pet);
+        channel.SendMessageAsync(content, embed).FireAndForget(_errorHandlingService);
+    }
+    
+    public void SendPetSummonedMessage(DiscordGuild discordGuild, DiscordUser discordUser, Pet pet)
+    {
+        if (!_guildsProvider.TryGetGuild(discordGuild.Id, out var guild) || !_usersProvider.TryGetUser(discordGuild.Id, discordUser.Id, out var user)) return;
+        var channel = guild.GetLevelAnnouncementChannel(discordGuild);
+
+        if (channel == null) return;
+
+        string content = "";
+        if (!user.OptedOutOfMentions) content = $"{discordUser.Mention} ";
+        content += "Pet Summoned!";
+        var embed = PetMessages.GetPetSummonedMessage(pet, discordUser);
+        channel.SendMessageAsync(content, embed).FireAndForget(_errorHandlingService);
     }
 
     public void SendRankChangeDueToDeletionMessage(DiscordGuild discordGuild, ulong userId, RankRole previousRole, ulong? newRoleId = null)

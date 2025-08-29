@@ -20,7 +20,7 @@ public static class PetSpaceHelper
         return canReplace;
     }
 
-    private static (int capacity, int allPetsCount) GetCapacityAndAllPetsCount(DiscordMember user, UsersProvider usersProvider, PetsProvider petsProvider)
+    public static (int capacity, int allPetsCount) GetCapacityAndAllPetsCount(DiscordMember user, UsersProvider usersProvider, PetsProvider petsProvider)
     {
         int capacity = 0;
         int allPetsCount = 0;

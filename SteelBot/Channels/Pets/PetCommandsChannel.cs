@@ -14,6 +14,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
     private readonly PetTreatingService _treatingService;
     private readonly PetViewingService _viewingService;
     private readonly PetDeathService _petDeathService;
+    private readonly PetMessageDiscoveryService _petMessageDiscoveryService;
 
     /// <inheritdoc />
     public PetCommandsChannel(PetSearchingService searchingService,
@@ -24,6 +25,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         ILogger<PetCommandsChannel> logger,
         ErrorHandlingService errorHandlingService,
         PetDeathService petDeathService,
+        PetMessageDiscoveryService petMessageDiscoveryService,
         string channelLabel = "Pets") : base(logger, errorHandlingService, channelLabel)
     {
         _searchingService = searchingService;
@@ -32,6 +34,7 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
         _viewingService = viewingService;
         _bonusViewingService = bonusViewingService;
         _petDeathService = petDeathService;
+        _petMessageDiscoveryService = petMessageDiscoveryService;
     }
 
     /// <inheritdoc />
@@ -61,6 +64,9 @@ public class PetCommandsChannel : BaseChannel<PetCommandAction>
                     break;
                 case PetCommandActionType.CheckForDeath:
                     await _petDeathService.RunCheck(message);
+                    break;
+                case PetCommandActionType.MessageBasedPetDiscovery:
+                    await _petMessageDiscoveryService.RunCheck(message);
                     break;
             }
         }).FireAndForget(ErrorHandlingService);
