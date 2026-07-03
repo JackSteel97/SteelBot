@@ -75,7 +75,7 @@ public class PetMessageDiscoveryService
         double probabilityAdderFromMessage = triggerWord.Length / 100d;
 
         double finalProbability = (0.5d * probabilityMultiplierFromPetSpace) + probabilityAdderFromMessage;
-
+        _logger.LogDebug("Probability calculated for summoning a pet for {DiscordUserId} is {Probability}", member.Id, finalProbability);
         return MathsHelper.TrueWithProbability(finalProbability);
     }
 }

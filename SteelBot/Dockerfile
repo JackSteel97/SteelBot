@@ -15,6 +15,7 @@ FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim-a
 ENV DOTNET_RUNNING_IN_CONTAINER=true \
         COMPlus_EnableDiagnostics=0
 ENV STEELBOTENVIRONMENT=Test
+RUN mkdir -p "app/Logs"
 
 USER $APP_UID
 WORKDIR /app

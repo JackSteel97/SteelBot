@@ -95,14 +95,17 @@ public class IncomingMessageHandler
 
     private async Task TriggerMessagePetDiscovery(IncomingMessage messageArgs)
     {
+        _logger.LogDebug("Triggered Message Pet Discovery flow");
         string[] allWords = messageArgs.Message.Content?.Split(" ");
         if (allWords == null || allWords.Length < 3)
         {
+            _logger.LogDebug("Skipping message pet discovery because the message content is not long enough");
             return;
         }
         int maxIdx = allWords.Length;
         int randIdx = _rand.Next(0, maxIdx);
         string triggerWord = allWords[randIdx];
+        _logger.LogDebug("Picked random word from message content with maximum index: {MaxIndex}, Random Index chosen: {RandomIndex}, corresponding word: {TriggerWord}", maxIdx, randIdx, triggerWord);
         await _petCommandsChannel.Write(new PetCommandAction(PetCommandActionType.MessageBasedPetDiscovery, null, (DiscordMember)messageArgs.User, messageArgs.Guild, triggerWord), _cancellationService.Token);
     } 
 }
