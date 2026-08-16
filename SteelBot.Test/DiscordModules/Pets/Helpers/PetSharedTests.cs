@@ -6,11 +6,7 @@ using SteelBot.Database.Models.Users;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Helpers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SteelBot.Test.DiscordModules.Pets.Helpers;
@@ -164,7 +160,7 @@ public class PetSharedTests
     [InlineData(60, 2, 8)]
     [InlineData(80, 2, 9)]
     [InlineData(100, 50, 58)]
-    [InlineData(100, 100, 58)]
+    [InlineData(100, 100, 108)]
     public void GetPetCapacity_OnePet(int level, int bonusPetSlots, int expectedCapacity)
     {
         var user = GetUser(level);

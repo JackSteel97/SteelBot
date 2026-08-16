@@ -118,7 +118,7 @@ public static class PetDisplayHelpers
             char bonusSign = char.MinValue;
             if (bonusValue >= 0) bonusSign = '+';
             bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize().ToZalgo(isCorrupt)).Append(": ").Append(bonusSign)
-                .Append(bonusValue.ToString(bonusValueFormat)).Append('`');
+                .Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine();
         }
 
         return bonuses;
