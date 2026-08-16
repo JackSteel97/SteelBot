@@ -82,8 +82,7 @@ public static class PetShared
     {
         int baseCapacity = GetBasePetCapacity(user);
         int bonusCapacity = (int)Math.Round(GetBonusValue(allPets, BonusType.PetSlots));
-        int cappedBonusCapacity = Math.Min(50, bonusCapacity); // Cap at +50.
-        int summedCapacity = baseCapacity + cappedBonusCapacity;
+        int summedCapacity = baseCapacity + bonusCapacity;
         int actualCapacity = Math.Max(1, summedCapacity); // Can't go less than 1 slot.
         return actualCapacity;
     }

@@ -86,6 +86,7 @@ public class PetSearchingService
         if (!_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var user)) return (false, null, null);
 
         var foundPet = _petFactory.Generate(user.CurrentLevel);
+        foundPet = await HandlePetCorruptionChance(request, foundPet);
 
         var response = BuildResponse(foundPet, mustReplaceToBefriend);
         var message = await request.Responder.RespondAsync(response);
@@ -102,6 +103,17 @@ public class PetSearchingService
         message.ModifyAsync(response).FireAndForget(_errorHandlingService);
         return (result.Result.Id == InteractionIds.Pets.Befriend, foundPet, result.Result.Interaction);
     }
+    
+    private async ValueTask<Pet> HandlePetCorruptionChance(PetCommandAction request, Pet pet)
+    {
+        if (!PetCorrupted() || !_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var ownerUser)) return pet;
+
+        _logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
+        pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
+        return pet;
+    }
+    
+    private static bool PetCorrupted() => MathsHelper.TrueWithProbability(0.001);
 
     private DiscordMessageBuilder BuildResponse(Pet foundPet, bool mustReplaceToBefriend)
     {

@@ -1,10 +1,6 @@
 ﻿using FluentAssertions;
 using SteelBot.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SteelBot.Test.Helpers.Maths;
@@ -13,6 +9,7 @@ public class MathsHelperTests
 {
     [Theory]
     [InlineData(0)]
+    [InlineData(0.001)]
     [InlineData(0.1)]
     [InlineData(0.2)]
     [InlineData(0.3)]

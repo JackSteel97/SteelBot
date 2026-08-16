@@ -5,7 +5,6 @@ using SteelBot.Database.Models.Pets;
 using SteelBot.Database.Models.Users;
 using SteelBot.DataProviders;
 using SteelBot.DiscordModules.Pets.Enums;
-using SteelBot.DiscordModules.Pets.Generation;
 using SteelBot.DiscordModules.Pets.Helpers;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Constants;
@@ -57,26 +56,12 @@ public class PetBefriendingService
         if (befriendSuccess)
         {
             _logger.LogInformation("User {UserId} in Guild {GuildId} successfully befriended a {Rarity} pet with Id {PetId}", request.Member.Id, request.Guild.Id, foundPet.Rarity, foundPet.RowId);
-            foundPet = await HandlePetCorruptionChance(request, foundPet);
-
             await PetModals.NamePet(interaction, foundPet);
         }
         else
         {
             request.Responder.Respond(PetMessages.GetBefriendFailedMessage(foundPet));
         }
-    }
-
-    private async ValueTask<Pet> HandlePetCorruptionChance(PetCommandAction request, Pet pet)
-    {
-        if (!PetCorrupted() || !_cache.Users.TryGetUser(request.Guild.Id, request.Member.Id, out var ownerUser)) return pet;
-
-        _logger.LogInformation("Pet {PetId} became corrupted after being befriended", pet.RowId);
-        pet = PetBonusFactory.Corrupt(pet, ownerUser.CurrentLevel);
-        await _cache.Pets.UpdatePet(pet);
-        request.Responder.Respond(PetMessages.GetPetCorruptedMessage(pet));
-
-        return pet;
     }
 
     private async Task<(bool befriendSuccess, DiscordInteraction interaction)> HandleReplacingBefriend(PetCommandAction request, Pet newPet)
@@ -170,5 +155,5 @@ public class PetBefriendingService
         return finalRate;
     }
 
-    private static bool PetCorrupted() => MathsHelper.TrueWithProbability(0.001);
+    
 }

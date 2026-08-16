@@ -117,12 +117,8 @@ public static class PetDisplayHelpers
         {
             char bonusSign = char.MinValue;
             if (bonusValue >= 0) bonusSign = '+';
-
-            string bonusSuffix = "";
-            if (bonus.BonusType == BonusType.PetSlots && bonusValue > 50) bonusSuffix = " (Capped at +50)";
-
             bonuses.Append(emoji).Append(" - ").Append('`').Append(bonus.BonusType.Humanize().Titleize().ToZalgo(isCorrupt)).Append(": ").Append(bonusSign)
-                .Append(bonusValue.ToString(bonusValueFormat)).Append('`').AppendLine(bonusSuffix);
+                .Append(bonusValue.ToString(bonusValueFormat)).Append('`');
         }
 
         return bonuses;

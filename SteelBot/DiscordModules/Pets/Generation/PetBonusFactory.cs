@@ -175,5 +175,5 @@ public static class PetBonusFactory
         return RandomNumberGenerator.GetInt32(1, maxValue) / maxDoubleVal;
     }
 
-    private static double ScaleCorruptBonus(double value, Rarity rarity) => value * RandomNumberGenerator.GetInt32(2, 3 + (int)rarity);
+    private static double ScaleCorruptBonus(double value, Rarity rarity) => value * RandomNumberGenerator.GetInt32(2, 3 + (int)rarity) * RandomNumberGenerator.GetInt32(1, 100);
 }
