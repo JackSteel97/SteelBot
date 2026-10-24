@@ -1,7 +1,6 @@
 ﻿using SteelBot.Channels.Stats;
 using SteelBot.DataProviders.SubProviders;
 using SteelBot.DiscordModules.Stats.Helpers;
-using SteelBot.Helpers;
 using SteelBot.Services;
 using System;
 using System.Threading.Tasks;
@@ -10,15 +9,13 @@ namespace SteelBot.DiscordModules.Stats.Services;
 
 public class StatsCardService
 {
-    private readonly LevelCardGenerator _levelCardGenerator;
     private readonly UserLockingService _userLockingService;
     private readonly UsersProvider _usersProvider;
 
-    public StatsCardService(UserLockingService userLockingService, UsersProvider usersProvider, LevelCardGenerator levelCardGenerator)
+    public StatsCardService(UserLockingService userLockingService, UsersProvider usersProvider)
     {
         _userLockingService = userLockingService;
         _usersProvider = usersProvider;
-        _levelCardGenerator = levelCardGenerator;
     }
 
     public async Task View(StatsCommandAction request)
@@ -33,11 +30,8 @@ public class StatsCardService
                 return;
             }
 
-            using (var imageStream = await _levelCardGenerator.GenerateCard(user, request.Target))
-            {
-                var message = StatsMessages.StatsCard(user, request.Target.Username, imageStream);
-                request.Responder.Respond(message);
-            }
+            var message = StatsMessages.StatsCard(user, request.Target.Username);
+            request.Responder.Respond(message);
         }
     }
 }

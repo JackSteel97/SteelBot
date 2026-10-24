@@ -32,7 +32,6 @@ using SteelBot.DiscordModules.Stats.Services;
 using SteelBot.DiscordModules.Triggers;
 using SteelBot.DiscordModules.Utility;
 using SteelBot.DSharpPlusOverrides;
-using SteelBot.Helpers;
 using SteelBot.Helpers.Levelling;
 using SteelBot.RateLimiting;
 using SteelBot.Services;
@@ -163,7 +162,6 @@ public static class Program
         // TODO: Scope services?
         // Add custom services.
         serviceProvider.AddSingleton<UserTrackingService>();
-        serviceProvider.AddSingleton<LevelCardGenerator>();
         serviceProvider.AddSingleton<PetFactory>();
 
         serviceProvider.AddSingleton<ErrorHandlingService>();

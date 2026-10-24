@@ -1,5 +1,4 @@
 ﻿using Humanizer;
-using Humanizer.Localisation;
 using SteelBot.DiscordModules.Pets.Enums;
 using System;
 using System.Collections.Generic;

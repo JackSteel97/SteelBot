@@ -6,7 +6,6 @@ using SteelBot.DiscordModules.Stats.Models;
 using SteelBot.Helpers;
 using SteelBot.Helpers.Extensions;
 using System;
-using System.IO;
 using System.Text;
 
 namespace SteelBot.DiscordModules.Stats.Helpers;
@@ -70,14 +69,11 @@ public static class StatsMessages
         return embedBuilder;
     }
 
-    public static DiscordMessageBuilder StatsCard(User user, string username, MemoryStream imageStream)
+    public static DiscordMessageBuilder StatsCard(User user, string username)
     {
         var embedBuilder = GetStatsEmbed(user, username);
-
-        string fileName = $"{user.DiscordId}_stats.png";
         return new DiscordMessageBuilder()
-            .AddFile(fileName, imageStream)
-            .WithEmbed(embedBuilder.WithImageUrl($"attachment://{fileName}").Build());
+            .WithEmbed(embedBuilder);
     }
 
     public static DiscordMessageBuilder NoEntriesLeaderboard() => new DiscordMessageBuilder().WithEmbed(EmbedGenerator.Warning("You cannot get a leaderboard with no entries."));

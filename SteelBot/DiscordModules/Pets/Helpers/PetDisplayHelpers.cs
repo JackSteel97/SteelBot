@@ -2,7 +2,6 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using Humanizer;
-using Humanizer.Localisation;
 using SteelBot.Database.Models.Pets;
 using SteelBot.DiscordModules.Pets.Enums;
 using SteelBot.DiscordModules.Pets.Models;

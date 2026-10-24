@@ -27,6 +27,6 @@ public class PetMathsTests
         xpGain.Should()
             .BeLessThan(xpRequiredToLevel * 2)
             .And
-            .BeGreaterOrEqualTo(100);
+            .BeGreaterThanOrEqualTo(100);
     }
 }

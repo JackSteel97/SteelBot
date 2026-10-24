@@ -1,7 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using Humanizer;
-using Humanizer.Localisation;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SteelBot.DataProviders;
